@@ -1,0 +1,32 @@
+package com.zincoid.me.service;
+
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.zincoid.me.model.dto.LoginRequest;
+import com.zincoid.me.model.dto.RegisterRequest;
+import com.zincoid.me.model.dto.UpdateUserRequest;
+import com.zincoid.me.model.po.User;
+import com.zincoid.me.model.vo.LoginVO;
+import com.zincoid.me.model.vo.PageVO;
+import com.zincoid.me.model.vo.UserCardVO;
+import com.zincoid.me.model.vo.UserDetailVO;
+
+public interface UserService extends IService<User> {
+
+    LoginVO register(RegisterRequest request);
+
+    LoginVO login(LoginRequest request);
+
+    void logout(String token);
+
+    PageVO<UserCardVO> list(int page, int size);
+
+    UserDetailVO get(Long userId);
+
+    UserDetailVO update(Long userId, UpdateUserRequest request);
+
+    void delete(Long userId);
+
+    void changePassword(Long userId, String oldPassword, String newPassword);
+
+    boolean isTokenRevoked(String token);
+}

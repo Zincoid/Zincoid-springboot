@@ -1,0 +1,38 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: Zincoid-springboot
+
+  profiles:
+    active: prod
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${zincoid.database.url}
+    username: ${zincoid.database.username}
+    password: ${zincoid.database.password}
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: ${zincoid.upload.max-size}
+      max-request-size: 200MB
+
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+    default-property-inclusion: non_null
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+
+# JWT
+jwt:
+  secret: ${zincoid.jwt.secret}
+  expiration: ${zincoid.jwt.expiration}
+
+# File
+upload:
+  path: ${zincoid.upload.path}

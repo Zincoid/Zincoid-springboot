@@ -18,5 +18,5 @@ public interface FileService extends IService<File> {
 
     void delete(RelatedType relatedType, Long relatedId);
 
-    void cleanup();
+    void cleanup(boolean isLogic);
 }

@@ -2,8 +2,14 @@ package com.zincoid.me.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zincoid.me.mapper.ArticleMapper;
+import com.zincoid.me.mapper.MomentMapper;
 import com.zincoid.me.mapper.UploadFileMapper;
+import com.zincoid.me.mapper.UserMapper;
+import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.File;
+import com.zincoid.me.model.po.Moment;
+import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.FileType;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.vo.FileVO;
@@ -25,6 +31,16 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
 
     @Value("${upload.path:./uploads}")
     private String uploadPath;
+
+    private final MomentMapper momentMapper;
+    private final ArticleMapper articleMapper;
+    private final UserMapper userMapper;
+
+    public FileServiceImpl(MomentMapper momentMapper, ArticleMapper articleMapper, UserMapper userMapper) {
+        this.momentMapper = momentMapper;
+        this.articleMapper = articleMapper;
+        this.userMapper = userMapper;
+    }
 
     @Override
     @Transactional
@@ -94,7 +110,7 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
 
     @Override
     @Transactional
-    public void cleanup() {
+    public void cleanup(boolean isLogic) {
         List<File> allFiles = list();
         Set<String> dbPaths = allFiles.stream().map(File::getFilePath).collect(Collectors.toSet());
         Set<String> diskFiles = FileUtil.list(uploadPath);
@@ -111,13 +127,34 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
             }
         }
         List<File> unlinked = lambdaQuery()
-                .and(w -> w.isNull(File::getRelatedType)
-                        .or().isNull(File::getRelatedId))
+                .and(w -> w.isNull(File::getRelatedType).or().isNull(File::getRelatedId))
                 .list();
         for (File file : unlinked) {
             FileUtil.delete(file.getFilePath(), uploadPath);
             removeById(file.getId());
             log.info("Removed unlinked file and record: {}", file.getFilePath());
         }
+        if (isLogic) {
+            List<File> linked = lambdaQuery()
+                    .isNotNull(File::getRelatedType)
+                    .isNotNull(File::getRelatedId)
+                    .list();
+            for (File file : linked) {
+                if (!businessExists(file)) {
+                    FileUtil.delete(file.getFilePath(), uploadPath);
+                    removeById(file.getId());
+                    log.info("Removed file for deleted entity: ({}:{}) {}", file.getRelatedType(), file.getRelatedId(), file.getFilePath());
+                }
+            }
+        }
+    }
+
+    private boolean businessExists(File file) {
+        Long id = file.getRelatedId();
+        return switch (file.getRelatedType()) {
+            case MOMENT -> momentMapper.selectCount(new LambdaQueryWrapper<Moment>().eq(Moment::getId, id)) > 0;
+            case ARTICLE -> articleMapper.selectCount(new LambdaQueryWrapper<Article>().eq(Article::getId, id)) > 0;
+            case AVATAR -> userMapper.selectCount(new LambdaQueryWrapper<User>().eq(User::getId, id)) > 0;
+        };
     }
 }

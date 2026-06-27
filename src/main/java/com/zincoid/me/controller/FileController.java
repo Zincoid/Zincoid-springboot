@@ -26,9 +26,9 @@ public class FileController {
     }
 
     @DeleteMapping("/cleanup")
-    public ApiResponse<Void> cleanupFiles() {
+    public ApiResponse<Void> cleanupFiles(@RequestParam(defaultValue = "false") boolean isLogic) {
         AuthCtx.requireAdmin();
-        fileService.cleanup();
+        fileService.cleanup(isLogic);
         return ApiResponse.success();
     }
 }

@@ -19,6 +19,6 @@ Personal website backend, built with Spring Boot 4.1 + MyBatis-Plus.
 java -jar target/Zincoid-springboot-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod
 ```
 
-Server starts at `http://localhost:8080`.
+Server starts at `http://localhost:8081`.
 
 > The frontend is a separate Vue 3 project — see `Zincoid-vue`.

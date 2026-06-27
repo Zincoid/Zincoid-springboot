@@ -1,22 +1,19 @@
 package com.zincoid.me.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.zincoid.me.mapper.ArticleMapper;
-import com.zincoid.me.mapper.MomentMapper;
 import com.zincoid.me.mapper.UploadFileMapper;
-import com.zincoid.me.mapper.UserMapper;
-import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.File;
-import com.zincoid.me.model.po.Moment;
-import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.FileType;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.vo.FileVO;
+import com.zincoid.me.service.ArticleService;
 import com.zincoid.me.service.FileService;
+import com.zincoid.me.service.MomentService;
+import com.zincoid.me.service.UserService;
 import com.zincoid.me.utils.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,14 +29,16 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
     @Value("${upload.path:./uploads}")
     private String uploadPath;
 
-    private final MomentMapper momentMapper;
-    private final ArticleMapper articleMapper;
-    private final UserMapper userMapper;
+    private final MomentService momentService;
+    private final ArticleService articleService;
+    private final UserService userService;
 
-    public FileServiceImpl(MomentMapper momentMapper, ArticleMapper articleMapper, UserMapper userMapper) {
-        this.momentMapper = momentMapper;
-        this.articleMapper = articleMapper;
-        this.userMapper = userMapper;
+    public FileServiceImpl(@Lazy MomentService momentService,
+                           @Lazy ArticleService articleService,
+                           @Lazy UserService userService) {
+        this.momentService = momentService;
+        this.articleService = articleService;
+        this.userService = userService;
     }
 
     @Override
@@ -149,12 +148,14 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
         }
     }
 
+    // ──────── Private tool ────────────────────────────────
+
     private boolean businessExists(File file) {
         Long id = file.getRelatedId();
         return switch (file.getRelatedType()) {
-            case MOMENT -> momentMapper.selectCount(new LambdaQueryWrapper<Moment>().eq(Moment::getId, id)) > 0;
-            case ARTICLE -> articleMapper.selectCount(new LambdaQueryWrapper<Article>().eq(Article::getId, id)) > 0;
-            case AVATAR -> userMapper.selectCount(new LambdaQueryWrapper<User>().eq(User::getId, id)) > 0;
+            case MOMENT -> momentService.getById(id) != null;
+            case ARTICLE -> articleService.getById(id) != null;
+            case AVATAR -> userService.getById(id) != null;
         };
     }
 }

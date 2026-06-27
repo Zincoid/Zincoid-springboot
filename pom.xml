@@ -32,7 +32,7 @@
 
     <!-- 项目属性 -->
     <properties>
-        <java.version>26</java.version>
+        <java.version>21</java.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <mybatis-plus.version>3.5.15</mybatis-plus.version>
     </properties>

@@ -111,8 +111,8 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
             }
         }
         List<File> unlinked = lambdaQuery()
-                .isNull(File::getRelatedType)
-                .isNull(File::getRelatedId)
+                .and(w -> w.isNull(File::getRelatedType)
+                        .or().isNull(File::getRelatedId))
                 .list();
         for (File file : unlinked) {
             FileUtil.delete(file.getFilePath(), uploadPath);

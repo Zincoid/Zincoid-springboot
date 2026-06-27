@@ -3,8 +3,8 @@ package com.zincoid.me.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.vo.PageVO;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.UserMapper;
 import com.zincoid.me.converter.UserConverter;
@@ -58,6 +58,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .nickname(request.getNickname() != null ? request.getNickname() : request.getUsername())
+                .role(Role.USER)  // 无法回填需手动设置
                 .build();
         save(user);
         log.info("User registered: {}", user.getUsername());

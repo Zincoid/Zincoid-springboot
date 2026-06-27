@@ -19,3 +19,8 @@ zincoid:
   upload:
     path: ./files                                   # 文件保存路径
     max-size: 200MB                                 # 文件大小限制
+
+  # ─────────────────────────── 日志记录 ─────────────────────────── #
+  logging:
+    level: INFO                                     # 日志级别
+    path: ./output.log                              # 日志路径

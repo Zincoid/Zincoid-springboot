@@ -57,18 +57,6 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         this.mdTool = mdTool;
     }
 
-    private List<String> extractUploadPaths(String content) {
-        if (content == null || content.isBlank()) return List.of();
-        List<String> paths = new ArrayList<>();
-        Matcher m = MD_IMAGE_PATTERN.matcher(content);
-        while (m.find()) paths.add(m.group(1));
-        return paths;
-    }
-
-    private void deleteFileByUrl(String url) {
-        fileService.delete(url);
-    }
-
     @Override
     @Transactional
     public ArticleDetailVO create(Long userId, ArticleCreateRequest request) {
@@ -79,20 +67,12 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
                 .contentHtml(mdTool.renderToHtml(request.getContentMd()))
                 .summary(request.getSummary())
                 .coverImage(request.getCoverImage())
-                .isPinned(false)
-                .status(request.getStatus() != null ? request.getStatus() : Status.ACTIVE)
-                .viewCount(0L)
                 .build();
-
         save(article);
-
-        List<String> paths = new ArrayList<>();
-        if (article.getCoverImage() != null && article.getCoverImage().startsWith("/uploads/"))
-            paths.add(article.getCoverImage());
-        paths.addAll(extractUploadPaths(article.getContentMd()));
-        if (!paths.isEmpty())
-            fileService.link(paths, RelatedType.ARTICLE, article.getId());
-
+        List<String> urls = new ArrayList<>();
+        if (article.getCoverImage() != null) urls.add(article.getCoverImage());
+        urls.addAll(extractUploadUrls(article.getContentMd()));
+        if (!urls.isEmpty()) fileService.link(urls, RelatedType.ARTICLE, article.getId());
         log.info("Article created by user {}: {}", userId, article.getId());
         return buildDetailVO(article);
     }
@@ -105,38 +85,28 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             throw new BusinessException(404, "Article not found");
         if (!article.getUserId().equals(userId))
             throw new BusinessException(403, "You can only edit your own articles");
-
         if (request.getTitle() != null) article.setTitle(request.getTitle());
         if (request.getContentMd() != null) {
-            Set<String> oldPaths = new HashSet<>(extractUploadPaths(article.getContentMd()));
+            Set<String> oldUrls = new HashSet<>(extractUploadUrls(article.getContentMd()));
             article.setContentMd(request.getContentMd());
             article.setContentHtml(mdTool.renderToHtml(request.getContentMd()));
-            Set<String> newPaths = new HashSet<>(extractUploadPaths(article.getContentMd()));
-            for (String oldPath : oldPaths) {
-                if (!newPaths.contains(oldPath)) {
-                    deleteFileByUrl(oldPath);
-                }
-            }
+            Set<String> newUrls = new HashSet<>(extractUploadUrls(article.getContentMd()));
+            for (String oldUrl : oldUrls)
+                if (!newUrls.contains(oldUrl)) fileService.delete(oldUrl);
         }
         if (request.getSummary() != null) article.setSummary(request.getSummary());
         if (request.getCoverImage() != null) {
             String oldCover = article.getCoverImage();
             article.setCoverImage(request.getCoverImage());
-            if (oldCover != null && !oldCover.equals(request.getCoverImage())) {
-                deleteFileByUrl(oldCover);
-            }
+            if (oldCover != null && !oldCover.equals(request.getCoverImage()))
+                fileService.delete(oldCover);
         }
         if (request.getStatus() != null) article.setStatus(request.getStatus());
-
         updateById(article);
-
-        List<String> paths = new ArrayList<>();
-        if (article.getCoverImage() != null && article.getCoverImage().startsWith("/uploads/"))
-            paths.add(article.getCoverImage());
-        paths.addAll(extractUploadPaths(article.getContentMd()));
-        if (!paths.isEmpty())
-            fileService.link(paths, RelatedType.ARTICLE, article.getId());
-
+        List<String> urls = new ArrayList<>();
+        if (article.getCoverImage() != null) urls.add(article.getCoverImage());
+        urls.addAll(extractUploadUrls(article.getContentMd()));
+        if (!urls.isEmpty()) fileService.link(urls, RelatedType.ARTICLE, article.getId());
         return buildDetailVO(article);
     }
 
@@ -144,19 +114,13 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Transactional
     public void delete(Long userId, Long articleId, boolean isAdmin) {
         Article article = getById(articleId);
-
         if (article == null)
             throw new BusinessException(404, "Article not found");
         if (!isAdmin && !article.getUserId().equals(userId))
             throw new BusinessException(403, "No permission to delete this article");
-
         likeService.delete(RelatedType.ARTICLE, articleId);
         commentService.delete(RelatedType.ARTICLE, articleId);
         fileService.delete(RelatedType.ARTICLE, articleId);
-        deleteFileByUrl(article.getCoverImage());
-        for (String path : extractUploadPaths(article.getContentMd())) {
-            deleteFileByUrl(path);
-        }
         removeById(articleId);
         log.info("Article deleted: {}", articleId);
     }
@@ -182,7 +146,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Override
     public PageVO<ArticleCardVO> list(int page, int size) {
         Page<Article> articlePage = page(
-                new Page<>(page, size),
+                Page.of(page, size),
                 new LambdaQueryWrapper<Article>()
                         .eq(Article::getStatus, Status.ACTIVE)
                         .orderByDesc(Article::getIsPinned)
@@ -193,7 +157,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Override
     public PageVO<ArticleCardVO> list(Long userId, int page, int size) {
         Page<Article> articlePage = page(
-                new Page<>(page, size),
+                Page.of(page, size),
                 new LambdaQueryWrapper<Article>()
                         .eq(Article::getUserId, userId)
                         .eq(Article::getStatus, Status.ACTIVE)
@@ -209,6 +173,16 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         baseMapper.addViewCount(articleId);
         article.setViewCount(article.getViewCount() + 1);
         return buildDetailVO(article);
+    }
+
+    // ──────── Private tool ────────────────────────────────
+
+    private List<String> extractUploadUrls(String content) {
+        if (content == null || content.isBlank()) return List.of();
+        List<String> paths = new ArrayList<>();
+        Matcher m = MD_IMAGE_PATTERN.matcher(content);
+        while (m.find()) paths.add(m.group(1));
+        return paths;
     }
 
     private ArticleCardVO buildCardVO(Article article) {

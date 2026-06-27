@@ -12,9 +12,9 @@ public interface FileService extends IService<File> {
 
     FileVO upload(Long userId, MultipartFile file, RelatedType relatedType, Long relatedId);
 
-    void link(List<String> filePaths, RelatedType relatedType, Long relatedId);
+    void link(List<String> filePathsOrUrls, RelatedType relatedType, Long relatedId);
 
-    void delete(String filePath);
+    void delete(String filePathOrUrl);
 
     void delete(RelatedType relatedType, Long relatedId);
 

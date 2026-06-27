@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.model.vo.PageVO;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zincoid.me.converter.MomentConverter;
 import com.zincoid.me.exception.BusinessException;
@@ -74,30 +73,24 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
     @Transactional
     public MomentCardVO update(Long userId, Long momentId, MomentUpdateRequest request) {
         Moment moment = getById(momentId);
-        if (moment == null || moment.getStatus() == Status.DISABLED) {
+        if (moment == null || moment.getStatus() == Status.DISABLED)
             throw new BusinessException(404, "Moment not found");
-        }
-        if (!moment.getUserId().equals(userId)) {
+        if (!moment.getUserId().equals(userId))
             throw new BusinessException(403, "You can only edit your own moments");
-        }
-
-        if (request.getContent() != null) moment.setContent(request.getContent());
+        if (request.getContent() != null)
+            moment.setContent(request.getContent());
         if (request.getImages() != null) {
-            List<String> oldImages = parseImages(moment.getImages());
+            List<String> oldImages = JsonUtil.parseImages(moment.getImages());
             Set<String> oldSet = new HashSet<>(oldImages);
             Set<String> newSet = new HashSet<>(request.getImages());
-            for (String oldPath : oldSet) {
-                if (!newSet.contains(oldPath)) {
+            for (String oldPath : oldSet)
+                if (!newSet.contains(oldPath))
                     fileService.delete(oldPath);
-                }
-            }
             moment.setImages(JsonUtil.toJson(request.getImages()));
             List<String> newPaths = new ArrayList<>(newSet);
-            if (!newPaths.isEmpty()) {
+            if (!newPaths.isEmpty())
                 fileService.link(newPaths, RelatedType.MOMENT, moment.getId());
-            }
         }
-
         updateById(moment);
         return buildCardVO(moment);
     }
@@ -106,13 +99,10 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
     @Transactional
     public void delete(Long userId, Long momentId, boolean isAdmin) {
         Moment moment = getById(momentId);
-        if (moment == null || moment.getStatus() == Status.DISABLED) {
+        if (moment == null || moment.getStatus() == Status.DISABLED)
             throw new BusinessException(404, "Moment not found");
-        }
-        if (!isAdmin && !moment.getUserId().equals(userId)) {
+        if (!isAdmin && !moment.getUserId().equals(userId))
             throw new BusinessException(403, "No permission to delete this moment");
-        }
-
         likeService.delete(RelatedType.MOMENT, momentId);
         commentService.delete(RelatedType.MOMENT, momentId);
         fileService.delete(RelatedType.MOMENT, momentId);
@@ -123,9 +113,8 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
     @Override
     public void pin(Long momentId) {
         Moment moment = getById(momentId);
-        if (moment == null || moment.getStatus() == Status.DISABLED) {
+        if (moment == null || moment.getStatus() == Status.DISABLED)
             throw new BusinessException(404, "Moment not found");
-        }
         moment.setIsPinned(true);
         updateById(moment);
     }
@@ -133,9 +122,8 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
     @Override
     public void unpin(Long momentId) {
         Moment moment = getById(momentId);
-        if (moment == null) {
+        if (moment == null)
             throw new BusinessException(404, "Moment not found");
-        }
         moment.setIsPinned(false);
         updateById(moment);
     }
@@ -143,7 +131,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
     @Override
     public PageVO<MomentCardVO> list(int page, int size) {
         Page<Moment> momentPage = page(
-                new Page<>(page, size),
+                Page.of(page, size),
                 new LambdaQueryWrapper<Moment>()
                         .eq(Moment::getStatus, Status.ACTIVE)
                         .orderByDesc(Moment::getIsPinned)
@@ -154,7 +142,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
     @Override
     public PageVO<MomentCardVO> list(Long userId, int page, int size) {
         Page<Moment> momentPage = page(
-                new Page<>(page, size),
+                Page.of(page, size),
                 new LambdaQueryWrapper<Moment>()
                         .eq(Moment::getUserId, userId)
                         .eq(Moment::getStatus, Status.ACTIVE)
@@ -177,20 +165,13 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
         return MomentConverter.INSTANCE.toDetailVO(moment, user, isLiked, likeCount, comments, recentLikers);
     }
 
+    // ──────── Private tool ────────────────────────────────
+
     private MomentCardVO buildCardVO(Moment moment) {
         User user = userService.getById(moment.getUserId());
         int commentCount = (int) commentService.count(RelatedType.MOMENT, moment.getId());
         long likeCount = likeService.count(RelatedType.MOMENT, moment.getId());
         boolean isLiked = likeService.liked(AuthCtx.getUserId(), RelatedType.MOMENT, moment.getId());
         return MomentConverter.INSTANCE.toCardVO(moment, user, isLiked, likeCount, commentCount);
-    }
-
-    private List<String> parseImages(String imagesJson) {
-        if (imagesJson == null || imagesJson.isBlank()) return List.of();
-        try {
-            return objectMapper.readValue(imagesJson, new TypeReference<List<String>>() {});
-        } catch (Exception e) {
-            return List.of();
-        }
     }
 }

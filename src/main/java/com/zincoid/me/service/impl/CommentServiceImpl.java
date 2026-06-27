@@ -1,6 +1,7 @@
 package com.zincoid.me.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.CommentMapper;
 import com.zincoid.me.model.po.Comment;
@@ -19,33 +20,30 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class CommentServiceImpl implements CommentService {
+public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> implements CommentService {
 
-    private final CommentMapper commentMapper;
     private final UserService userService;
 
-    public CommentServiceImpl(CommentMapper commentMapper, @Lazy UserService userService) {
-        this.commentMapper = commentMapper;
+    public CommentServiceImpl(@Lazy UserService userService) {
         this.userService = userService;
     }
 
     @Override
     public List<CommentVO> list(RelatedType targetType, Long targetId) {
-        List<Comment> comments = commentMapper.selectList(
-                new LambdaQueryWrapper<Comment>()
-                        .eq(Comment::getTargetType, targetType)
-                        .eq(Comment::getTargetId, targetId)
-                        .orderByAsc(Comment::getCreatedAt));
-
+        List<Comment> comments = lambdaQuery()
+                .eq(Comment::getTargetType, targetType)
+                .eq(Comment::getTargetId, targetId)
+                .orderByAsc(Comment::getCreatedAt)
+                .list();
         return buildCommentTree(comments);
     }
 
     @Override
     public long count(RelatedType targetType, Long targetId) {
-        return commentMapper.selectCount(
-                new LambdaQueryWrapper<Comment>()
-                        .eq(Comment::getTargetType, targetType)
-                        .eq(Comment::getTargetId, targetId));
+        return lambdaQuery()
+                .eq(Comment::getTargetType, targetType)
+                .eq(Comment::getTargetId, targetId)
+                .count();
     }
 
     @Override
@@ -58,43 +56,39 @@ public class CommentServiceImpl implements CommentService {
                 .content(content)
                 .parentId(parentId)
                 .build();
-
-        commentMapper.insert(comment);
+        save(comment);
         return toCommentVO(comment, List.of());
     }
 
     @Override
     @Transactional
     public void delete(Long userId, Long commentId, boolean isAdmin) {
-        Comment comment = commentMapper.selectById(commentId);
-        if (comment == null) {
+        Comment comment = getById(commentId);
+        if (comment == null)
             throw new BusinessException(404, "Comment not found");
-        }
-        if (!isAdmin && !comment.getUserId().equals(userId)) {
+        if (!isAdmin && !comment.getUserId().equals(userId))
             throw new BusinessException(403, "You can only delete your own comments");
-        }
-        commentMapper.delete(new LambdaQueryWrapper<Comment>().eq(Comment::getParentId, commentId));
-        commentMapper.deleteById(commentId);
+        lambdaUpdate().eq(Comment::getParentId, commentId).remove();
+        removeById(commentId);
         log.info("Comment deleted: {}", commentId);
     }
 
     @Override
     @Transactional
     public void delete(RelatedType targetType, Long targetId) {
-        commentMapper.delete(
-                new LambdaQueryWrapper<Comment>()
-                        .eq(Comment::getTargetType, targetType)
-                        .eq(Comment::getTargetId, targetId));
+        lambdaUpdate()
+                .eq(Comment::getTargetType, targetType)
+                .eq(Comment::getTargetId, targetId)
+                .remove();
         log.info("Deleted all comments for {}:{}", targetType, targetId);
     }
 
-    // ---- Tree builder ----
+    // ──────── Tree builder ────────────────────────────────
 
     private List<CommentVO> buildCommentTree(List<Comment> comments) {
         List<Comment> roots = comments.stream()
                 .filter(c -> c.getParentId() == null)
                 .toList();
-
         return roots.stream()
                 .map(root -> buildNode(root, comments))
                 .toList();
@@ -105,9 +99,10 @@ public class CommentServiceImpl implements CommentService {
                 .filter(c -> comment.getId().equals(c.getParentId()))
                 .map(c -> buildNode(c, all))
                 .toList();
-
         return toCommentVO(comment, replies);
     }
+
+    // ──────── Private tool ────────────────────────────────
 
     private CommentVO toCommentVO(Comment comment, List<CommentVO> replies) {
         User user = userService.getById(comment.getUserId());

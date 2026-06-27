@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -29,33 +28,30 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
 
     @Override
     public boolean liked(Long userId, RelatedType targetType, Long targetId) {
-        if (userId == null) return false;
-        long c = count(new LambdaQueryWrapper<Like>()
+        if (userId == null || targetType == null || targetId == null) return false;
+        return lambdaQuery()
                 .eq(Like::getUserId, userId)
                 .eq(Like::getTargetType, targetType)
-                .eq(Like::getTargetId, targetId));
-        return c > 0;
+                .eq(Like::getTargetId, targetId)
+                .exists();
     }
 
     @Override
     @Transactional
     public boolean toggle(Long userId, RelatedType targetType, Long targetId) {
-        LambdaQueryWrapper<Like> wrapper = new LambdaQueryWrapper<Like>()
+        Like existing = lambdaQuery()
                 .eq(Like::getUserId, userId)
                 .eq(Like::getTargetType, targetType)
-                .eq(Like::getTargetId, targetId);
-
-        Like existing = getOne(wrapper);
+                .eq(Like::getTargetId, targetId)
+                .one();
         if (existing != null) {
             removeById(existing.getId());
             return false;
         }
-
         Like like = Like.builder()
                 .userId(userId)
                 .targetType(targetType)
                 .targetId(targetId)
-                .createdAt(LocalDateTime.now())
                 .build();
         save(like);
         return true;
@@ -63,27 +59,28 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
 
     @Override
     public long count(RelatedType targetType, Long targetId) {
-        return count(new LambdaQueryWrapper<Like>()
+        return lambdaQuery()
                 .eq(Like::getTargetType, targetType)
-                .eq(Like::getTargetId, targetId));
+                .eq(Like::getTargetId, targetId)
+                .count();
     }
 
     @Override
     @Transactional
     public void delete(RelatedType targetType, Long targetId) {
-        remove(new LambdaQueryWrapper<Like>()
+        lambdaUpdate()
                 .eq(Like::getTargetType, targetType)
-                .eq(Like::getTargetId, targetId));
+                .eq(Like::getTargetId, targetId)
+                .remove();
     }
 
     @Override
     public List<LikerVO> getLikers(RelatedType targetType, Long targetId, int limit) {
-        List<Like> likes = page(new Page<>(1, limit),
+        List<Like> likes = page(Page.of(1, limit),
                 new LambdaQueryWrapper<Like>()
                         .eq(Like::getTargetType, targetType)
                         .eq(Like::getTargetId, targetId)
                         .orderByDesc(Like::getCreatedAt)).getRecords();
-
         return likes.stream().map(like -> {
             User user = userService.getById(like.getUserId());
             if (user == null) return null;

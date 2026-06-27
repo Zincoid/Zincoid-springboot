@@ -175,6 +175,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return revokedTokens.containsKey(token);
     }
 
+    // ──────── Private tool ────────────────────────────────
+
     private User getById(Long userId) {
         User user = super.getById(userId);
         if (user == null) throw new BusinessException(404, "User not found");

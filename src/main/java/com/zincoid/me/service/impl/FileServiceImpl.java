@@ -54,13 +54,13 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
     @Transactional
     public void link(List<String> filePathsOrUrls, RelatedType relatedType, Long relatedId) {
         if (filePathsOrUrls == null || filePathsOrUrls.isEmpty()) return;
-        List<String> cleanPaths = filePathsOrUrls.stream()
+        List<String> paths = filePathsOrUrls.stream()
                 .map(p -> p.startsWith("/uploads/") ? p.substring("/uploads/".length()) : p)
                 .toList();
         lambdaUpdate()
                 .isNull(File::getRelatedType)
                 .isNull(File::getRelatedId)
-                .in(File::getFilePath, cleanPaths)
+                .in(File::getFilePath, paths)
                 .set(File::getRelatedType, relatedType)
                 .set(File::getRelatedId, relatedId)
                 .update();
@@ -68,13 +68,13 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
 
     @Override
     @Transactional
-    public void delete(String filePath) {
-        if (filePath == null) return;
-        String fileName = filePath.startsWith("/uploads/")
-                ? filePath.substring("/uploads/".length())
-                : filePath;
-        FileUtil.delete(fileName, uploadPath);
-        remove(new LambdaQueryWrapper<File>().eq(File::getFilePath, fileName));
+    public void delete(String filePathOrUrl) {
+        if (filePathOrUrl == null) return;
+        String path = filePathOrUrl.startsWith("/uploads/")
+                ? filePathOrUrl.substring("/uploads/".length())
+                : filePathOrUrl;
+        FileUtil.delete(path, uploadPath);
+        lambdaUpdate().eq(File::getFilePath, path).remove();
     }
 
     @Override
@@ -109,6 +109,15 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
                 FileUtil.delete(diskFile, uploadPath);
                 log.info("Removed orphan disk file: {}", diskFile);
             }
+        }
+        List<File> unlinked = lambdaQuery()
+                .isNull(File::getRelatedType)
+                .isNull(File::getRelatedId)
+                .list();
+        for (File file : unlinked) {
+            FileUtil.delete(file.getFilePath(), uploadPath);
+            removeById(file.getId());
+            log.info("Removed unlinked file and record: {}", file.getFilePath());
         }
     }
 }

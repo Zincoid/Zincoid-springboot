@@ -99,7 +99,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
     @Transactional
     public void delete(Long userId, Long momentId, boolean isAdmin) {
         Moment moment = getById(momentId);
-        if (moment == null || moment.getStatus() == Status.DISABLED)
+        if (moment == null)
             throw new BusinessException(404, "Moment not found");
         if (!isAdmin && !moment.getUserId().equals(userId))
             throw new BusinessException(403, "No permission to delete this moment");

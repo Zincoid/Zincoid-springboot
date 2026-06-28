@@ -179,9 +179,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public void delete(Long userId) {
         User user = getOrThrowExById(userId);
         List<Moment> moments = momentService.lambdaQuery().eq(Moment::getUserId, userId).list();
-        for (Moment m : moments) momentService.delete(userId, m.getId(), false);
+        for (Moment m : moments) momentService.delete(null, m.getId(), true);
         List<Article> articles = articleService.lambdaQuery().eq(Article::getUserId, userId).list();
-        for (Article a : articles) articleService.delete(userId, a.getId(), false);
+        for (Article a : articles) articleService.delete(null, a.getId(), true);
         if (user.getAvatar() != null) fileService.delete(user.getAvatar());
         removeById(userId);
         log.info("User account deleted: {}", userId);

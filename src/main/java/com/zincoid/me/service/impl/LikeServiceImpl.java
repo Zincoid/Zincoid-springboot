@@ -76,11 +76,12 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
 
     @Override
     public List<LikerVO> getLikers(RelatedType targetType, Long targetId, int limit) {
-        List<Like> likes = page(Page.of(1, limit),
-                new LambdaQueryWrapper<Like>()
-                        .eq(Like::getTargetType, targetType)
-                        .eq(Like::getTargetId, targetId)
-                        .orderByDesc(Like::getCreatedAt)).getRecords();
+        List<Like> likes = lambdaQuery()
+                .eq(Like::getTargetType, targetType)
+                .eq(Like::getTargetId, targetId)
+                .orderByDesc(Like::getCreatedAt)
+                .page(Page.of(1, limit))
+                .getRecords();
         return likes.stream().map(like -> {
             User user = userService.getById(like.getUserId());
             if (user == null) return null;

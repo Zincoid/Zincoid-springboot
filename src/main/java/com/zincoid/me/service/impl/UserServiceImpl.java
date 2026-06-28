@@ -95,12 +95,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public PageVO<UserCardVO> list(int page, int size) {
-        Page<User> userPage = page(
-                Page.of(page, size),
-                new LambdaQueryWrapper<User>()
-                        .eq(User::getStatus, Status.ACTIVE)
-                        .orderByAsc(User::getCreatedAt));
+    public PageVO<UserCardVO> list(int page, int size, Role role) {
+        Page<User> userPage = lambdaQuery()
+                .eq(User::getStatus, Status.ACTIVE)
+                .eq(role != null, User::getRole, role)
+                .orderByAsc(User::getCreatedAt)
+                .page(Page.of(page, size));
         return PageVO.of(userPage, UserConverter.INSTANCE::toCardVO);
     }
 

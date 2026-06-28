@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.zincoid.me.model.dto.LoginRequest;
 import com.zincoid.me.model.dto.RegisterRequest;
 import com.zincoid.me.model.dto.UserUpdateRequest;
+import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.vo.LoginVO;
 import com.zincoid.me.model.vo.PageVO;
@@ -18,7 +19,7 @@ public interface UserService extends IService<User> {
 
     void logout(String token);
 
-    PageVO<UserCardVO> list(int page, int size);
+    PageVO<UserCardVO> list(int page, int size, Role role);
 
     UserDetailVO get(Long userId);
 

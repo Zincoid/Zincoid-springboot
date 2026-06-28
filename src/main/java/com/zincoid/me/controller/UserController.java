@@ -2,6 +2,7 @@ package com.zincoid.me.controller;
 
 import com.zincoid.me.model.dto.PasswordChangeRequest;
 import com.zincoid.me.model.dto.UserUpdateRequest;
+import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.UserCardVO;
@@ -57,8 +58,9 @@ public class UserController {
 
     @GetMapping("/public")
     public ApiResponse<PageVO<UserCardVO>> listUsers(@RequestParam(defaultValue = "1") int page,
-                                                     @RequestParam(defaultValue = "20") int size) {
-        return ApiResponse.success(userService.list(page, size));
+                                                     @RequestParam(defaultValue = "20") int size,
+                                                     @RequestParam(required = false) Role role) {
+        return ApiResponse.success(userService.list(page, size, role));
     }
 
     @GetMapping("/public/{userId}")

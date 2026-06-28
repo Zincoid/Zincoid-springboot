@@ -130,23 +130,21 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
 
     @Override
     public PageVO<MomentCardVO> list(int page, int size) {
-        Page<Moment> momentPage = page(
-                Page.of(page, size),
-                new LambdaQueryWrapper<Moment>()
-                        .eq(Moment::getStatus, Status.ACTIVE)
-                        .orderByDesc(Moment::getIsPinned)
-                        .orderByDesc(Moment::getCreatedAt));
+        Page<Moment> momentPage = lambdaQuery()
+                .eq(Moment::getStatus, Status.ACTIVE)
+                .orderByDesc(Moment::getIsPinned)
+                .orderByDesc(Moment::getCreatedAt)
+                .page(Page.of(page, size));
         return PageVO.of(momentPage, this::buildCardVO);
     }
 
     @Override
     public PageVO<MomentCardVO> list(Long userId, int page, int size) {
-        Page<Moment> momentPage = page(
-                Page.of(page, size),
-                new LambdaQueryWrapper<Moment>()
-                        .eq(Moment::getUserId, userId)
-                        .eq(Moment::getStatus, Status.ACTIVE)
-                        .orderByDesc(Moment::getCreatedAt));
+        Page<Moment> momentPage = lambdaQuery()
+                .eq(Moment::getUserId, userId)
+                .eq(Moment::getStatus, Status.ACTIVE)
+                .orderByDesc(Moment::getCreatedAt)
+                .page(Page.of(page, size));
         return PageVO.of(momentPage, this::buildCardVO);
     }
 

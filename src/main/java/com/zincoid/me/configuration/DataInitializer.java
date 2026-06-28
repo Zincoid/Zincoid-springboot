@@ -28,8 +28,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void initAdminUser() {
-        if (userService.count(
-                new LambdaQueryWrapper<User>().eq(User::getRole, Role.ADMIN)) > 0) {
+        if (userService.lambdaQuery().eq(User::getRole, Role.ADMIN).exists()) {
             log.info("Admin user already exists, skipping init.");
             return;
         }

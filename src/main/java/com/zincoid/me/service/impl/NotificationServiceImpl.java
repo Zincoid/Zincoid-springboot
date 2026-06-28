@@ -48,7 +48,13 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
     }
 
     @Override
-    public void delete(Long userId) {
+    public void deleteByCommentId(Long commentId) {
+        lambdaUpdate().eq(Notification::getCommentId, commentId).remove();
+        log.info("Notifications deleted for comment {}", commentId);
+    }
+
+    @Override
+    public void deleteByUserId(Long userId) {
         lambdaUpdate().eq(Notification::getReceiverId, userId).remove();
         log.info("All notifications deleted for user {}", userId);
     }

@@ -11,7 +11,9 @@ public interface NotificationService extends IService<Notification> {
 
     void add(Long senderId, Long receiverId, RelatedType relatedType, Long relatedId, Long commentId);
 
-    void delete(Long userId);
+    void deleteByCommentId(Long commentId);
+
+    void deleteByUserId(Long userId);
 
     void deleteOne(Long notificationId, Long userId);
 

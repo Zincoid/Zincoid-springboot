@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -99,19 +100,46 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             throw new BusinessException(404, "Comment not found");
         if (!isAdmin && !comment.getUserId().equals(userId))
             throw new BusinessException(403, "You can only delete your own comments");
-        lambdaUpdate().eq(Comment::getParentId, commentId).remove();
-        removeById(commentId);
+        List<Long> allIds = collectDescendantIds(commentId);
+        allIds.add(commentId);
+        removeByIds(allIds);
+        for (Long cid : allIds)
+            notificationService.deleteByCommentId(cid);
         log.info("Comment deleted: {}", commentId);
     }
 
     @Override
     @Transactional
     public void delete(RelatedType targetType, Long targetId) {
+        List<Long> commentIds = lambdaQuery()
+                .select(Comment::getId)
+                .eq(Comment::getTargetType, targetType)
+                .eq(Comment::getTargetId, targetId)
+                .list()
+                .stream().map(Comment::getId).toList();
         lambdaUpdate()
                 .eq(Comment::getTargetType, targetType)
                 .eq(Comment::getTargetId, targetId)
                 .remove();
+        for (Long cid : commentIds)
+            notificationService.deleteByCommentId(cid);
         log.info("Deleted all comments for {}:{}", targetType, targetId);
+    }
+
+    // ──────── Private tool ────────────────────────────────
+
+    private List<Long> collectDescendantIds(Long parentId) {
+        List<Long> ids = new ArrayList<>();
+        List<Long> children = lambdaQuery()
+                .select(Comment::getId)
+                .eq(Comment::getParentId, parentId)
+                .list()
+                .stream().map(Comment::getId).toList();
+        for (Long childId : children) {
+            ids.add(childId);
+            ids.addAll(collectDescendantIds(childId));
+        }
+        return ids;
     }
 
     // ──────── Tree builder ────────────────────────────────

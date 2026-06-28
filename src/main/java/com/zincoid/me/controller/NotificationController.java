@@ -36,7 +36,7 @@ public class NotificationController {
 
     @DeleteMapping
     public ApiResponse<Void> deleteAllNotifications() {
-        notificationService.delete(AuthCtx.getUserId());
+        notificationService.deleteByUserId(AuthCtx.getUserId());
         return ApiResponse.success();
     }
 

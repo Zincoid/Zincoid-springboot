@@ -29,7 +29,7 @@ public class MdTool {
                 StrikethroughExtension.create(),
                 TaskListExtension.create(),
                 AutolinkExtension.create(),
-                AnchorLinkExtension.create(),
+                // AnchorLinkExtension.create(),
                 EmojiExtension.create(),
                 FootnoteExtension.create(),
                 InsExtension.create(),

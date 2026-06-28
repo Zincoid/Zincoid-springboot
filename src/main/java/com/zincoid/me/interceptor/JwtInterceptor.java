@@ -1,6 +1,9 @@
 package com.zincoid.me.interceptor;
 
+import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.exception.UnauthorizedException;
+import com.zincoid.me.model.enums.Status;
+import com.zincoid.me.model.po.User;
 import com.zincoid.me.service.UserService;
 import com.zincoid.me.utils.JwtTool;
 import com.zincoid.me.utils.AuthCtx;
@@ -52,6 +55,9 @@ public class JwtInterceptor implements HandlerInterceptor {
                     jwtUtils.getUsername(token),
                     jwtUtils.getRole(token)
             );
+            User user = userService.getById(jwtUtils.getUserId(token));
+            if (user != null && user.getStatus() == Status.DISABLED)
+                throw new BusinessException(403, "Account is disabled");
         }
 
         // Allow public paths without auth

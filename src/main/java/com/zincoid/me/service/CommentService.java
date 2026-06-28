@@ -1,11 +1,13 @@
 package com.zincoid.me.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.zincoid.me.model.enums.RelatedType;
+import com.zincoid.me.model.po.Comment;
 import com.zincoid.me.model.vo.CommentVO;
 
 import java.util.List;
 
-public interface CommentService {
+public interface CommentService extends IService<Comment> {
 
     List<CommentVO> list(RelatedType targetType, Long targetId);
 

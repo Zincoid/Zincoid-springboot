@@ -1,15 +1,19 @@
 package com.zincoid.me.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.CommentMapper;
+import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.Comment;
+import com.zincoid.me.model.po.Moment;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.converter.CommentConverter;
 import com.zincoid.me.model.vo.CommentVO;
+import com.zincoid.me.service.ArticleService;
 import com.zincoid.me.service.CommentService;
+import com.zincoid.me.service.MomentService;
+import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -23,9 +27,16 @@ import java.util.List;
 public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> implements CommentService {
 
     private final UserService userService;
+    private final NotificationService notificationService;
+    private final MomentService momentService;
+    private final ArticleService articleService;
 
-    public CommentServiceImpl(@Lazy UserService userService) {
+    public CommentServiceImpl(@Lazy UserService userService, NotificationService notificationService,
+                              @Lazy MomentService momentService, @Lazy ArticleService articleService) {
         this.userService = userService;
+        this.notificationService = notificationService;
+        this.momentService = momentService;
+        this.articleService = articleService;
     }
 
     @Override
@@ -57,6 +68,26 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 .parentId(parentId)
                 .build();
         save(comment);
+        if (parentId != null) {
+            Comment parent = getById(parentId);
+            if (parent != null && !parent.getUserId().equals(userId))
+                notificationService.add(
+                        userId, parent.getUserId(),
+                        targetType, targetId, comment.getId());
+        } else {
+            Long authorId = null;
+            if (targetType == RelatedType.MOMENT) {
+                Moment m = momentService.getById(targetId);
+                if (m != null) authorId = m.getUserId();
+            } else {
+                Article a = articleService.getById(targetId);
+                if (a != null) authorId = a.getUserId();
+            }
+            if (authorId != null && !authorId.equals(userId))
+                notificationService.add(
+                        userId, authorId,
+                        targetType, targetId, comment.getId());
+        }
         return toCommentVO(comment, List.of());
     }
 

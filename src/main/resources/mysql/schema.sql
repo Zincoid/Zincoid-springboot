@@ -151,6 +151,25 @@ CREATE TABLE IF NOT EXISTS `config` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Configuration table';
 
 -- =============================================
+-- 8. Notification Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `notification` (
+    `id`            BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
+    `sender_id`     BIGINT      NOT NULL                 COMMENT 'User who triggered the notification',
+    `receiver_id`   BIGINT      NOT NULL                 COMMENT 'User who receives the notification',
+    `related_type`  TINYINT     NOT NULL                 COMMENT 'Related target type: 0=MOMENT, 1=ARTICLE',
+    `related_id`    BIGINT      NOT NULL                 COMMENT 'Related moment/article ID',
+    `comment_id`    BIGINT      NOT NULL                 COMMENT 'The comment that triggered this notification',
+    `is_read`       BOOLEAN     NOT NULL DEFAULT FALSE   COMMENT 'Whether the notification has been read',
+    `created_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Notification time',
+    PRIMARY KEY (`id`),
+    KEY `idx_receiver_read` (`receiver_id`, `is_read`),
+    KEY `idx_created_at` (`created_at`),
+    CONSTRAINT `fk_notification_sender` FOREIGN KEY (`sender_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_notification_receiver` FOREIGN KEY (`receiver_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Notification table';
+
+-- =============================================
 -- Default admin user is auto-created by DataInitializer on first startup
 -- =============================================
 

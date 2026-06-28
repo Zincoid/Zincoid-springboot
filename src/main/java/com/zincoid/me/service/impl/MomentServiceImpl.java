@@ -129,6 +129,16 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
     }
 
     @Override
+    public MomentCardVO random() {
+        Moment moment = lambdaQuery()
+                .eq(Moment::getStatus, Status.ACTIVE)
+                .last("ORDER BY RAND() LIMIT 1")
+                .one();
+        if (moment == null) return null;
+        return buildCardVO(moment);
+    }
+
+    @Override
     public PageVO<MomentCardVO> list(int page, int size) {
         Page<Moment> momentPage = lambdaQuery()
                 .eq(Moment::getStatus, Status.ACTIVE)

@@ -144,6 +144,16 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     @Override
+    public ArticleCardVO random() {
+        Article article = lambdaQuery()
+                .eq(Article::getStatus, Status.ACTIVE)
+                .last("ORDER BY RAND() LIMIT 1")
+                .one();
+        if (article == null) return null;
+        return buildCardVO(article);
+    }
+
+    @Override
     public PageVO<ArticleCardVO> list(int page, int size) {
         Page<Article> articlePage = lambdaQuery()
                 .eq(Article::getStatus, Status.ACTIVE)

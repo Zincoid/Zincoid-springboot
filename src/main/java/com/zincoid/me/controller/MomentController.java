@@ -55,6 +55,11 @@ public class MomentController {
 
     // ──── Public endpoints ────────────────
 
+    @GetMapping("/public/random")
+    public ApiResponse<MomentCardVO> randomMoment() {
+        return ApiResponse.success(momentService.random());
+    }
+
     @GetMapping("/public")
     public ApiResponse<PageVO<MomentCardVO>> listMoments(@RequestParam(defaultValue = "1") int page,
                                                          @RequestParam(defaultValue = "10") int size) {

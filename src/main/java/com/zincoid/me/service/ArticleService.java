@@ -25,4 +25,6 @@ public interface ArticleService extends IService<Article> {
     PageVO<ArticleCardVO> list(Long userId, int page, int size);
 
     ArticleDetailVO get(Long articleId);
+
+    ArticleCardVO random();
 }

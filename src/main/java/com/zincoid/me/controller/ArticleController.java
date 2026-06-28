@@ -55,6 +55,11 @@ public class ArticleController {
 
     // ──── Public endpoints ────────────────
 
+    @GetMapping("/public/random")
+    public ApiResponse<ArticleCardVO> randomArticle() {
+        return ApiResponse.success(articleService.random());
+    }
+
     @GetMapping("/public")
     public ApiResponse<PageVO<ArticleCardVO>> listArticles(@RequestParam(defaultValue = "1") int page,
                                                            @RequestParam(defaultValue = "10") int size) {

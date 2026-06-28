@@ -25,4 +25,6 @@ public interface MomentService extends IService<Moment> {
     PageVO<MomentCardVO> list(Long userId, int page, int size);
 
     MomentDetailVO get(Long momentId);
+
+    MomentCardVO random();
 }

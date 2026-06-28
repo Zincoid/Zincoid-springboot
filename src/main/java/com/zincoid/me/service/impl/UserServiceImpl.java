@@ -1,6 +1,5 @@
 package com.zincoid.me.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.model.enums.Role;
@@ -95,9 +94,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public PageVO<UserCardVO> list(int page, int size, Role role) {
+    public PageVO<UserCardVO> list(int page, int size, Role role, boolean isActive) {
         Page<User> userPage = lambdaQuery()
-                .eq(User::getStatus, Status.ACTIVE)
+                .eq(isActive, User::getStatus, Status.ACTIVE)
                 .eq(role != null, User::getRole, role)
                 .orderByAsc(User::getCreatedAt)
                 .page(Page.of(page, size));
@@ -105,8 +104,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @Transactional
+    public void updateStatus(Long userId, Status status) {
+        User user = getOrThrowExById(userId);
+        if (status == Status.DISABLED && user.getRole() == Role.ADMIN)
+            throw new BusinessException(403, "Cannot disable an admin account");
+        user.setStatus(status);
+        updateById(user);
+        momentService.lambdaUpdate()
+                .eq(Moment::getUserId, userId)
+                .set(Moment::getStatus, status)
+                .update();
+        articleService.lambdaUpdate()
+                .eq(Article::getUserId, userId)
+                .set(Article::getStatus, status)
+                .update();
+    }
+
+    @Override
     public UserDetailVO get(Long userId) {
-        User user = getById(userId);
+        User user = getOrThrowExById(userId);
         if (user.getStatus() == Status.DISABLED)
             throw new BusinessException(403, "User is disabled");
         return UserConverter.INSTANCE.toDetailVO(user);
@@ -115,7 +132,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     @Transactional
     public UserDetailVO update(Long userId, UserUpdateRequest request) {
-        User user = getById(userId);
+        User user = getOrThrowExById(userId);
         if (request.getUsername() != null) {
             String newUsername = request.getUsername().trim();
             if (newUsername.isEmpty())
@@ -149,7 +166,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     @Transactional
     public UserDetailVO updateAvatar(Long userId, String avatar) {
-        User user = getById(userId);
+        User user = getOrThrowExById(userId);
         if (user.getAvatar() != null && !user.getAvatar().equals(avatar))
             fileService.delete(user.getAvatar());
         user.setAvatar(avatar);
@@ -160,7 +177,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     @Transactional
     public void delete(Long userId) {
-        User user = getById(userId);
+        User user = getOrThrowExById(userId);
         List<Moment> moments = momentService.lambdaQuery().eq(Moment::getUserId, userId).list();
         for (Moment m : moments) momentService.delete(userId, m.getId(), false);
         List<Article> articles = articleService.lambdaQuery().eq(Article::getUserId, userId).list();
@@ -173,7 +190,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     @Transactional
     public void changePassword(Long userId, String oldPassword, String newPassword) {
-        User user = getById(userId);
+        User user = getOrThrowExById(userId);
         if (!passwordEncoder.matches(oldPassword, user.getPassword()))
             throw new BusinessException("Old password is incorrect");
         user.setPassword(passwordEncoder.encode(newPassword));
@@ -188,8 +205,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     // ──────── Private tool ────────────────────────────────
 
-    private User getById(Long userId) {
-        User user = super.getById(userId);
+    private User getOrThrowExById(Long userId) {
+        User user = getById(userId);
         if (user == null) throw new BusinessException(404, "User not found");
         return user;
     }

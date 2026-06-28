@@ -100,7 +100,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 Page.of(page, size),
                 new LambdaQueryWrapper<User>()
                         .eq(User::getStatus, Status.ACTIVE)
-                        .orderByDesc(User::getCreatedAt));
+                        .orderByAsc(User::getCreatedAt));
         return PageVO.of(userPage, UserConverter.INSTANCE::toCardVO);
     }
 

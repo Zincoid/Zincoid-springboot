@@ -170,6 +170,20 @@ CREATE TABLE IF NOT EXISTS `notification` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Notification table';
 
 -- =============================================
+-- 9. Message Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `message` (
+    `id`            BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
+    `user_id`       BIGINT      NOT NULL                 COMMENT 'Sender user ID',
+    `content`       TEXT        DEFAULT NULL             COMMENT 'Text content (nullable if file)',
+    `file`          VARCHAR(500) DEFAULT NULL            COMMENT 'Attached file path',
+    `created_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Send time',
+    PRIMARY KEY (`id`),
+    KEY `idx_created_at` (`created_at`),
+    CONSTRAINT `fk_message_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Message table';
+
+-- =============================================
 -- Default admin user is auto-created by DataInitializer on first startup
 -- =============================================
 
@@ -180,5 +194,6 @@ INSERT INTO `config` (`config_key`, `config_value`, `description`) VALUES
 ('site_name', 'Zincoid', 'Website name'),
 ('site_description', 'Personal website and blog', 'Website description'),
 ('site_keywords', 'blog,tech,personal', 'SEO keywords'),
-('page_size', '10', 'Default pagination page size')
+('page_size', '10', 'Default pagination page size'),
+('message_max_count', '200', 'Maximum number of messages to keep')
 ON DUPLICATE KEY UPDATE `config_key` = VALUES(`config_key`);

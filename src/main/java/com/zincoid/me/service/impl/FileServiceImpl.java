@@ -8,6 +8,7 @@ import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.vo.FileVO;
 import com.zincoid.me.service.ArticleService;
 import com.zincoid.me.service.FileService;
+import com.zincoid.me.service.MessageService;
 import com.zincoid.me.service.MomentService;
 import com.zincoid.me.service.UserService;
 import com.zincoid.me.utils.FileUtil;
@@ -32,13 +33,16 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
     private final MomentService momentService;
     private final ArticleService articleService;
     private final UserService userService;
+    private final MessageService messageService;
 
     public FileServiceImpl(@Lazy MomentService momentService,
                            @Lazy ArticleService articleService,
-                           @Lazy UserService userService) {
+                           @Lazy UserService userService,
+                           @Lazy MessageService messageService) {
         this.momentService = momentService;
         this.articleService = articleService;
         this.userService = userService;
+        this.messageService = messageService;
     }
 
     @Override
@@ -156,6 +160,7 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
             case MOMENT -> momentService.getById(id) != null;
             case ARTICLE -> articleService.getById(id) != null;
             case AVATAR -> userService.getById(id) != null;
+            case CHAT -> messageService.getById(id) != null;
         };
     }
 }

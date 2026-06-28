@@ -26,10 +26,11 @@ public class JwtInterceptor implements HandlerInterceptor {
     private static final List<String> PUBLIC_PATHS = List.of(
             "/api/auth",
             "/api/users/public",
-            "/api/likes/public",
             "/api/moments/public",
             "/api/articles/public",
+            "/api/chats/public",
             "/api/comments/public",
+            "/api/likes/public",
             "/api/configs/public"
     );
 

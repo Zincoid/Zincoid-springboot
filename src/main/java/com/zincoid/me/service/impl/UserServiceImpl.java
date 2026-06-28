@@ -10,7 +10,7 @@ import com.zincoid.me.mapper.UserMapper;
 import com.zincoid.me.converter.UserConverter;
 import com.zincoid.me.model.dto.LoginRequest;
 import com.zincoid.me.model.dto.RegisterRequest;
-import com.zincoid.me.model.dto.UpdateUserRequest;
+import com.zincoid.me.model.dto.UserUpdateRequest;
 import com.zincoid.me.model.po.Moment;
 import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.User;
@@ -57,7 +57,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User user = User.builder()
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .nickname(request.getNickname() != null ? request.getNickname() : request.getUsername())
+                .nickname(request.getNickname() != null && !request.getNickname().isBlank()
+                        ? request.getNickname() : request.getUsername())
                 .role(Role.USER)  // 无法回填需手动设置
                 .build();
         save(user);
@@ -113,7 +114,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     @Transactional
-    public UserDetailVO update(Long userId, UpdateUserRequest request) {
+    public UserDetailVO update(Long userId, UserUpdateRequest request) {
         User user = getById(userId);
         if (request.getUsername() != null) {
             String newUsername = request.getUsername().trim();
@@ -126,15 +127,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 user.setUsername(newUsername);
             }
         }
-        if (request.getNickname() != null) user.setNickname(request.getNickname());
+        if (request.getNickname() != null) {
+            String nickname = request.getNickname().trim();
+            user.setNickname(nickname.isEmpty() ? user.getUsername() : nickname);
+        }
         if (request.getGender() != null) user.setGender(request.getGender());
         if (request.getTitle() != null) user.setTitle(request.getTitle());
         if (request.getBio() != null) user.setBio(request.getBio());
-        if (request.getAvatar() != null) {
-            if (user.getAvatar() != null && !user.getAvatar().equals(request.getAvatar()))
-                fileService.delete(user.getAvatar());
-            user.setAvatar(request.getAvatar());
-        }
         if (request.getSkills() != null) {
             String json = JsonUtil.toJson(request.getSkills());
             user.setSkills(json);
@@ -143,6 +142,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             String contacts = request.getContacts().trim();
             user.setContacts(contacts.isEmpty() ? null : contacts);
         }
+        updateById(user);
+        return UserConverter.INSTANCE.toDetailVO(user);
+    }
+
+    @Override
+    @Transactional
+    public UserDetailVO updateAvatar(Long userId, String avatar) {
+        User user = getById(userId);
+        if (user.getAvatar() != null && !user.getAvatar().equals(avatar))
+            fileService.delete(user.getAvatar());
+        user.setAvatar(avatar);
         updateById(user);
         return UserConverter.INSTANCE.toDetailVO(user);
     }

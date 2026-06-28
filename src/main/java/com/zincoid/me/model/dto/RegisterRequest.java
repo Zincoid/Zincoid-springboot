@@ -1,5 +1,6 @@
 package com.zincoid.me.model.dto;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -15,5 +16,11 @@ public class RegisterRequest {
     @Size(min = 6, max = 100, message = "Password must be 6-100 characters")
     private String password;
 
+    private String confirmPassword;
     private String nickname;
+
+    @AssertTrue(message = "Passwords do not match")
+    public boolean isPasswordMatch() {
+        return password != null && password.equals(confirmPassword);
+    }
 }

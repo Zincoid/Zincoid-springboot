@@ -70,6 +70,17 @@ public class UserController {
         return ApiResponse.success();
     }
 
+    @PutMapping("/password/reset")
+    public ApiResponse<Void> resetPassword(@RequestBody Map<String, String> body) {
+        AuthCtx.requireAdmin();
+        String username = body.get("username");
+        String password = body.get("password");
+        if (username == null || username.isBlank() || password == null || password.isBlank())
+            return ApiResponse.badRequest("Username and password are required");
+        userService.resetPassword(username, password);
+        return ApiResponse.success();
+    }
+
     // ──── Public endpoints ────────────────
 
     @GetMapping("/public")

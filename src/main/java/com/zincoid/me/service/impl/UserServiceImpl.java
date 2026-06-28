@@ -198,6 +198,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    public void resetPassword(String username, String newPassword) {
+        User user = lambdaQuery().eq(User::getUsername, username).one();
+        if (user == null)
+            throw new BusinessException(404, "User not found");
+        user.setPassword(passwordEncoder.encode(newPassword));
+        updateById(user);
+        log.info("Admin reset password for user: {}", username);
+    }
+
+    @Override
     public boolean isTokenRevoked(String token) {
         revokedTokens.entrySet().removeIf(e -> e.getValue() < System.currentTimeMillis());
         return revokedTokens.containsKey(token);

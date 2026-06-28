@@ -32,6 +32,8 @@ public interface UserService extends IService<User> {
 
     void changePassword(Long userId, String oldPassword, String newPassword);
 
+    void resetPassword(String username, String newPassword);
+
     void updateStatus(Long userId, Status status);
 
     boolean isTokenRevoked(String token);

@@ -35,12 +35,14 @@ public class GlobalExceptionHandler {
                 .map(error -> "Invalid " + error.getField() + ": " + error.getDefaultMessage())
                 .findFirst()
                 .orElse("Validation failed");
+        log.warn("Validation failed: {}", message);
         return ApiResponse.badRequest(message);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
+        log.warn("Type mismatch: {}", e.getName());
         return ApiResponse.badRequest("Invalid parameter: " + e.getName());
     }
 

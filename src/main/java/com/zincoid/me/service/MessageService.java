@@ -10,4 +10,6 @@ public interface MessageService extends IService<Message> {
     MessageVO send(Long userId, String content, String file);
 
     PageVO<MessageVO> list(int page, int size);
+
+    void delete(Long userId, Long messageId, boolean isAdmin);
 }

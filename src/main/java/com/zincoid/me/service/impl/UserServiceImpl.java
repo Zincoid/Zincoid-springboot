@@ -12,6 +12,7 @@ import com.zincoid.me.model.dto.RegisterRequest;
 import com.zincoid.me.model.dto.UserUpdateRequest;
 import com.zincoid.me.model.po.Moment;
 import com.zincoid.me.model.po.Article;
+import com.zincoid.me.model.po.Message;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.vo.LoginVO;
@@ -20,6 +21,7 @@ import com.zincoid.me.model.vo.UserDetailVO;
 import com.zincoid.me.service.ArticleService;
 import com.zincoid.me.service.EmailService;
 import com.zincoid.me.service.FileService;
+import com.zincoid.me.service.MessageService;
 import com.zincoid.me.service.MomentService;
 import com.zincoid.me.service.UserService;
 
@@ -47,6 +49,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     private final MomentService momentService;
     private final ArticleService articleService;
+    private final MessageService messageService;
     private final FileService fileService;
     private final EmailService emailService;
 
@@ -193,6 +196,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         for (Moment m : moments) momentService.delete(null, m.getId(), true);
         List<Article> articles = articleService.lambdaQuery().eq(Article::getUserId, userId).list();
         for (Article a : articles) articleService.delete(null, a.getId(), true);
+        List<Message> messages = messageService.lambdaQuery().eq(Message::getUserId, userId).list();
+        for (Message m : messages) messageService.delete(null, m.getId(), true);
         if (user.getAvatar() != null) fileService.delete(user.getAvatar());
         removeById(userId);
         log.info("User account deleted: id={}, username={}", userId, user.getUsername());

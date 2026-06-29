@@ -54,6 +54,19 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     }
 
     @Override
+    @Transactional
+    public void delete(Long userId, Long messageId, boolean isAdmin) {
+        Message msg = getById(messageId);
+        if (msg == null) throw new BusinessException(404, "Message not found");
+        if (!isAdmin && !msg.getUserId().equals(userId))
+            throw new BusinessException(403, "You can only delete your own messages");
+        if (msg.getFile() != null)
+            fileService.delete(RelatedType.CHAT, msg.getId());
+        removeById(msg.getId());
+        log.info("Message deleted: user={}, id={}", msg.getUserId(), messageId);
+    }
+
+    @Override
     public PageVO<MessageVO> list(int page, int size) {
         Page<Message> msgPage = lambdaQuery()
                 .orderByAsc(Message::getCreatedAt)

@@ -79,8 +79,12 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
             throw new BusinessException(404, "Moment not found");
         if (!moment.getUserId().equals(userId))
             throw new BusinessException(403, "You can only edit your own moments");
-        if (request.getContent() != null)
+        if (request.getContent() != null) {
             moment.setContent(request.getContent());
+            notificationService.deleteAll(NotificationType.MOMENT_MENTION, momentId);
+            if (!request.getContent().isBlank())
+                notificationService.notify(userId, request.getContent(), NotificationType.MOMENT_MENTION, momentId);
+        }
         if (request.getImages() != null) {
             List<String> oldImages = JsonUtil.parseImages(moment.getImages());
             Set<String> oldSet = new HashSet<>(oldImages);

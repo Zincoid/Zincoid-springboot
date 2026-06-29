@@ -98,13 +98,16 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             String newCover = request.getCoverImage().isBlank() ? null : request.getCoverImage();
             String oldCover = article.getCoverImage();
             article.setCoverImage(newCover);
+            if (newCover == null)
+                lambdaUpdate().set(Article::getCoverImage, null).eq(Article::getId, articleId).update();
             if (oldCover != null && !oldCover.equals(newCover))
                 fileService.delete(oldCover);
         }
         if (request.getStatus() != null) article.setStatus(request.getStatus());
         updateById(article);
         List<String> urls = new ArrayList<>();
-        if (article.getCoverImage() != null) urls.add(article.getCoverImage());
+        if (request.getCoverImage() != null && !request.getCoverImage().isBlank())
+            urls.add(request.getCoverImage());
         urls.addAll(extractUploadUrls(article.getContentMd()));
         if (!urls.isEmpty()) fileService.link(urls, RelatedType.ARTICLE, article.getId());
         log.info("Article updated: user={}, id={}", userId, articleId);

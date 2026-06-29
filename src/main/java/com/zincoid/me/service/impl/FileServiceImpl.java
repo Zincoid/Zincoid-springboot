@@ -169,7 +169,6 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
             case ARTICLE -> articleService.getById(id) != null;
             case AVATAR -> userService.getById(id) != null;
             case CHAT -> messageService.getById(id) != null;
-            case COMMENT, REPLY -> commentService.getById(id) != null;
         };
     }
 }

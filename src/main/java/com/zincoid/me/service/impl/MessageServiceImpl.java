@@ -4,9 +4,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.MessageMapper;
+import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.po.Message;
 import com.zincoid.me.model.po.User;
+import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.model.vo.MessageVO;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.service.ConfigService;
@@ -19,7 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -28,11 +30,14 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     private final UserService userService;
     private final FileService fileService;
     private final ConfigService configService;
+    private final NotificationService notificationService;
 
-    public MessageServiceImpl(@Lazy UserService userService, FileService fileService, ConfigService configService) {
+    public MessageServiceImpl(@Lazy UserService userService, FileService fileService,
+                               ConfigService configService, NotificationService notificationService) {
         this.userService = userService;
         this.fileService = fileService;
         this.configService = configService;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -50,6 +55,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         if (msg.getFile() != null)
             fileService.link(List.of(msg.getFile()), RelatedType.CHAT, msg.getId());
         trim();
+        notificationService.notify(userId, msg.getContent(), NotificationType.CHAT_MENTION, msg.getId());
         log.info("Message sent: user={}, id={}", userId, msg.getId());
         return buildVO(msg);
     }
@@ -64,6 +70,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         if (msg.getFile() != null)
             fileService.delete(RelatedType.CHAT, msg.getId());
         removeById(msg.getId());
+        notificationService.deleteAll(NotificationType.CHAT_MENTION, msg.getId());
         log.info("Message deleted: user={}, id={}", msg.getUserId(), messageId);
     }
 

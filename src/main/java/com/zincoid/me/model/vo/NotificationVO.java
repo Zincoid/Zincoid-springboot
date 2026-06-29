@@ -1,5 +1,6 @@
 package com.zincoid.me.model.vo;
 
+import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.RelatedType;
 import lombok.Builder;
 import lombok.Data;
@@ -14,7 +15,7 @@ public class NotificationVO {
     private Long senderId;
     private String senderNickname;
     private String senderAvatar;
-    private RelatedType relatedType;
+    private NotificationType relatedType;
     private Long relatedId;
     private RelatedType targetType;
     private Long targetId;

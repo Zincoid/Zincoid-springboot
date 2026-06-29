@@ -7,6 +7,7 @@ import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.Comment;
 import com.zincoid.me.model.po.Moment;
 import com.zincoid.me.model.po.User;
+import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.converter.CommentConverter;
 import com.zincoid.me.model.vo.CommentVO;
@@ -20,8 +21,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -72,9 +72,8 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         if (parentId != null) {
             Comment parent = getById(parentId);
             if (parent != null && !parent.getUserId().equals(userId))
-                notificationService.add(
-                        userId, parent.getUserId(),
-                        RelatedType.REPLY, comment.getId());
+                notificationService.notify(userId, parent.getUserId(),
+                        NotificationType.REPLY, comment.getId());
         } else {
             Long authorId = null;
             if (targetType == RelatedType.MOMENT) {
@@ -85,10 +84,10 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 if (a != null) authorId = a.getUserId();
             }
             if (authorId != null && !authorId.equals(userId))
-                notificationService.add(
-                        userId, authorId,
-                        RelatedType.COMMENT, comment.getId());
+                notificationService.notify(userId, authorId,
+                        NotificationType.COMMENT, comment.getId());
         }
+        notificationService.notify(userId, content, NotificationType.COMMENT_MENTION, comment.getId());
         log.info("Comment added: user={}, target={}:{}, id={}", userId, targetType, targetId, comment.getId());
         return toCommentVO(comment, List.of());
     }
@@ -105,8 +104,9 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         allIds.add(commentId);
         removeByIds(allIds);
         for (Long cid : allIds) {
-            notificationService.deleteAll(RelatedType.COMMENT, cid);
-            notificationService.deleteAll(RelatedType.REPLY, cid);
+            notificationService.deleteAll(NotificationType.COMMENT, cid);
+            notificationService.deleteAll(NotificationType.REPLY, cid);
+            notificationService.deleteAll(NotificationType.COMMENT_MENTION, cid);
         }
         log.info("Comment deleted: user={}, id={}", userId, commentId);
     }
@@ -125,26 +125,11 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 .eq(Comment::getTargetId, targetId)
                 .remove();
         for (Long cid : commentIds) {
-            notificationService.deleteAll(RelatedType.COMMENT, cid);
-            notificationService.deleteAll(RelatedType.REPLY, cid);
+            notificationService.deleteAll(NotificationType.COMMENT, cid);
+            notificationService.deleteAll(NotificationType.REPLY, cid);
+            notificationService.deleteAll(NotificationType.COMMENT_MENTION, cid);
         }
         log.info("Comments deleted: target={}:{}", targetType, targetId);
-    }
-
-    // ──────── Private tool ────────────────────────────────
-
-    private List<Long> collectDescendantIds(Long parentId) {
-        List<Long> ids = new ArrayList<>();
-        List<Long> children = lambdaQuery()
-                .select(Comment::getId)
-                .eq(Comment::getParentId, parentId)
-                .list()
-                .stream().map(Comment::getId).toList();
-        for (Long childId : children) {
-            ids.add(childId);
-            ids.addAll(collectDescendantIds(childId));
-        }
-        return ids;
     }
 
     // ──────── Tree builder ────────────────────────────────
@@ -166,7 +151,19 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         return toCommentVO(comment, replies);
     }
 
-    // ──────── Private tool ────────────────────────────────
+    private List<Long> collectDescendantIds(Long parentId) {
+        List<Long> ids = new ArrayList<>();
+        List<Long> children = lambdaQuery()
+                .select(Comment::getId)
+                .eq(Comment::getParentId, parentId)
+                .list()
+                .stream().map(Comment::getId).toList();
+        for (Long childId : children) {
+            ids.add(childId);
+            ids.addAll(collectDescendantIds(childId));
+        }
+        return ids;
+    }
 
     private CommentVO toCommentVO(Comment comment, List<CommentVO> replies) {
         User user = userService.getById(comment.getUserId());

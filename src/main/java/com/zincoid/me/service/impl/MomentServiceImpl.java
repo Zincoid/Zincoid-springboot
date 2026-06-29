@@ -10,6 +10,7 @@ import com.zincoid.me.model.dto.MomentCreateRequest;
 import com.zincoid.me.model.dto.MomentUpdateRequest;
 import com.zincoid.me.model.po.Moment;
 import com.zincoid.me.model.po.User;
+import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.vo.CommentVO;
@@ -20,6 +21,7 @@ import com.zincoid.me.service.CommentService;
 import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.LikeService;
 import com.zincoid.me.service.MomentService;
+import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.UserService;
 import com.zincoid.me.utils.AuthCtx;
 import com.zincoid.me.utils.JsonUtil;
@@ -41,13 +43,16 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
     private final CommentService commentService;
     private final FileService fileService;
     private final LikeService likeService;
+    private final NotificationService notificationService;
 
     public MomentServiceImpl(@Lazy UserService userService, CommentService commentService,
-                             FileService fileService, LikeService likeService) {
+                             FileService fileService, LikeService likeService,
+                             @Lazy NotificationService notificationService) {
         this.userService = userService;
         this.commentService = commentService;
         this.fileService = fileService;
         this.likeService = likeService;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -103,6 +108,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
         likeService.delete(RelatedType.MOMENT, momentId);
         commentService.delete(RelatedType.MOMENT, momentId);
         fileService.delete(RelatedType.MOMENT, momentId);
+        notificationService.deleteAll(NotificationType.MOMENT_MENTION, momentId);
         removeById(momentId);
         log.info("Moment deleted: user={}, admin={}, id={}", userId, isAdmin, momentId);
     }

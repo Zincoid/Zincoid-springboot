@@ -10,6 +10,7 @@ import com.zincoid.me.converter.UserConverter;
 import com.zincoid.me.model.dto.LoginRequest;
 import com.zincoid.me.model.dto.RegisterRequest;
 import com.zincoid.me.model.dto.UserUpdateRequest;
+import com.zincoid.me.model.po.Comment;
 import com.zincoid.me.model.po.Moment;
 import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.Message;
@@ -19,6 +20,7 @@ import com.zincoid.me.model.vo.LoginVO;
 import com.zincoid.me.model.vo.UserCardVO;
 import com.zincoid.me.model.vo.UserDetailVO;
 import com.zincoid.me.service.ArticleService;
+import com.zincoid.me.service.CommentService;
 import com.zincoid.me.service.EmailService;
 import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.MessageService;
@@ -47,6 +49,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final JwtTool jwtTool;
 
+    private final CommentService commentService;
     private final MomentService momentService;
     private final ArticleService articleService;
     private final MessageService messageService;
@@ -198,6 +201,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         for (Article a : articles) articleService.delete(null, a.getId(), true);
         List<Message> messages = messageService.lambdaQuery().eq(Message::getUserId, userId).list();
         for (Message m : messages) messageService.delete(null, m.getId(), true);
+        List<Comment> comments = commentService.lambdaQuery().eq(Comment::getUserId, userId).list();
+        for (Comment c : comments) commentService.delete(null, c.getId(), true);
         if (user.getAvatar() != null) fileService.delete(user.getAvatar());
         removeById(userId);
         log.info("User account deleted: id={}, username={}", userId, user.getUsername());

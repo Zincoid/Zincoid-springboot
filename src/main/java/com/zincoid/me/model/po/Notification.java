@@ -3,7 +3,7 @@ package com.zincoid.me.model.po;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.zincoid.me.model.enums.RelatedType;
+import com.zincoid.me.model.enums.NotificationType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,7 +22,7 @@ public class Notification {
     private Long id;
     private Long senderId;
     private Long receiverId;
-    private RelatedType relatedType;
+    private NotificationType relatedType;
     private Long relatedId;
     private Boolean isRead;
     private LocalDateTime createdAt;

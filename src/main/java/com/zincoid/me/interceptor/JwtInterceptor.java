@@ -24,6 +24,7 @@ public class JwtInterceptor implements HandlerInterceptor {
     private final UserService userService;
 
     private static final List<String> PUBLIC_PATHS = List.of(
+            "/api/health",
             "/api/auth",
             "/api/users/public",
             "/api/moments/public",

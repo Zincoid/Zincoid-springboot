@@ -13,6 +13,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/articles")
 @RequiredArgsConstructor
@@ -62,8 +64,14 @@ public class ArticleController {
 
     @GetMapping("/public")
     public ApiResponse<PageVO<ArticleCardVO>> listArticles(@RequestParam(defaultValue = "1") int page,
-                                                           @RequestParam(defaultValue = "10") int size) {
-        return ApiResponse.success(articleService.list(page, size));
+                                                           @RequestParam(defaultValue = "10") int size,
+                                                           @RequestParam(defaultValue = "false") boolean pinned) {
+        return ApiResponse.success(articleService.list(page, size, pinned));
+    }
+
+    @GetMapping("/public/home")
+    public ApiResponse<List<ArticleCardVO>> homeFeed(@RequestParam(defaultValue = "10") int size) {
+        return ApiResponse.success(articleService.home(size));
     }
 
     @GetMapping("/public/user/{userId}")

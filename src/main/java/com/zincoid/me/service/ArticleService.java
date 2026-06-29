@@ -8,6 +8,8 @@ import com.zincoid.me.model.vo.ArticleCardVO;
 import com.zincoid.me.model.vo.ArticleDetailVO;
 import com.zincoid.me.model.vo.PageVO;
 
+import java.util.List;
+
 public interface ArticleService extends IService<Article> {
 
     ArticleDetailVO create(Long userId, ArticleCreateRequest request);
@@ -20,9 +22,11 @@ public interface ArticleService extends IService<Article> {
 
     void unpin(Long articleId);
 
-    PageVO<ArticleCardVO> list(int page, int size);
+    PageVO<ArticleCardVO> list(int page, int size, boolean pinned);
 
     PageVO<ArticleCardVO> list(Long userId, int page, int size);
+
+    List<ArticleCardVO> home(int size);
 
     ArticleDetailVO get(Long articleId);
 

@@ -149,13 +149,31 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
     }
 
     @Override
-    public PageVO<MomentCardVO> list(int page, int size) {
+    public PageVO<MomentCardVO> list(int page, int size, boolean pinned) {
         Page<Moment> momentPage = lambdaQuery()
                 .eq(Moment::getStatus, Status.ACTIVE)
-                .orderByDesc(Moment::getIsPinned)
+                .orderByDesc(pinned, Moment::getIsPinned)
                 .orderByDesc(Moment::getCreatedAt)
                 .page(Page.of(page, size));
         return PageVO.of(momentPage, this::buildCardVO);
+    }
+
+    @Override
+    public List<MomentCardVO> home(int size) {
+        List<Moment> pinned = lambdaQuery()
+                .eq(Moment::getStatus, Status.ACTIVE)
+                .eq(Moment::getIsPinned, true)
+                .orderByDesc(Moment::getCreatedAt)
+                .list();
+        List<Moment> records = new ArrayList<>(pinned);
+        List<Moment> nonPinned = lambdaQuery()
+                .eq(Moment::getStatus, Status.ACTIVE)
+                .eq(Moment::getIsPinned, false)
+                .orderByDesc(Moment::getCreatedAt)
+                .last("LIMIT " + size)
+                .list();
+        records.addAll(nonPinned);
+        return records.stream().map(this::buildCardVO).toList();
     }
 
     @Override

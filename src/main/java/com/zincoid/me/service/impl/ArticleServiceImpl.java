@@ -160,13 +160,31 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     @Override
-    public PageVO<ArticleCardVO> list(int page, int size) {
+    public PageVO<ArticleCardVO> list(int page, int size, boolean pinned) {
         Page<Article> articlePage = lambdaQuery()
                 .eq(Article::getStatus, Status.ACTIVE)
-                .orderByDesc(Article::getIsPinned)
+                .orderByDesc(pinned, Article::getIsPinned)
                 .orderByDesc(Article::getCreatedAt)
                 .page(Page.of(page, size));
         return PageVO.of(articlePage, this::buildCardVO);
+    }
+
+    @Override
+    public List<ArticleCardVO> home(int size) {
+        List<Article> pinned = lambdaQuery()
+                .eq(Article::getStatus, Status.ACTIVE)
+                .eq(Article::getIsPinned, true)
+                .orderByDesc(Article::getCreatedAt)
+                .list();
+        List<Article> records = new ArrayList<>(pinned);
+        List<Article> nonPinned = lambdaQuery()
+                .eq(Article::getStatus, Status.ACTIVE)
+                .eq(Article::getIsPinned, false)
+                .orderByDesc(Article::getCreatedAt)
+                .last("LIMIT " + size)
+                .list();
+        records.addAll(nonPinned);
+        return records.stream().map(this::buildCardVO).toList();
     }
 
     @Override

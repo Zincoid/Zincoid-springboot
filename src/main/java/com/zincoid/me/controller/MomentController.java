@@ -13,6 +13,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/moments")
 @RequiredArgsConstructor
@@ -62,8 +64,14 @@ public class MomentController {
 
     @GetMapping("/public")
     public ApiResponse<PageVO<MomentCardVO>> listMoments(@RequestParam(defaultValue = "1") int page,
-                                                         @RequestParam(defaultValue = "10") int size) {
-        return ApiResponse.success(momentService.list(page, size));
+                                                         @RequestParam(defaultValue = "10") int size,
+                                                         @RequestParam(defaultValue = "false") boolean pinned) {
+        return ApiResponse.success(momentService.list(page, size, pinned));
+    }
+
+    @GetMapping("/public/home")
+    public ApiResponse<List<MomentCardVO>> homeFeed(@RequestParam(defaultValue = "10") int size) {
+        return ApiResponse.success(momentService.home(size));
     }
 
     @GetMapping("/public/user/{userId}")

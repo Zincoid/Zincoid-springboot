@@ -74,11 +74,6 @@ public class MomentController {
         return ApiResponse.success(momentService.home(size));
     }
 
-    @GetMapping("/public/home")
-    public ApiResponse<List<MomentCardVO>> homeFeed(@RequestParam(defaultValue = "10") int size) {
-        return ApiResponse.success(momentService.home(size));
-    }
-
     @GetMapping("/public/user/{userId}")
     public ApiResponse<PageVO<MomentCardVO>> userMoments(@PathVariable Long userId,
                                                          @RequestParam(defaultValue = "1") int page,

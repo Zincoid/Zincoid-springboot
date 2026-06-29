@@ -74,11 +74,6 @@ public class ArticleController {
         return ApiResponse.success(articleService.home(size));
     }
 
-    @GetMapping("/public/home")
-    public ApiResponse<List<ArticleCardVO>> homeFeed(@RequestParam(defaultValue = "10") int size) {
-        return ApiResponse.success(articleService.home(size));
-    }
-
     @GetMapping("/public/user/{userId}")
     public ApiResponse<PageVO<ArticleCardVO>> userArticles(@PathVariable Long userId,
                                                            @RequestParam(defaultValue = "1") int page,

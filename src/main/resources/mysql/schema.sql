@@ -190,9 +190,9 @@ CREATE TABLE IF NOT EXISTS `message` (
 -- Default site configurations
 -- =============================================
 INSERT INTO `config` (`config_key`, `config_value`, `description`) VALUES
-('site_name', 'Zincoid', 'Website name'),
-('site_description', 'Personal website and blog', 'Website description'),
-('site_keywords', 'blog,tech,personal', 'SEO keywords'),
+('site_name', 'Zincoid\'s', 'Website name'),
+('site_desc_en', 'Personal website and blog', 'Website description (English)'),
+('site_desc_zh', '个人网站与博客', 'Website description (Chinese)'),
 ('page_size', '10', 'Default pagination page size'),
-('message_max_count', '200', 'Maximum number of messages to keep')
+('message_max_count', '100', 'Maximum number of messages to keep')
 ON DUPLICATE KEY UPDATE `config_key` = VALUES(`config_key`);

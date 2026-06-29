@@ -26,4 +26,6 @@ public interface NotificationService extends IService<Notification> {
     void readAll(Long userId);
 
     long countUnread(Long userId);
+
+    void broadcast(Long senderId, String content);
 }

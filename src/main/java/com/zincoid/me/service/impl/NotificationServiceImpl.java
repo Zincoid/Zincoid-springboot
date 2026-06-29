@@ -94,6 +94,8 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                     content = content.substring(0, 80) + "...";
                 snippet = content;
                 targetType = RelatedType.CHAT;
+            } else if (n.getRelatedType() == NotificationType.SYSTEM) {
+                snippet = n.getMessage();
             }
             vos.add(NotificationVO.builder()
                     .id(n.getId())
@@ -143,6 +145,31 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
             if (mentioned != null && !mentioned.getId().equals(senderId))
                 notify(senderId, mentioned.getId(), type, relatedId);
         }
+    }
+
+    @Override
+    @Transactional
+    public void broadcast(Long senderId, String content) {
+        List<User> users = userService.lambdaQuery()
+                .eq(User::getStatus, Status.ACTIVE)
+                .list();
+        List<Notification> batch = new ArrayList<>();
+        for (User user : users) {
+            if (user.getId().equals(senderId)) continue;
+            Notification notification = Notification.builder()
+                    .senderId(senderId)
+                    .receiverId(user.getId())
+                    .relatedType(NotificationType.SYSTEM)
+                    .relatedId(-1L)
+                    .message(content)
+                    .isRead(false)
+                    .build();
+            batch.add(notification);
+        }
+        if (!batch.isEmpty()) {
+            saveBatch(batch);
+        }
+        log.info("System broadcast sent by sender={}, recipients={}", senderId, batch.size());
     }
 
     @Override

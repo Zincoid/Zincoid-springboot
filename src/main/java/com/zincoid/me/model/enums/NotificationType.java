@@ -12,7 +12,8 @@ public enum NotificationType {
     REPLY(1),
     MOMENT_MENTION(2),
     COMMENT_MENTION(3),
-    CHAT_MENTION(4);
+    CHAT_MENTION(4),
+    SYSTEM(5);
 
     @EnumValue
     private final Integer value;

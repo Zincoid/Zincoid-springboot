@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/notifications")
@@ -49,6 +50,16 @@ public class NotificationController {
     @PutMapping("/read")
     public ApiResponse<Void> readAllNotifications() {
         notificationService.readAll(AuthCtx.getUserId());
+        return ApiResponse.success();
+    }
+
+    @PostMapping("/broadcast")
+    public ApiResponse<Void> broadcast(@RequestBody Map<String, String> body) {
+        AuthCtx.requireAdmin();
+        String content = body.get("content");
+        if (content == null || content.isBlank())
+            return ApiResponse.error(400, "Content is required");
+        notificationService.broadcast(AuthCtx.getUserId(), content.trim());
         return ApiResponse.success();
     }
 }

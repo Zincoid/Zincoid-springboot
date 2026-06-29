@@ -65,12 +65,14 @@ CREATE TABLE IF NOT EXISTS `comment` (
     `target_id`     BIGINT          NOT NULL                 COMMENT 'Target record ID',
     `user_id`       BIGINT          NOT NULL                 COMMENT 'Commenter user ID',
     `parent_id`     BIGINT          DEFAULT NULL             COMMENT 'Parent comment ID (NULL=top-level, non-null=reply)',
+    `root_id`       BIGINT          NOT NULL                 COMMENT 'Top-level root comment ID (self for top-level)',
     `content`       TEXT            NOT NULL                 COMMENT 'Comment content',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Comment time',
     PRIMARY KEY (`id`),
     KEY `idx_target` (`target_type`, `target_id`),
     KEY `idx_user_id` (`user_id`),
     KEY `idx_parent_id` (`parent_id`),
+    KEY `idx_root_id` (`root_id`),
     KEY `idx_created_at` (`created_at`),
     CONSTRAINT `fk_comment_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Unified comment table for moments and articles';

@@ -24,6 +24,7 @@ public class Comment {
     private Long targetId;
     private Long userId;
     private Long parentId;
+    private Long rootId;
     private String content;
     private LocalDateTime createdAt;
 }

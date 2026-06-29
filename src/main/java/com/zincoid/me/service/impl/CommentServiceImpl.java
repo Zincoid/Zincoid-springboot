@@ -64,15 +64,14 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     public List<CommentVO> replies(Long parentId) {
         Comment parent = getById(parentId);
         if (parent == null) return List.of();
-        List<Long> descendantIds = collectDescendantIds(parentId);
-        if (descendantIds.isEmpty()) return List.of();
-        List<Comment> children = lambdaQuery()
-                .in(Comment::getId, descendantIds)
+        List<Comment> descendants = lambdaQuery()
+                .eq(Comment::getRootId, parent.getRootId())
+                .ne(Comment::getId, parentId)
                 .orderByAsc(Comment::getCreatedAt)
                 .list();
-        return children.stream()
+        return descendants.stream()
                 .filter(c -> c.getParentId().equals(parentId))
-                .map(c -> buildReplyTree(c, children))
+                .map(c -> buildReplyTree(c, descendants))
                 .toList();
     }
 
@@ -95,12 +94,18 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 .parentId(parentId)
                 .build();
         save(comment);
-        if (parentId != null) {
-            Comment parent = getById(parentId);
-            if (parent != null && !parent.getUserId().equals(userId))
-                notificationService.notify(userId, parent.getUserId(),
-                        NotificationType.REPLY, comment.getId());
+        Comment parent = null;
+        if (parentId == null) {
+            comment.setRootId(comment.getId());
         } else {
+            parent = getById(parentId);
+            comment.setRootId(parent != null ? parent.getRootId() : comment.getId());
+        }
+        updateById(comment);
+        if (parent != null && !parent.getUserId().equals(userId))
+            notificationService.notify(userId, parent.getUserId(),
+                    NotificationType.REPLY, comment.getId());
+        if (parentId == null) {
             Long authorId = null;
             if (targetType == RelatedType.MOMENT) {
                 Moment m = momentService.getById(targetId);
@@ -126,7 +131,25 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             throw new BusinessException(404, "Comment not found");
         if (!isAdmin && !comment.getUserId().equals(userId))
             throw new BusinessException(403, "You can only delete your own comments");
-        List<Long> allIds = collectDescendantIds(commentId);
+        List<Long> allIds;
+        if (comment.getId().equals(comment.getRootId())) {
+            allIds = lambdaQuery()
+                    .select(Comment::getId)
+                    .eq(Comment::getRootId, commentId)
+                    .list()
+                    .stream().map(Comment::getId)
+                    .collect(Collectors.toCollection(ArrayList::new));
+        } else {
+            allIds = new ArrayList<>();
+            List<Comment> treeNodes = lambdaQuery()
+                    .select(Comment::getId, Comment::getParentId)
+                    .eq(Comment::getRootId, comment.getRootId())
+                    .list();
+            Map<Long, List<Long>> childrenMap = treeNodes.stream()
+                    .collect(Collectors.groupingBy(Comment::getParentId,
+                            Collectors.mapping(Comment::getId, Collectors.toList())));
+            collectDescendants(commentId, childrenMap, allIds);
+        }
         allIds.add(commentId);
         removeByIds(allIds);
         for (Long cid : allIds) {
@@ -162,27 +185,15 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
 
     private Map<Long, Long> getReplyCounts(RelatedType targetType, Long targetId, List<Comment> roots) {
         if (roots.isEmpty()) return Map.of();
-        List<Comment> allNonRoots = lambdaQuery()
+        List<Long> rootIds = roots.stream().map(Comment::getId).toList();
+        return lambdaQuery()
                 .eq(Comment::getTargetType, targetType)
                 .eq(Comment::getTargetId, targetId)
+                .in(Comment::getRootId, rootIds)
                 .isNotNull(Comment::getParentId)
-                .select(Comment::getId, Comment::getParentId)
-                .list();
-        Map<Long, List<Long>> childrenMap = allNonRoots.stream()
-                .collect(Collectors.groupingBy(Comment::getParentId,
-                        Collectors.mapping(Comment::getId, Collectors.toList())));
-        Map<Long, Long> result = new HashMap<>();
-        for (Comment root : roots)
-            result.put(root.getId(), countDescendants(root.getId(), childrenMap));
-        return result;
-    }
-
-    private long countDescendants(Long parentId, Map<Long, List<Long>> childrenMap) {
-        List<Long> children = childrenMap.getOrDefault(parentId, List.of());
-        long total = children.size();
-        for (Long childId : children)
-            total += countDescendants(childId, childrenMap);
-        return total;
+                .list()
+                .stream()
+                .collect(Collectors.groupingBy(Comment::getRootId, Collectors.counting()));
     }
 
     private CommentVO buildReplyTree(Comment comment, List<Comment> all) {
@@ -196,18 +207,12 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         return toCommentVO(comment, replies, totalDescendants);
     }
 
-    private List<Long> collectDescendantIds(Long parentId) {
-        List<Long> ids = new ArrayList<>();
-        List<Long> children = lambdaQuery()
-                .select(Comment::getId)
-                .eq(Comment::getParentId, parentId)
-                .list()
-                .stream().map(Comment::getId).toList();
+    private void collectDescendants(Long parentId, Map<Long, List<Long>> childrenMap, List<Long> result) {
+        List<Long> children = childrenMap.getOrDefault(parentId, List.of());
         for (Long childId : children) {
-            ids.add(childId);
-            ids.addAll(collectDescendantIds(childId));
+            result.add(childId);
+            collectDescendants(childId, childrenMap, result);
         }
-        return ids;
     }
 
     private CommentVO toCommentVO(Comment comment, List<CommentVO> replies, long replyCount) {

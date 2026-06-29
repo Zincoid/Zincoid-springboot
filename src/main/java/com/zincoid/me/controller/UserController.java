@@ -96,9 +96,10 @@ public class UserController {
     @GetMapping("/public")
     public ApiResponse<PageVO<UserCardVO>> listUsers(@RequestParam(defaultValue = "1") int page,
                                                      @RequestParam(defaultValue = "20") int size,
-                                                     @RequestParam(required = false) Role role) {
+                                                     @RequestParam(required = false) Role role,
+                                                     @RequestParam(required = false) String keyword) {
         boolean isActive = !(AuthCtx.isAuthed() && AuthCtx.getRole() == Role.ADMIN);
-        return ApiResponse.success(userService.list(page, size, role, isActive));
+        return ApiResponse.success(userService.list(page, size, role, isActive, keyword));
     }
 
     @GetMapping("/public/{userId}")

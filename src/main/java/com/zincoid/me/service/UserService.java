@@ -20,7 +20,7 @@ public interface UserService extends IService<User> {
 
     void logout(String token);
 
-    PageVO<UserCardVO> list(int page, int size, Role role, boolean isActive);
+    PageVO<UserCardVO> list(int page, int size, Role role, boolean isActive, String keyword);
 
     UserDetailVO get(Long userId);
 

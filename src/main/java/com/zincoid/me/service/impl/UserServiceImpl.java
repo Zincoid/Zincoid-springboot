@@ -108,10 +108,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public PageVO<UserCardVO> list(int page, int size, Role role, boolean isActive) {
+    public PageVO<UserCardVO> list(int page, int size, Role role, boolean isActive, String keyword) {
         Page<User> userPage = lambdaQuery()
                 .eq(isActive, User::getStatus, Status.ACTIVE)
                 .eq(role != null, User::getRole, role)
+                .and(keyword != null && !keyword.isBlank(),
+                        w -> w.like(User::getUsername, keyword)
+                                .or().like(User::getNickname, keyword))
                 .orderByAsc(User::getCreatedAt)
                 .page(Page.of(page, size));
         return PageVO.of(userPage, UserConverter.INSTANCE::toCardVO);
@@ -204,6 +207,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         List<Comment> comments = commentService.lambdaQuery().eq(Comment::getUserId, userId).list();
         for (Comment c : comments) commentService.delete(null, c.getId(), true);
         if (user.getAvatar() != null) fileService.delete(user.getAvatar());
+        // Notifications and likes are deleted through cascade
         removeById(userId);
         log.info("User account deleted: id={}, username={}", userId, user.getUsername());
     }

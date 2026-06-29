@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ClientAbortException.class)
     public void handleClientAbort(ClientAbortException e) {
-        log.warn("Client aborted connection: {}", e.getMessage());
+        log.debug("Client aborted connection: {}", e.getMessage());
     }
 
     @ExceptionHandler(Exception.class)

@@ -38,7 +38,7 @@ public class EmailServiceImpl implements EmailService {
             throw new BusinessException(400, "Email is required");
         CodeEntry existing = codes.get(toEmail);
         if (existing != null && System.currentTimeMillis() < existing.expiresAt)
-            throw new BusinessException(429, "Verification code already requested. Please wait");
+            throw new BusinessException(429, "Verification code already requested, please wait");
         String code = String.format("%06d", RANDOM.nextInt(1_000_000));
         codes.put(toEmail, new CodeEntry(code, System.currentTimeMillis() + CODE_TTL));
         log.info("Verification code generated for {}", toEmail);

@@ -212,6 +212,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public void changeEmail(Long userId, String email, String code) {
         User user = getOrThrowExById(userId);
+        if (email.equals(user.getEmail()))
+            throw new BusinessException("New email is the same as current email");
         if (lambdaQuery().eq(User::getEmail, email).exists())
             throw new BusinessException("Email already registered");
         if (!emailService.verify(email, code))

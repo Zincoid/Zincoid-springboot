@@ -106,4 +106,9 @@ public class UserController {
     public ApiResponse<UserDetailVO> userDetail(@PathVariable Long userId) {
         return ApiResponse.success(userService.get(userId));
     }
+
+    @GetMapping("/public/username/{username}")
+    public ApiResponse<UserDetailVO> userDetail(@PathVariable String username) {
+        return ApiResponse.success(userService.get(username));
+    }
 }

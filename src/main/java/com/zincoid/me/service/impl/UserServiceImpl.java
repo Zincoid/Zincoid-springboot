@@ -148,6 +148,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    public UserDetailVO get(String username) {
+        User user = lambdaQuery().eq(User::getUsername, username).one();
+        if (user == null)
+            throw new BusinessException(404, "User not found");
+        if (user.getStatus() == Status.DISABLED)
+            throw new BusinessException(403, "User is disabled");
+        return UserConverter.INSTANCE.toDetailVO(user);
+    }
+
+    @Override
     @Transactional
     public UserDetailVO update(Long userId, UserUpdateRequest request) {
         User user = getOrThrowExById(userId);

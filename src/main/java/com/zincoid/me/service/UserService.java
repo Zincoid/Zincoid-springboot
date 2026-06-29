@@ -24,6 +24,8 @@ public interface UserService extends IService<User> {
 
     UserDetailVO get(Long userId);
 
+    UserDetailVO get(String username);
+
     UserDetailVO update(Long userId, UserUpdateRequest request);
 
     void delete(Long userId);

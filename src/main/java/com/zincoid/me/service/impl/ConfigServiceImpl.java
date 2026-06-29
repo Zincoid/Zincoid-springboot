@@ -6,12 +6,14 @@ import com.zincoid.me.mapper.ConfigMapper;
 import com.zincoid.me.model.po.Config;
 import com.zincoid.me.service.ConfigService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ConfigServiceImpl extends ServiceImpl<ConfigMapper, Config> implements ConfigService {
@@ -36,5 +38,6 @@ public class ConfigServiceImpl extends ServiceImpl<ConfigMapper, Config> impleme
         if (config == null) throw new BusinessException(404, "Config key not found: " + key);
         config.setConfigValue(value);
         updateById(config);
+        log.info("Config updated: {}={}", key, value);
     }
 }

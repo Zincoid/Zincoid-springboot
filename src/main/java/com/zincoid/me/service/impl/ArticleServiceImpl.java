@@ -1,6 +1,5 @@
 package com.zincoid.me.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.model.vo.PageVO;
@@ -73,7 +72,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         if (article.getCoverImage() != null) urls.add(article.getCoverImage());
         urls.addAll(extractUploadUrls(article.getContentMd()));
         if (!urls.isEmpty()) fileService.link(urls, RelatedType.ARTICLE, article.getId());
-        log.info("Article created by user {}: {}", userId, article.getId());
+        log.info("Article created: user={}, id={}", userId, article.getId());
         return buildDetailVO(article);
     }
 
@@ -107,6 +106,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         if (article.getCoverImage() != null) urls.add(article.getCoverImage());
         urls.addAll(extractUploadUrls(article.getContentMd()));
         if (!urls.isEmpty()) fileService.link(urls, RelatedType.ARTICLE, article.getId());
+        log.info("Article updated: user={}, id={}", userId, articleId);
         return buildDetailVO(article);
     }
 
@@ -122,7 +122,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         commentService.delete(RelatedType.ARTICLE, articleId);
         fileService.delete(RelatedType.ARTICLE, articleId);
         removeById(articleId);
-        log.info("Article deleted: {}", articleId);
+        log.info("Article deleted: user={}, admin={}, id={}", userId, isAdmin, articleId);
     }
 
     @Override
@@ -132,6 +132,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             throw new BusinessException(404, "Article not found");
         article.setIsPinned(true);
         updateById(article);
+        log.info("Article pinned: id={}", articleId);
     }
 
     @Override
@@ -141,6 +142,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             throw new BusinessException(404, "Article not found");
         article.setIsPinned(false);
         updateById(article);
+        log.info("Article unpinned: id={}", articleId);
     }
 
     @Override

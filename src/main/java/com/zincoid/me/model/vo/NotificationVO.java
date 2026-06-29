@@ -16,9 +16,9 @@ public class NotificationVO {
     private String senderAvatar;
     private RelatedType relatedType;
     private Long relatedId;
-    private Long commentId;
-    private String commentSnippet;
-    private Boolean isReply;
+    private RelatedType targetType;
+    private Long targetId;
+    private String snippet;
     private Boolean isRead;
     private LocalDateTime createdAt;
 }

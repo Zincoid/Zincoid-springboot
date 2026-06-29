@@ -24,7 +24,6 @@ public class Notification {
     private Long receiverId;
     private RelatedType relatedType;
     private Long relatedId;
-    private Long commentId;
     private Boolean isRead;
     private LocalDateTime createdAt;
 }

@@ -7,6 +7,7 @@ import com.zincoid.me.model.enums.FileType;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.vo.FileVO;
 import com.zincoid.me.service.ArticleService;
+import com.zincoid.me.service.CommentService;
 import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.MessageService;
 import com.zincoid.me.service.MomentService;
@@ -34,15 +35,18 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
     private final ArticleService articleService;
     private final UserService userService;
     private final MessageService messageService;
+    private final CommentService commentService;
 
     public FileServiceImpl(@Lazy MomentService momentService,
                            @Lazy ArticleService articleService,
                            @Lazy UserService userService,
-                           @Lazy MessageService messageService) {
+                           @Lazy MessageService messageService,
+                           @Lazy CommentService commentService) {
         this.momentService = momentService;
         this.articleService = articleService;
         this.userService = userService;
         this.messageService = messageService;
+        this.commentService = commentService;
     }
 
     @Override
@@ -61,6 +65,7 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
                 .relatedId(relatedId)
                 .build();
         save(uploadFile);
+        log.info("File uploaded: path={}, type={}, relation={}:{}", filePath, fileType, relatedType, relatedId);
         return FileVO.builder()
                 .fileName(file.getOriginalFilename())
                 .filePath(filePath)
@@ -83,6 +88,7 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
                 .set(File::getRelatedType, relatedType)
                 .set(File::getRelatedId, relatedId)
                 .update();
+        log.info("Files linked: {} -> {}:{}", paths, relatedType, relatedId);
     }
 
     @Override
@@ -94,6 +100,7 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
                 : filePathOrUrl;
         FileUtil.delete(path, uploadPath);
         lambdaUpdate().eq(File::getFilePath, path).remove();
+        log.info("File deleted: path={}", path);
     }
 
     @Override
@@ -108,7 +115,7 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
             removeById(file.getId());
         }
         if (!files.isEmpty())
-            log.info("Cleaned up {} files for type {}: {}", files.size(), relatedType, relatedId);
+            log.info("File deleted: count={}, relation={}:{}", files.size(), relatedType, relatedId);
     }
 
     @Override
@@ -120,13 +127,13 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
         for (File file : allFiles) {
             if (!diskFiles.contains(file.getFilePath())) {
                 removeById(file.getId());
-                log.info("Removed orphan DB record: {}", file.getFilePath());
+                log.info("Clean up: orphan DB record - {}", file.getId());
             }
         }
         for (String diskFile : diskFiles) {
             if (!dbPaths.contains(diskFile)) {
                 FileUtil.delete(diskFile, uploadPath);
-                log.info("Removed orphan disk file: {}", diskFile);
+                log.info("Clean up: orphan disk file - {}", diskFile);
             }
         }
         List<File> unlinked = lambdaQuery()
@@ -135,7 +142,7 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
         for (File file : unlinked) {
             FileUtil.delete(file.getFilePath(), uploadPath);
             removeById(file.getId());
-            log.info("Removed unlinked file and record: {}", file.getFilePath());
+            log.info("Clean up: unlinked file and record - {}:{}", file.getFilePath(), file.getId());
         }
         if (isLogic) {
             List<File> linked = lambdaQuery()
@@ -146,7 +153,8 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
                 if (!businessExists(file)) {
                     FileUtil.delete(file.getFilePath(), uploadPath);
                     removeById(file.getId());
-                    log.info("Removed file for deleted entity: ({}:{}) {}", file.getRelatedType(), file.getRelatedId(), file.getFilePath());
+                    log.info("Clean up: invalid relation of {}:{} - {}:{}",
+                            file.getRelatedType(), file.getRelatedId(), file.getFilePath(), file.getId());
                 }
             }
         }
@@ -161,6 +169,7 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
             case ARTICLE -> articleService.getById(id) != null;
             case AVATAR -> userService.getById(id) != null;
             case CHAT -> messageService.getById(id) != null;
+            case COMMENT, REPLY -> commentService.getById(id) != null;
         };
     }
 }

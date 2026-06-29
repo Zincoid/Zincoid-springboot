@@ -61,7 +61,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .role(Role.USER)  // 无法回填需手动设置
                 .build();
         save(user);
-        log.info("User registered: {}", user.getUsername());
+        log.info("User registered: id={}, username={}", user.getId(), user.getUsername());
         String token = jwtTool.generate(user.getId(), user.getUsername(), user.getRole());
         return LoginVO.builder()
                 .token(token)
@@ -77,7 +77,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (user.getStatus() == Status.DISABLED)
             throw new BusinessException("Account is disabled");
         String token = jwtTool.generate(user.getId(), user.getUsername(), user.getRole());
-        log.info("User logged in: {}", user.getUsername());
+        log.info("User logged in: id={}, username={}", user.getId(), user.getUsername());
         return LoginVO.builder()
                 .token(token)
                 .user(UserConverter.INSTANCE.toDetailVO(user))
@@ -90,6 +90,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         try {
             long expiration = jwtTool.parse(token).getExpiration().getTime();
             revokedTokens.put(token, expiration);
+            log.info("User logged out: token={}, expiration={}", token, expiration);
         } catch (Exception ignored) {}
     }
 
@@ -119,6 +120,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .eq(Article::getUserId, userId)
                 .set(Article::getStatus, status)
                 .update();
+        log.info("User status updated: id={}, username={}, status={}", userId, user.getUsername(), status);
     }
 
     @Override
@@ -160,6 +162,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             user.setContacts(contacts.isEmpty() ? null : contacts);
         }
         updateById(user);
+        log.info("User profile updated: id={}, username={}", userId, user.getUsername());
         return UserConverter.INSTANCE.toDetailVO(user);
     }
 
@@ -171,6 +174,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             fileService.delete(user.getAvatar());
         user.setAvatar(avatar);
         updateById(user);
+        log.info("User avatar updated: id={}, username={}, avatar={}", userId, user.getUsername(), avatar);
         return UserConverter.INSTANCE.toDetailVO(user);
     }
 
@@ -184,7 +188,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         for (Article a : articles) articleService.delete(null, a.getId(), true);
         if (user.getAvatar() != null) fileService.delete(user.getAvatar());
         removeById(userId);
-        log.info("User account deleted: {}", userId);
+        log.info("User account deleted: id={}, username={}", userId, user.getUsername());
     }
 
     @Override
@@ -195,6 +199,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException("Old password is incorrect");
         user.setPassword(passwordEncoder.encode(newPassword));
         updateById(user);
+        log.info("User password changed: id={}, username={}", userId, user.getUsername());
     }
 
     @Override
@@ -204,7 +209,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(404, "User not found");
         user.setPassword(passwordEncoder.encode(newPassword));
         updateById(user);
-        log.info("Admin reset password for user: {}", username);
+        log.info("Force password reset: id={}, username={}", user.getId(), username);
     }
 
     @Override

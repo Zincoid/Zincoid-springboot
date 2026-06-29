@@ -9,6 +9,7 @@ import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.vo.LikerVO;
 import com.zincoid.me.service.LikeService;
 import com.zincoid.me.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements LikeService {
 
@@ -45,6 +47,7 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
                 .one();
         if (existing != null) {
             removeById(existing.getId());
+            log.info("Like removed: user={}, target={}:{}", userId, targetType, targetId);
             return false;
         }
         Like like = Like.builder()
@@ -53,6 +56,7 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
                 .targetId(targetId)
                 .build();
         save(like);
+        log.info("Like added: user={}, target={}:{}", userId, targetType, targetId);
         return true;
     }
 
@@ -71,6 +75,7 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
                 .eq(Like::getTargetType, targetType)
                 .eq(Like::getTargetId, targetId)
                 .remove();
+        log.info("Likes deleted: target={}:{}", targetType, targetId);
     }
 
     @Override

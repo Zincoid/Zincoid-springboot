@@ -1,10 +1,8 @@
 package com.zincoid.me.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.model.vo.PageVO;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zincoid.me.converter.MomentConverter;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.MomentMapper;
@@ -39,8 +37,6 @@ import java.util.Set;
 @Service
 public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> implements MomentService {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
     private final UserService userService;
     private final CommentService commentService;
     private final FileService fileService;
@@ -63,7 +59,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
                 .images(JsonUtil.toJson(request.getImages()))
                 .build();
         save(moment);
-        log.info("Moment created by user {}: {}", userId, moment.getId());
+        log.info("Moment created: user={}, id={}", userId, moment.getId());
         if (request.getImages() != null && !request.getImages().isEmpty())
             fileService.link(request.getImages(), RelatedType.MOMENT, moment.getId());
         return buildCardVO(moment);
@@ -92,6 +88,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
                 fileService.link(newPaths, RelatedType.MOMENT, moment.getId());
         }
         updateById(moment);
+        log.info("Moment updated: user={}, id={}", userId, momentId);
         return buildCardVO(moment);
     }
 
@@ -107,7 +104,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
         commentService.delete(RelatedType.MOMENT, momentId);
         fileService.delete(RelatedType.MOMENT, momentId);
         removeById(momentId);
-        log.info("Moment deleted: {}", momentId);
+        log.info("Moment deleted: user={}, admin={}, id={}", userId, isAdmin, momentId);
     }
 
     @Override
@@ -117,6 +114,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
             throw new BusinessException(404, "Moment not found");
         moment.setIsPinned(true);
         updateById(moment);
+        log.info("Moment pinned: id={}", momentId);
     }
 
     @Override
@@ -126,6 +124,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
             throw new BusinessException(404, "Moment not found");
         moment.setIsPinned(false);
         updateById(moment);
+        log.info("Moment unpinned: id={}", momentId);
     }
 
     @Override

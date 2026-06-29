@@ -9,15 +9,17 @@ import java.util.List;
 
 public interface NotificationService extends IService<Notification> {
 
-    void add(Long senderId, Long receiverId, RelatedType relatedType, Long relatedId, Long commentId);
+    List<NotificationVO> list(Long userId);
 
-    void deleteByCommentId(Long commentId);
-
-    void deleteByUserId(Long userId);
+    void add(Long senderId, Long receiverId, RelatedType relatedType, Long relatedId);
 
     void deleteOne(Long notificationId, Long userId);
 
-    List<NotificationVO> list(Long userId);
+    void deleteAll(RelatedType relatedType, Long relatedId);
+
+    void deleteAll(Long userId);
+
+    void readOne(Long notificationId, Long userId);
 
     void readAll(Long userId);
 

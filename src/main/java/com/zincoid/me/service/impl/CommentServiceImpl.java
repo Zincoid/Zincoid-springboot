@@ -74,7 +74,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             if (parent != null && !parent.getUserId().equals(userId))
                 notificationService.add(
                         userId, parent.getUserId(),
-                        targetType, targetId, comment.getId());
+                        RelatedType.REPLY, comment.getId());
         } else {
             Long authorId = null;
             if (targetType == RelatedType.MOMENT) {
@@ -87,8 +87,9 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             if (authorId != null && !authorId.equals(userId))
                 notificationService.add(
                         userId, authorId,
-                        targetType, targetId, comment.getId());
+                        RelatedType.COMMENT, comment.getId());
         }
+        log.info("Comment added: user={}, target={}:{}, id={}", userId, targetType, targetId, comment.getId());
         return toCommentVO(comment, List.of());
     }
 
@@ -103,9 +104,11 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         List<Long> allIds = collectDescendantIds(commentId);
         allIds.add(commentId);
         removeByIds(allIds);
-        for (Long cid : allIds)
-            notificationService.deleteByCommentId(cid);
-        log.info("Comment deleted: {}", commentId);
+        for (Long cid : allIds) {
+            notificationService.deleteAll(RelatedType.COMMENT, cid);
+            notificationService.deleteAll(RelatedType.REPLY, cid);
+        }
+        log.info("Comment deleted: user={}, id={}", userId, commentId);
     }
 
     @Override
@@ -121,9 +124,11 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 .eq(Comment::getTargetType, targetType)
                 .eq(Comment::getTargetId, targetId)
                 .remove();
-        for (Long cid : commentIds)
-            notificationService.deleteByCommentId(cid);
-        log.info("Deleted all comments for {}:{}", targetType, targetId);
+        for (Long cid : commentIds) {
+            notificationService.deleteAll(RelatedType.COMMENT, cid);
+            notificationService.deleteAll(RelatedType.REPLY, cid);
+        }
+        log.info("Comments deleted: target={}:{}", targetType, targetId);
     }
 
     // ──────── Private tool ────────────────────────────────

@@ -36,7 +36,13 @@ public class NotificationController {
 
     @DeleteMapping
     public ApiResponse<Void> deleteAllNotifications() {
-        notificationService.deleteByUserId(AuthCtx.getUserId());
+        notificationService.deleteAll(AuthCtx.getUserId());
+        return ApiResponse.success();
+    }
+
+    @PutMapping("/{id}/read")
+    public ApiResponse<Void> readOneNotification(@PathVariable Long id) {
+        notificationService.readOne(id, AuthCtx.getUserId());
         return ApiResponse.success();
     }
 

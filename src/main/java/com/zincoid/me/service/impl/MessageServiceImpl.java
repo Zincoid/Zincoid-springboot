@@ -49,6 +49,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         if (msg.getFile() != null)
             fileService.link(List.of(msg.getFile()), RelatedType.CHAT, msg.getId());
         trim();
+        log.info("Message sent: user={}, id={}", userId, msg.getId());
         return buildVO(msg);
     }
 

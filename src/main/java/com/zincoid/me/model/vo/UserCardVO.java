@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public class UserCardVO {
 
     private Long id;
+    private String username;
     private String nickname;
     private String avatar;
     private String title;

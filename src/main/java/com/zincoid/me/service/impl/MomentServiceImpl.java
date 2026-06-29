@@ -64,6 +64,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
                 .images(JsonUtil.toJson(request.getImages()))
                 .build();
         save(moment);
+        notificationService.notify(userId, request.getContent(), NotificationType.MOMENT_MENTION, moment.getId());
         log.info("Moment created: user={}, id={}", userId, moment.getId());
         if (request.getImages() != null && !request.getImages().isEmpty())
             fileService.link(request.getImages(), RelatedType.MOMENT, moment.getId());

@@ -17,5 +17,6 @@ public class CommentVO {
     private String content;
     private Long parentId;
     private List<CommentVO> replies;
+    private long replyCount;
     private LocalDateTime createdAt;
 }

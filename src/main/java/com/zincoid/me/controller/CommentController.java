@@ -6,6 +6,8 @@ import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.model.vo.CommentVO;
 import com.zincoid.me.model.vo.PageVO;
+
+import java.util.List;
 import com.zincoid.me.service.CommentService;
 import com.zincoid.me.utils.AuthCtx;
 import jakarta.validation.Valid;
@@ -55,5 +57,10 @@ public class CommentController {
                                                            @RequestParam(defaultValue = "1") int page,
                                                            @RequestParam(defaultValue = "10") int size) {
         return ApiResponse.success(commentService.list(RelatedType.ARTICLE, articleId, page, size));
+    }
+
+    @GetMapping("/public/replies/{parentId}")
+    public ApiResponse<List<CommentVO>> replies(@PathVariable Long parentId) {
+        return ApiResponse.success(commentService.replies(parentId));
     }
 }

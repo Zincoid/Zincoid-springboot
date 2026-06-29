@@ -18,5 +18,5 @@ public interface CommentConverter {
     @Mapping(target = "createdAt", source = "comment.createdAt")
     @Mapping(target = "userNickname", source = "user.nickname")
     @Mapping(target = "userAvatar", source = "user.avatar")
-    CommentVO toVO(Comment comment, User user, List<CommentVO> replies);
+    CommentVO toVO(Comment comment, User user, List<CommentVO> replies, long replyCount);
 }

@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -52,19 +53,27 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 .orderByAsc(Comment::getCreatedAt)
                 .page(Page.of(page, size));
         List<Comment> rootComments = rootPage.getRecords();
-        if (rootComments.isEmpty()) {
-            return PageVO.of(rootPage, Collections.emptyList());
-        }
-        List<Comment> allReplies = lambdaQuery()
-                .eq(Comment::getTargetType, targetType)
-                .eq(Comment::getTargetId, targetId)
-                .isNotNull(Comment::getParentId)
+        Map<Long, Long> replyCounts = getReplyCounts(targetType, targetId, rootComments);
+        List<CommentVO> roots = rootComments.stream()
+                .map(c -> toCommentVO(c, List.of(), replyCounts.getOrDefault(c.getId(), 0L)))
+                .toList();
+        return PageVO.of(rootPage, roots);
+    }
+
+    @Override
+    public List<CommentVO> replies(Long parentId) {
+        Comment parent = getById(parentId);
+        if (parent == null) return List.of();
+        List<Long> descendantIds = collectDescendantIds(parentId);
+        if (descendantIds.isEmpty()) return List.of();
+        List<Comment> children = lambdaQuery()
+                .in(Comment::getId, descendantIds)
                 .orderByAsc(Comment::getCreatedAt)
                 .list();
-        List<Comment> allComments = new ArrayList<>(rootComments);
-        allComments.addAll(allReplies);
-        List<CommentVO> tree = buildCommentTree(allComments);
-        return PageVO.of(rootPage, tree);
+        return children.stream()
+                .filter(c -> c.getParentId().equals(parentId))
+                .map(c -> buildReplyTree(c, children))
+                .toList();
     }
 
     @Override
@@ -106,7 +115,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         }
         notificationService.notify(userId, content, NotificationType.COMMENT_MENTION, comment.getId());
         log.info("Comment added: user={}, target={}:{}, id={}", userId, targetType, targetId, comment.getId());
-        return toCommentVO(comment, List.of());
+        return toCommentVO(comment, List.of(), 0);
     }
 
     @Override
@@ -151,21 +160,40 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
 
     // ──────── Tree builder ────────────────────────────────
 
-    private List<CommentVO> buildCommentTree(List<Comment> comments) {
-        List<Comment> roots = comments.stream()
-                .filter(c -> c.getParentId() == null)
-                .toList();
-        return roots.stream()
-                .map(root -> buildNode(root, comments))
-                .toList();
+    private Map<Long, Long> getReplyCounts(RelatedType targetType, Long targetId, List<Comment> roots) {
+        if (roots.isEmpty()) return Map.of();
+        List<Comment> allNonRoots = lambdaQuery()
+                .eq(Comment::getTargetType, targetType)
+                .eq(Comment::getTargetId, targetId)
+                .isNotNull(Comment::getParentId)
+                .select(Comment::getId, Comment::getParentId)
+                .list();
+        Map<Long, List<Long>> childrenMap = allNonRoots.stream()
+                .collect(Collectors.groupingBy(Comment::getParentId,
+                        Collectors.mapping(Comment::getId, Collectors.toList())));
+        Map<Long, Long> result = new HashMap<>();
+        for (Comment root : roots)
+            result.put(root.getId(), countDescendants(root.getId(), childrenMap));
+        return result;
     }
 
-    private CommentVO buildNode(Comment comment, List<Comment> all) {
+    private long countDescendants(Long parentId, Map<Long, List<Long>> childrenMap) {
+        List<Long> children = childrenMap.getOrDefault(parentId, List.of());
+        long total = children.size();
+        for (Long childId : children)
+            total += countDescendants(childId, childrenMap);
+        return total;
+    }
+
+    private CommentVO buildReplyTree(Comment comment, List<Comment> all) {
         List<CommentVO> replies = all.stream()
                 .filter(c -> comment.getId().equals(c.getParentId()))
-                .map(c -> buildNode(c, all))
+                .map(c -> buildReplyTree(c, all))
                 .toList();
-        return toCommentVO(comment, replies);
+        long totalDescendants = replies.stream()
+                .mapToLong(r -> 1 + r.getReplyCount())
+                .sum();
+        return toCommentVO(comment, replies, totalDescendants);
     }
 
     private List<Long> collectDescendantIds(Long parentId) {
@@ -182,8 +210,8 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         return ids;
     }
 
-    private CommentVO toCommentVO(Comment comment, List<CommentVO> replies) {
+    private CommentVO toCommentVO(Comment comment, List<CommentVO> replies, long replyCount) {
         User user = userService.getById(comment.getUserId());
-        return CommentConverter.INSTANCE.toVO(comment, user, replies);
+        return CommentConverter.INSTANCE.toVO(comment, user, replies, replyCount);
     }
 }

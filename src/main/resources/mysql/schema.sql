@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS `user` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
     `username`      VARCHAR(50)     NOT NULL                 COMMENT 'Username (login)',
     `password`      VARCHAR(255)    NOT NULL                 COMMENT 'BCrypt hashed password',
+    `email`         VARCHAR(100)    DEFAULT NULL             COMMENT 'Email address',
     `nickname`      VARCHAR(50)     DEFAULT NULL             COMMENT 'Display nickname',
     `gender`        TINYINT         DEFAULT NULL             COMMENT 'Gender: 0=MALE(he/him), 1=FEMALE(she/her), null=hidden',
     `title`         VARCHAR(100)    DEFAULT NULL             COMMENT 'Identity title / headline',
@@ -27,6 +28,7 @@ CREATE TABLE IF NOT EXISTS `user` (
     `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_username` (`username`),
+    UNIQUE KEY `uk_email` (`email`),
     KEY `idx_role` (`role`),
     KEY `idx_status` (`status`),
     KEY `idx_created_at` (`created_at`)

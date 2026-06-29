@@ -15,6 +15,13 @@ zincoid:
     secret:                                         # 密钥
     expiration: 86400                               # 过期时间 (单位: 秒)
 
+  # ─────────────────────────── 邮件服务 ─────────────────────────── #
+  mail:
+    host: smtp.qq.com                               # SMTP 服务器
+    port: 465                                       # SMTP 端口
+    username: your-email@qq.com                     # 发件邮箱
+    password: your-smtp-auth-code                   # SMTP 授权码
+
   # ─────────────────────────── 文件上传 ─────────────────────────── #
   upload:
     path: ./files                                   # 文件保存路径

@@ -18,6 +18,7 @@ import com.zincoid.me.model.vo.LoginVO;
 import com.zincoid.me.model.vo.UserCardVO;
 import com.zincoid.me.model.vo.UserDetailVO;
 import com.zincoid.me.service.ArticleService;
+import com.zincoid.me.service.EmailService;
 import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.MomentService;
 import com.zincoid.me.service.UserService;
@@ -47,21 +48,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private final MomentService momentService;
     private final ArticleService articleService;
     private final FileService fileService;
+    private final EmailService emailService;
 
     @Override
     @Transactional
     public LoginVO register(RegisterRequest request) {
         if (lambdaQuery().eq(User::getUsername, request.getUsername()).exists())
             throw new BusinessException("Username already exists");
+        if (lambdaQuery().eq(User::getEmail, request.getEmail()).exists())
+            throw new BusinessException("Email already registered");
+        if (!emailService.verify(request.getEmail(), request.getCode()))
+            throw new BusinessException("Invalid or expired verification code");
         User user = User.builder()
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .email(request.getEmail())
                 .nickname(request.getNickname() != null && !request.getNickname().isBlank()
                         ? request.getNickname() : request.getUsername())
                 .role(Role.USER)  // 无法回填需手动设置
                 .build();
         save(user);
-        log.info("User registered: id={}, username={}", user.getId(), user.getUsername());
+        log.info("User registered: id={}, username={}, email={}", user.getId(), user.getUsername(), user.getEmail());
         String token = jwtTool.generate(user.getId(), user.getUsername(), user.getRole());
         return LoginVO.builder()
                 .token(token)
@@ -200,6 +207,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setPassword(passwordEncoder.encode(newPassword));
         updateById(user);
         log.info("User password changed: id={}, username={}", userId, user.getUsername());
+    }
+
+    @Override
+    public void changeEmail(Long userId, String email, String code) {
+        User user = getOrThrowExById(userId);
+        if (lambdaQuery().eq(User::getEmail, email).exists())
+            throw new BusinessException("Email already registered");
+        if (!emailService.verify(email, code))
+            throw new BusinessException("Invalid or expired verification code");
+        user.setEmail(email);
+        updateById(user);
+        log.info("User email changed: id={}, username={}, newEmail={}", userId, user.getUsername(), email);
     }
 
     @Override

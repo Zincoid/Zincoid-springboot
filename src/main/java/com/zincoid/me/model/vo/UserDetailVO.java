@@ -14,6 +14,7 @@ public class UserDetailVO {
 
     private Long id;
     private String username;
+    private String email;
     private String nickname;
     private Gender gender;
     private String title;

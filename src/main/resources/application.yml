@@ -25,6 +25,15 @@ spring:
     time-zone: Asia/Shanghai
     default-property-inclusion: non_null
 
+  mail:
+    host: ${zincoid.mail.host}
+    port: ${zincoid.mail.port}
+    username: ${zincoid.mail.username}
+    password: ${zincoid.mail.password}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.ssl.enable: true
+
 logging:
   file:
     name: ${zincoid.logging.path}

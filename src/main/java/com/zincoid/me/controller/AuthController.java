@@ -4,11 +4,14 @@ import com.zincoid.me.model.dto.LoginRequest;
 import com.zincoid.me.model.dto.RegisterRequest;
 import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.model.vo.LoginVO;
+import com.zincoid.me.service.EmailService;
 import com.zincoid.me.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -16,8 +19,15 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final UserService userService;
+    private final EmailService emailService;
 
     // ──── Public endpoints ────────────────
+
+    @PostMapping("/send-code")
+    public ApiResponse<Void> sendCode(@RequestBody Map<String, String> body) {
+        emailService.sendCode(body.get("email"));
+        return ApiResponse.success();
+    }
 
     @PostMapping("/register")
     public ApiResponse<LoginVO> register(@Valid @RequestBody RegisterRequest request) {

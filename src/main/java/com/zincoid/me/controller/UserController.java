@@ -55,6 +55,16 @@ public class UserController {
         return ApiResponse.success();
     }
 
+    @PutMapping("/email")
+    public ApiResponse<Void> changeEmail(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        String code = body.get("code");
+        if (email == null || email.isBlank() || code == null || code.isBlank())
+            return ApiResponse.badRequest("Email and code are required");
+        userService.changeEmail(AuthCtx.getUserId(), email, code);
+        return ApiResponse.success();
+    }
+
     @PutMapping("/{userId}/status")
     public ApiResponse<Void> updateUserStatus(@PathVariable Long userId,
                                               @RequestParam Status status) {

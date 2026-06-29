@@ -4,7 +4,6 @@ import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.vo.ArticleCardVO;
 import com.zincoid.me.model.vo.ArticleDetailVO;
-import com.zincoid.me.model.vo.CommentVO;
 import com.zincoid.me.model.vo.LikerVO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -31,5 +30,5 @@ public interface ArticleConverter {
     @Mapping(target = "userNickname", source = "user.nickname")
     @Mapping(target = "userAvatar", source = "user.avatar")
     ArticleDetailVO toDetailVO(Article article, User user, boolean isLiked, long likeCount,
-                               List<CommentVO> comments, List<LikerVO> recentLikers);
+                               List<LikerVO> recentLikers);
 }

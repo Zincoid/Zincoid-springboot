@@ -5,13 +5,12 @@ import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.model.vo.CommentVO;
+import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.service.CommentService;
 import com.zincoid.me.utils.AuthCtx;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/comments")
@@ -45,12 +44,16 @@ public class CommentController {
     // ──── Public endpoints ────────────────
 
     @GetMapping("/public/moment/{momentId}")
-    public ApiResponse<List<CommentVO>> momentComments(@PathVariable Long momentId) {
-        return ApiResponse.success(commentService.list(RelatedType.MOMENT, momentId));
+    public ApiResponse<PageVO<CommentVO>> momentComments(@PathVariable Long momentId,
+                                                          @RequestParam(defaultValue = "1") int page,
+                                                          @RequestParam(defaultValue = "10") int size) {
+        return ApiResponse.success(commentService.list(RelatedType.MOMENT, momentId, page, size));
     }
 
     @GetMapping("/public/article/{articleId}")
-    public ApiResponse<List<CommentVO>> articleComments(@PathVariable Long articleId) {
-        return ApiResponse.success(commentService.list(RelatedType.ARTICLE, articleId));
+    public ApiResponse<PageVO<CommentVO>> articleComments(@PathVariable Long articleId,
+                                                           @RequestParam(defaultValue = "1") int page,
+                                                           @RequestParam(defaultValue = "10") int size) {
+        return ApiResponse.success(commentService.list(RelatedType.ARTICLE, articleId, page, size));
     }
 }

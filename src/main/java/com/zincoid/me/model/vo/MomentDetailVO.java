@@ -17,7 +17,6 @@ public class MomentDetailVO {
     private String content;
     private List<String> images;
     private Boolean isPinned;
-    private List<CommentVO> comments;
     private Integer likeCount;
     private Long viewCount;
     private Boolean isLiked;

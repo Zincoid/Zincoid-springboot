@@ -21,7 +21,6 @@ public class ArticleDetailVO {
     private String coverImage;
     private Boolean isPinned;
     private Long viewCount;
-    private List<CommentVO> comments;
     private Integer likeCount;
     private Boolean isLiked;
     private List<LikerVO> recentLikers;

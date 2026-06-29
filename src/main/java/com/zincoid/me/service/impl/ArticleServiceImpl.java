@@ -227,10 +227,9 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     private ArticleDetailVO buildDetailVO(Article article) {
         User user = userService.getById(article.getUserId());
-        List<CommentVO> comments = commentService.list(RelatedType.ARTICLE, article.getId());
         long likeCount = likeService.count(RelatedType.ARTICLE, article.getId());
         boolean isLiked = likeService.liked(AuthCtx.getUserId(), RelatedType.ARTICLE, article.getId());
         List<LikerVO> recentLikers = likeService.getLikers(RelatedType.ARTICLE, article.getId(), 5);
-        return ArticleConverter.INSTANCE.toDetailVO(article, user, isLiked, likeCount, comments, recentLikers);
+        return ArticleConverter.INSTANCE.toDetailVO(article, user, isLiked, likeCount, recentLikers);
     }
 }

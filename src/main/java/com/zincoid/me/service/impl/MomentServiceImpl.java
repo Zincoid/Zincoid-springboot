@@ -191,14 +191,13 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
         Moment moment = getById(momentId);
         if (moment == null || moment.getStatus() == Status.DISABLED)
             throw new BusinessException(404, "Moment not found");
-        List<CommentVO> comments = commentService.list(RelatedType.MOMENT, momentId);
         User user = userService.getById(moment.getUserId());
         long likeCount = likeService.count(RelatedType.MOMENT, momentId);
         boolean isLiked = likeService.liked(AuthCtx.getUserId(), RelatedType.MOMENT, momentId);
         List<LikerVO> recentLikers = likeService.getLikers(RelatedType.MOMENT, momentId, 5);
         baseMapper.addViewCount(momentId);
         moment.setViewCount(moment.getViewCount() + 1);
-        return MomentConverter.INSTANCE.toDetailVO(moment, user, isLiked, likeCount, comments, recentLikers);
+        return MomentConverter.INSTANCE.toDetailVO(moment, user, isLiked, likeCount, recentLikers);
     }
 
     // ──────── Private tool ────────────────────────────────

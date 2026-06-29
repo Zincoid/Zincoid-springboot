@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zincoid.me.model.po.Moment;
 import com.zincoid.me.model.po.User;
-import com.zincoid.me.model.vo.CommentVO;
 import com.zincoid.me.model.vo.LikerVO;
 import com.zincoid.me.model.vo.MomentCardVO;
 import com.zincoid.me.model.vo.MomentDetailVO;
@@ -34,7 +33,7 @@ public interface MomentConverter {
     @Mapping(target = "userAvatar", source = "user.avatar")
     @Mapping(target = "images", source = "moment.images", qualifiedByName = "parseImages")
     MomentDetailVO toDetailVO(Moment moment, User user, boolean isLiked, long likeCount,
-                              List<CommentVO> comments, List<LikerVO> recentLikers);
+                              List<LikerVO> recentLikers);
 
     @Named("parseImages")
     default List<String> parseImages(String imagesJson) {

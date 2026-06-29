@@ -4,12 +4,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.po.Comment;
 import com.zincoid.me.model.vo.CommentVO;
-
-import java.util.List;
+import com.zincoid.me.model.vo.PageVO;
 
 public interface CommentService extends IService<Comment> {
 
-    List<CommentVO> list(RelatedType targetType, Long targetId);
+    PageVO<CommentVO> list(RelatedType targetType, Long targetId, int page, int size);
 
     long count(RelatedType targetType, Long targetId);
 

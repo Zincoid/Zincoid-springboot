@@ -1,5 +1,7 @@
 package com.zincoid.me.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.CommentMapper;
@@ -11,6 +13,7 @@ import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.converter.CommentConverter;
 import com.zincoid.me.model.vo.CommentVO;
+import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.service.ArticleService;
 import com.zincoid.me.service.CommentService;
 import com.zincoid.me.service.MomentService;
@@ -41,13 +44,27 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     }
 
     @Override
-    public List<CommentVO> list(RelatedType targetType, Long targetId) {
-        List<Comment> comments = lambdaQuery()
+    public PageVO<CommentVO> list(RelatedType targetType, Long targetId, int page, int size) {
+        IPage<Comment> rootPage = lambdaQuery()
                 .eq(Comment::getTargetType, targetType)
                 .eq(Comment::getTargetId, targetId)
+                .isNull(Comment::getParentId)
+                .orderByAsc(Comment::getCreatedAt)
+                .page(Page.of(page, size));
+        List<Comment> rootComments = rootPage.getRecords();
+        if (rootComments.isEmpty()) {
+            return PageVO.of(rootPage, Collections.emptyList());
+        }
+        List<Comment> allReplies = lambdaQuery()
+                .eq(Comment::getTargetType, targetType)
+                .eq(Comment::getTargetId, targetId)
+                .isNotNull(Comment::getParentId)
                 .orderByAsc(Comment::getCreatedAt)
                 .list();
-        return buildCommentTree(comments);
+        List<Comment> allComments = new ArrayList<>(rootComments);
+        allComments.addAll(allReplies);
+        List<CommentVO> tree = buildCommentTree(allComments);
+        return PageVO.of(rootPage, tree);
     }
 
     @Override

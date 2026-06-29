@@ -8,6 +8,8 @@ import com.zincoid.me.model.vo.MomentCardVO;
 import com.zincoid.me.model.vo.MomentDetailVO;
 import com.zincoid.me.model.vo.PageVO;
 
+import java.util.List;
+
 public interface MomentService extends IService<Moment> {
 
     MomentCardVO create(Long userId, MomentCreateRequest request);
@@ -23,6 +25,8 @@ public interface MomentService extends IService<Moment> {
     PageVO<MomentCardVO> list(int page, int size);
 
     PageVO<MomentCardVO> list(Long userId, int page, int size);
+
+    List<MomentCardVO> home(int size);
 
     MomentDetailVO get(Long momentId);
 

@@ -95,9 +95,10 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         }
         if (request.getSummary() != null) article.setSummary(request.getSummary());
         if (request.getCoverImage() != null) {
+            String newCover = request.getCoverImage().isBlank() ? null : request.getCoverImage();
             String oldCover = article.getCoverImage();
-            article.setCoverImage(request.getCoverImage());
-            if (oldCover != null && !oldCover.equals(request.getCoverImage()))
+            article.setCoverImage(newCover);
+            if (oldCover != null && !oldCover.equals(newCover))
                 fileService.delete(oldCover);
         }
         if (request.getStatus() != null) article.setStatus(request.getStatus());

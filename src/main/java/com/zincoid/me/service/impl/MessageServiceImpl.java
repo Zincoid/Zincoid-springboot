@@ -99,6 +99,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         for (Message m : oldest) {
             if (m.getFile() != null)
                 fileService.delete(RelatedType.CHAT, m.getId());
+            notificationService.deleteAll(NotificationType.CHAT_MENTION, m.getId());
             removeById(m.getId());
         }
     }

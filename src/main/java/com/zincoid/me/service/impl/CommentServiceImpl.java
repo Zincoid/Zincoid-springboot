@@ -146,6 +146,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                     .eq(Comment::getRootId, comment.getRootId())
                     .list();
             Map<Long, List<Long>> childrenMap = treeNodes.stream()
+                    .filter(c -> c.getParentId() != null)
                     .collect(Collectors.groupingBy(Comment::getParentId,
                             Collectors.mapping(Comment::getId, Collectors.toList())));
             collectDescendants(commentId, childrenMap, allIds);

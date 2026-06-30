@@ -13,6 +13,7 @@ import com.zincoid.me.model.vo.MessageVO;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.service.ConfigService;
 import com.zincoid.me.service.FileService;
+import com.zincoid.me.converter.MessageConverter;
 import com.zincoid.me.service.MessageService;
 import com.zincoid.me.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -106,14 +107,6 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     private MessageVO buildVO(Message msg) {
         User user = userService.getById(msg.getUserId());
-        return MessageVO.builder()
-                .id(msg.getId())
-                .userId(msg.getUserId())
-                .userNickname(user != null ? user.getNickname() : null)
-                .userAvatar(user != null ? user.getAvatar() : null)
-                .content(msg.getContent())
-                .file(msg.getFile())
-                .createdAt(msg.getCreatedAt())
-                .build();
+        return MessageConverter.INSTANCE.toVO(msg, user);
     }
 }

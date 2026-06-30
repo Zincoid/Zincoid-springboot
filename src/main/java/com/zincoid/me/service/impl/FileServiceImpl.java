@@ -1,13 +1,12 @@
 package com.zincoid.me.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.zincoid.me.mapper.UploadFileMapper;
+import com.zincoid.me.mapper.FileMapper;
 import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.enums.FileType;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.vo.FileVO;
 import com.zincoid.me.service.ArticleService;
-import com.zincoid.me.service.CommentService;
 import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.MessageService;
 import com.zincoid.me.service.MomentService;
@@ -26,7 +25,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> implements FileService {
+public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements FileService {
 
     @Value("${upload.path:./uploads}")
     private String uploadPath;
@@ -35,18 +34,15 @@ public class FileServiceImpl extends ServiceImpl<UploadFileMapper, File> impleme
     private final ArticleService articleService;
     private final UserService userService;
     private final MessageService messageService;
-    private final CommentService commentService;
 
     public FileServiceImpl(@Lazy MomentService momentService,
                            @Lazy ArticleService articleService,
                            @Lazy UserService userService,
-                           @Lazy MessageService messageService,
-                           @Lazy CommentService commentService) {
+                           @Lazy MessageService messageService) {
         this.momentService = momentService;
         this.articleService = articleService;
         this.userService = userService;
         this.messageService = messageService;
-        this.commentService = commentService;
     }
 
     @Override

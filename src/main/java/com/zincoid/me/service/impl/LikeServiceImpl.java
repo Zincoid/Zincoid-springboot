@@ -6,8 +6,14 @@ import com.zincoid.me.mapper.LikeMapper;
 import com.zincoid.me.model.po.Like;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.RelatedType;
+import com.zincoid.me.model.enums.NotificationType;
+import com.zincoid.me.model.po.Article;
+import com.zincoid.me.model.po.Moment;
 import com.zincoid.me.model.vo.LikerVO;
+import com.zincoid.me.service.ArticleService;
 import com.zincoid.me.service.LikeService;
+import com.zincoid.me.service.MomentService;
+import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -22,9 +28,16 @@ import java.util.Objects;
 public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements LikeService {
 
     private final UserService userService;
+    private final NotificationService notificationService;
+    private final MomentService momentService;
+    private final ArticleService articleService;
 
-    public LikeServiceImpl(@Lazy UserService userService) {
+    public LikeServiceImpl(@Lazy UserService userService, @Lazy NotificationService notificationService,
+                           @Lazy MomentService momentService, @Lazy ArticleService articleService) {
         this.userService = userService;
+        this.notificationService = notificationService;
+        this.momentService = momentService;
+        this.articleService = articleService;
     }
 
     @Override
@@ -47,6 +60,7 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
                 .one();
         if (existing != null) {
             removeById(existing.getId());
+            notificationService.deleteAll(NotificationType.LIKE, existing.getId());
             log.info("Like removed: user={}, target={}:{}", userId, targetType, targetId);
             return false;
         }
@@ -56,6 +70,16 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
                 .targetId(targetId)
                 .build();
         save(like);
+        Long authorId = null;
+        if (targetType == RelatedType.MOMENT) {
+            Moment m = momentService.lambdaQuery().select(Moment::getUserId).eq(Moment::getId, targetId).one();
+            if (m != null) authorId = m.getUserId();
+        } else {
+            Article a = articleService.lambdaQuery().select(Article::getUserId).eq(Article::getId, targetId).one();
+            if (a != null) authorId = a.getUserId();
+        }
+        if (authorId != null && !authorId.equals(userId))
+            notificationService.notify(userId, authorId, NotificationType.LIKE, like.getId());
         log.info("Like added: user={}, target={}:{}", userId, targetType, targetId);
         return true;
     }
@@ -71,10 +95,17 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
     @Override
     @Transactional
     public void delete(RelatedType targetType, Long targetId) {
-        lambdaUpdate()
+        List<Long> likeIds = lambdaQuery()
+                .select(Like::getId)
                 .eq(Like::getTargetType, targetType)
                 .eq(Like::getTargetId, targetId)
-                .remove();
+                .list()
+                .stream().map(Like::getId).toList();
+        if (!likeIds.isEmpty()) {
+            removeBatchByIds(likeIds);
+            for (Long likeId : likeIds)
+                notificationService.deleteAll(NotificationType.LIKE, likeId);
+        }
         log.info("Likes deleted: target={}:{}", targetType, targetId);
     }
 

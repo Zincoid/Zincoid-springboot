@@ -199,5 +199,7 @@ INSERT INTO `config` (`config_key`, `config_value`, `description`) VALUES
 ('site_desc_en', 'Personal website and blog', 'Website description (English)'),
 ('site_desc_zh', '个人网站与博客', 'Website description (Chinese)'),
 ('page_size', '10', 'Default pagination page size'),
-('message_max_count', '100', 'Maximum number of messages to keep')
+('message_max_count', '100', 'Maximum number of messages to keep'),
+('loading_spinner_hold', '250', 'Loading spinner hold duration (ms) before fade'),
+('loading_spinner_fade', '125', 'Loading spinner fade-out duration (ms)')
 ON DUPLICATE KEY UPDATE `config_key` = VALUES(`config_key`);

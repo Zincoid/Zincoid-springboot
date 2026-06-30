@@ -12,6 +12,7 @@ import com.zincoid.me.model.po.Moment;
 import com.zincoid.me.model.po.Notification;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.vo.NotificationVO;
+import com.zincoid.me.converter.NotificationConverter;
 import com.zincoid.me.service.CommentService;
 import com.zincoid.me.service.MessageService;
 import com.zincoid.me.service.MomentService;
@@ -97,19 +98,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
             } else if (n.getRelatedType() == NotificationType.SYSTEM) {
                 snippet = n.getMessage();
             }
-            vos.add(NotificationVO.builder()
-                    .id(n.getId())
-                    .senderId(sender.getId())
-                    .senderNickname(sender.getNickname())
-                    .senderAvatar(sender.getAvatar())
-                    .relatedType(n.getRelatedType())
-                    .relatedId(n.getRelatedId())
-                    .targetType(targetType)
-                    .targetId(targetId)
-                    .snippet(snippet)
-                    .isRead(n.getIsRead())
-                    .createdAt(n.getCreatedAt())
-                    .build());
+            vos.add(NotificationConverter.INSTANCE.toVO(n, sender, targetType, targetId, snippet));
         }
         return vos;
     }

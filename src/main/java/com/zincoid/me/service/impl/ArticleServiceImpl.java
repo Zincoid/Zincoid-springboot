@@ -188,10 +188,11 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     @Override
-    public PageVO<ArticleCardVO> list(Long userId, int page, int size) {
+    public PageVO<ArticleCardVO> list(Long userId, int page, int size, boolean pinned) {
         Page<Article> articlePage = lambdaQuery()
                 .eq(Article::getUserId, userId)
                 .eq(Article::getStatus, Status.ACTIVE)
+                .orderByDesc(pinned, Article::getIsPinned)
                 .orderByDesc(Article::getCreatedAt)
                 .page(Page.of(page, size));
         return PageVO.of(articlePage, this::buildCardVO);

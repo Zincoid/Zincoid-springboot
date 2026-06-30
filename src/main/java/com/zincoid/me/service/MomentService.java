@@ -24,7 +24,7 @@ public interface MomentService extends IService<Moment> {
 
     PageVO<MomentCardVO> list(int page, int size, boolean pinned);
 
-    PageVO<MomentCardVO> list(Long userId, int page, int size);
+    PageVO<MomentCardVO> list(Long userId, int page, int size, boolean pinned);
 
     List<MomentCardVO> home(int size);
 

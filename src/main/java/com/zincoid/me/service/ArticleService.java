@@ -24,7 +24,7 @@ public interface ArticleService extends IService<Article> {
 
     PageVO<ArticleCardVO> list(int page, int size, boolean pinned);
 
-    PageVO<ArticleCardVO> list(Long userId, int page, int size);
+    PageVO<ArticleCardVO> list(Long userId, int page, int size, boolean pinned);
 
     List<ArticleCardVO> home(int size);
 

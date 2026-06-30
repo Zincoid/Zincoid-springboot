@@ -77,8 +77,9 @@ public class ArticleController {
     @GetMapping("/public/user/{userId}")
     public ApiResponse<PageVO<ArticleCardVO>> userArticles(@PathVariable Long userId,
                                                            @RequestParam(defaultValue = "1") int page,
-                                                           @RequestParam(defaultValue = "10") int size) {
-        return ApiResponse.success(articleService.list(userId, page, size));
+                                                           @RequestParam(defaultValue = "10") int size,
+                                                           @RequestParam(defaultValue = "false") boolean pinned) {
+        return ApiResponse.success(articleService.list(userId, page, size, pinned));
     }
 
     @GetMapping("/public/{articleId}")

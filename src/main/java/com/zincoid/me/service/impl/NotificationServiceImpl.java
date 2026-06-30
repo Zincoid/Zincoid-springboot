@@ -62,6 +62,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
     public PageVO<NotificationVO> list(Long userId, int page, int size) {
         Page<Notification> notificationPage = lambdaQuery()
                 .eq(Notification::getReceiverId, userId)
+                .orderByAsc(Notification::getIsRead)
                 .orderByDesc(Notification::getCreatedAt)
                 .page(Page.of(page, size));
         List<NotificationVO> vos = new ArrayList<>();

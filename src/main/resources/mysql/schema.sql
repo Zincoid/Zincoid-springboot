@@ -201,5 +201,6 @@ INSERT INTO `config` (`config_key`, `config_value`, `description`) VALUES
 ('page_size', '10', 'Default pagination page size'),
 ('message_max_count', '100', 'Maximum number of messages to keep'),
 ('loading_spinner_hold', '250', 'Loading spinner hold duration (ms) before fade'),
-('loading_spinner_fade', '125', 'Loading spinner fade-out duration (ms)')
+('loading_spinner_fade', '125', 'Loading spinner fade-out duration (ms)'),
+('hero_animation', 'squares', 'Hero animation: squares, raindrop, or random')
 ON DUPLICATE KEY UPDATE `config_key` = VALUES(`config_key`);

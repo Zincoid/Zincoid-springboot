@@ -38,6 +38,7 @@ public class DataInitializer implements CommandLineRunner {
         initConfig("message_max_count", "100", "Maximum number of messages to keep");
         initConfig("loading_spinner_hold", "250", "Loading spinner hold duration (ms) before fade");
         initConfig("loading_spinner_fade", "125", "Loading spinner fade-out duration (ms)");
+        initConfig("hero_animation", "squares", "Hero animation: squares, raindrop, or random");
     }
 
     private void initConfig(String key, String value, String description) {

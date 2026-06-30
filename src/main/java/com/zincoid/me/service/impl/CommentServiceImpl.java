@@ -154,7 +154,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             collectDescendants(commentId, childrenMap, allIds);
         }
         allIds.add(commentId);
-        removeByIds(allIds);
+        removeBatchByIds(allIds);
         for (Long cid : allIds) {
             notificationService.deleteAll(NotificationType.COMMENT, cid);
             notificationService.deleteAll(NotificationType.REPLY, cid);
@@ -172,14 +172,13 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 .eq(Comment::getTargetId, targetId)
                 .list()
                 .stream().map(Comment::getId).toList();
-        lambdaUpdate()
-                .eq(Comment::getTargetType, targetType)
-                .eq(Comment::getTargetId, targetId)
-                .remove();
-        for (Long cid : commentIds) {
-            notificationService.deleteAll(NotificationType.COMMENT, cid);
-            notificationService.deleteAll(NotificationType.REPLY, cid);
-            notificationService.deleteAll(NotificationType.COMMENT_MENTION, cid);
+        if (!commentIds.isEmpty()) {
+            removeBatchByIds(commentIds);
+            for (Long cid : commentIds) {
+                notificationService.deleteAll(NotificationType.COMMENT, cid);
+                notificationService.deleteAll(NotificationType.REPLY, cid);
+                notificationService.deleteAll(NotificationType.COMMENT_MENTION, cid);
+            }
         }
         log.info("Comments deleted: target={}:{}", targetType, targetId);
     }

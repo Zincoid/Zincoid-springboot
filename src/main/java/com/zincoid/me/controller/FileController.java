@@ -24,11 +24,4 @@ public class FileController {
                                           @RequestParam(value = "relatedId", required = false) Long relatedId) {
         return ApiResponse.success(fileService.upload(AuthCtx.getUserId(), file, relatedType, relatedId));
     }
-
-    @DeleteMapping("/cleanup")
-    public ApiResponse<Void> cleanupFiles(@RequestParam(defaultValue = "false") boolean isLogic) {
-        AuthCtx.requireAdmin();
-        fileService.cleanup(isLogic);
-        return ApiResponse.success();
-    }
 }

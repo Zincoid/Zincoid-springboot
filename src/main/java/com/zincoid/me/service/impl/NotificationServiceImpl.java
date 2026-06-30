@@ -6,14 +6,18 @@ import com.zincoid.me.mapper.NotificationMapper;
 import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.Status;
+import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.Comment;
+import com.zincoid.me.model.po.Like;
 import com.zincoid.me.model.po.Message;
 import com.zincoid.me.model.po.Moment;
 import com.zincoid.me.model.po.Notification;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.vo.NotificationVO;
 import com.zincoid.me.converter.NotificationConverter;
+import com.zincoid.me.service.ArticleService;
 import com.zincoid.me.service.CommentService;
+import com.zincoid.me.service.LikeService;
 import com.zincoid.me.service.MessageService;
 import com.zincoid.me.service.MomentService;
 import com.zincoid.me.service.NotificationService;
@@ -38,13 +42,18 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
     private final CommentService commentService;
     private final MessageService messageService;
     private final MomentService momentService;
+    private final ArticleService articleService;
+    private final LikeService likeService;
 
     public NotificationServiceImpl(@Lazy UserService userService, @Lazy CommentService commentService,
-                                    @Lazy MessageService messageService, @Lazy MomentService momentService) {
+                                    @Lazy MessageService messageService, @Lazy MomentService momentService,
+                                    @Lazy ArticleService articleService, @Lazy LikeService likeService) {
         this.userService = userService;
         this.commentService = commentService;
         this.messageService = messageService;
         this.momentService = momentService;
+        this.articleService = articleService;
+        this.likeService = likeService;
     }
 
     @Override
@@ -95,6 +104,20 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                     content = content.substring(0, 80) + "...";
                 snippet = content;
                 targetType = RelatedType.CHAT;
+            } else if (n.getRelatedType() == NotificationType.LIKE) {
+                Like like = likeService.getById(n.getRelatedId());
+                if (like == null) continue;
+                targetType = like.getTargetType();
+                targetId = like.getTargetId();
+                if (targetType == RelatedType.MOMENT) {
+                    Moment moment = momentService.lambdaQuery().select(Moment::getContent).eq(Moment::getId, targetId).one();
+                    if (moment != null) snippet = moment.getContent();
+                } else {
+                    Article article = articleService.lambdaQuery().select(Article::getTitle).eq(Article::getId, targetId).one();
+                    if (article != null) snippet = article.getTitle();
+                }
+                if (snippet != null && snippet.length() > 80)
+                    snippet = snippet.substring(0, 80) + "...";
             } else if (n.getRelatedType() == NotificationType.SYSTEM) {
                 snippet = n.getMessage();
             }

@@ -5,5 +5,5 @@ import com.zincoid.me.model.po.File;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface UploadFileMapper extends BaseMapper<File> {
+public interface FileMapper extends BaseMapper<File> {
 }

@@ -29,9 +29,8 @@ public class HealthController {
     }
 
     @DeleteMapping("/cleanup")
-    public ApiResponse<Void> cleanupFiles(@RequestParam(defaultValue = "false") boolean isLogic) {
+    public ApiResponse<Map<String, Integer>> cleanupFiles(@RequestParam(defaultValue = "false") boolean isLogic) {
         AuthCtx.requireAdmin();
-        cleanupService.cleanupFiles(isLogic);
-        return ApiResponse.success();
+        return ApiResponse.success(cleanupService.cleanupFiles(isLogic));
     }
 }

@@ -38,8 +38,8 @@ public class CleanupServiceImpl {
         return result;
     }
 
-    public void cleanupFiles(boolean isLogic) {
-        fileService.cleanup(isLogic);
+    public Map<String, Integer> cleanupFiles(boolean isLogic) {
+        return fileService.cleanup(isLogic);
     }
 
     // ── helpers ──

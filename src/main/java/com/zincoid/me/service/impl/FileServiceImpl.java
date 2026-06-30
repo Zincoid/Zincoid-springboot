@@ -19,7 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -116,28 +118,33 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
 
     @Override
     @Transactional
-    public void cleanup(boolean isLogic) {
+    public Map<String, Integer> cleanup(boolean isLogic) {
+        Map<String, Integer> result = new LinkedHashMap<>();
+        int orphanDb = 0, orphanDisk = 0, unlinked = 0, invalidRef = 0;
         List<File> allFiles = list();
         Set<String> dbPaths = allFiles.stream().map(File::getFilePath).collect(Collectors.toSet());
         Set<String> diskFiles = FileUtil.list(uploadPath);
         for (File file : allFiles) {
             if (!diskFiles.contains(file.getFilePath())) {
                 removeById(file.getId());
+                orphanDb++;
                 log.info("Clean up: orphan DB record - {}", file.getId());
             }
         }
         for (String diskFile : diskFiles) {
             if (!dbPaths.contains(diskFile)) {
                 FileUtil.delete(diskFile, uploadPath);
+                orphanDisk++;
                 log.info("Clean up: orphan disk file - {}", diskFile);
             }
         }
-        List<File> unlinked = lambdaQuery()
+        List<File> unlinkedFiles = lambdaQuery()
                 .and(w -> w.isNull(File::getRelatedType).or().isNull(File::getRelatedId))
                 .list();
-        for (File file : unlinked) {
+        for (File file : unlinkedFiles) {
             FileUtil.delete(file.getFilePath(), uploadPath);
             removeById(file.getId());
+            unlinked++;
             log.info("Clean up: unlinked file and record - {}:{}", file.getFilePath(), file.getId());
         }
         if (isLogic) {
@@ -149,11 +156,18 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
                 if (!businessExists(file)) {
                     FileUtil.delete(file.getFilePath(), uploadPath);
                     removeById(file.getId());
+                    invalidRef++;
                     log.info("Clean up: invalid relation of {}:{} - {}:{}",
                             file.getRelatedType(), file.getRelatedId(), file.getFilePath(), file.getId());
                 }
             }
         }
+        result.put("orphanDb", orphanDb);
+        result.put("orphanDisk", orphanDisk);
+        result.put("unlinked", unlinked);
+        if (isLogic) result.put("invalidRef", invalidRef);
+        log.info("Clean up done: {}", result);
+        return result;
     }
 
     // ──────── Private tool ────────────────────────────────

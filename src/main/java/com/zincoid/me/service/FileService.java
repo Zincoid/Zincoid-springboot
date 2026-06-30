@@ -7,6 +7,7 @@ import com.zincoid.me.model.vo.FileVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 public interface FileService extends IService<File> {
 
@@ -18,5 +19,5 @@ public interface FileService extends IService<File> {
 
     void delete(RelatedType relatedType, Long relatedId);
 
-    void cleanup(boolean isLogic);
+    Map<String, Integer> cleanup(boolean isLogic);
 }

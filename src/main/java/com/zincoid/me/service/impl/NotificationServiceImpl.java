@@ -123,6 +123,8 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                     snippet = snippet.substring(0, 80) + "...";
             } else if (n.getRelatedType() == NotificationType.SYSTEM) {
                 snippet = n.getMessage();
+            } else if (n.getRelatedType() == NotificationType.REGISTER) {
+                snippet = "Email: " + sender.getEmail();
             }
             vos.add(NotificationConverter.INSTANCE.toVO(n, sender, targetType, targetId, snippet));
         }

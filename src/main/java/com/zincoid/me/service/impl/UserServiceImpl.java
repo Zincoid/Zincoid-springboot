@@ -3,6 +3,7 @@ package com.zincoid.me.service.impl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.model.enums.Role;
+import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.UserMapper;
@@ -25,12 +26,14 @@ import com.zincoid.me.service.EmailService;
 import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.MessageService;
 import com.zincoid.me.service.MomentService;
+import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.UserService;
 
 import com.zincoid.me.utils.JsonUtil;
 import com.zincoid.me.utils.JwtTool;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +58,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private final MessageService messageService;
     private final FileService fileService;
     private final EmailService emailService;
+    @Lazy
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -75,6 +80,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .build();
         save(user);
         log.info("User registered: id={}, username={}, email={}", user.getId(), user.getUsername(), user.getEmail());
+        List<User> admins = lambdaQuery().eq(User::getRole, Role.ADMIN).list();
+        for (User admin : admins)
+            notificationService.notify(user.getId(), admin.getId(),
+                    NotificationType.REGISTER, user.getId());
         String token = jwtTool.generate(user.getId(), user.getUsername(), user.getRole());
         return LoginVO.builder()
                 .token(token)

@@ -4,12 +4,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.po.Notification;
 import com.zincoid.me.model.vo.NotificationVO;
-
-import java.util.List;
+import com.zincoid.me.model.vo.PageVO;
 
 public interface NotificationService extends IService<Notification> {
 
-    List<NotificationVO> list(Long userId);
+    PageVO<NotificationVO> list(Long userId, int page, int size);
 
     void notify(Long senderId, Long receiverId, NotificationType type, Long relatedId);
 

@@ -1,5 +1,6 @@
 package com.zincoid.me.service.impl;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.NotificationMapper;
@@ -14,6 +15,7 @@ import com.zincoid.me.model.po.Moment;
 import com.zincoid.me.model.po.Notification;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.vo.NotificationVO;
+import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.converter.NotificationConverter;
 import com.zincoid.me.service.ArticleService;
 import com.zincoid.me.service.CommentService;
@@ -57,13 +59,13 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
     }
 
     @Override
-    public List<NotificationVO> list(Long userId) {
-        List<Notification> notifications = lambdaQuery()
+    public PageVO<NotificationVO> list(Long userId, int page, int size) {
+        Page<Notification> notificationPage = lambdaQuery()
                 .eq(Notification::getReceiverId, userId)
                 .orderByDesc(Notification::getCreatedAt)
-                .list();
+                .page(Page.of(page, size));
         List<NotificationVO> vos = new ArrayList<>();
-        for (Notification n : notifications) {
+        for (Notification n : notificationPage.getRecords()) {
             User sender = userService.getById(n.getSenderId());
             if (sender == null) continue;
             RelatedType targetType = null;
@@ -123,7 +125,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
             }
             vos.add(NotificationConverter.INSTANCE.toVO(n, sender, targetType, targetId, snippet));
         }
-        return vos;
+        return PageVO.of(notificationPage, vos);
     }
 
     @Override

@@ -2,12 +2,12 @@ package com.zincoid.me.controller;
 
 import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.model.vo.NotificationVO;
+import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.utils.AuthCtx;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -25,8 +25,9 @@ public class NotificationController {
     }
 
     @GetMapping
-    public ApiResponse<List<NotificationVO>> listNotifications() {
-        return ApiResponse.success(notificationService.list(AuthCtx.getUserId()));
+    public ApiResponse<PageVO<NotificationVO>> listNotifications(@RequestParam(defaultValue = "1") int page,
+                                                                 @RequestParam(defaultValue = "5") int size) {
+        return ApiResponse.success(notificationService.list(AuthCtx.getUserId(), page, size));
     }
 
     @DeleteMapping("/{id}")

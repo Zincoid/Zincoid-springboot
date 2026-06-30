@@ -32,7 +32,7 @@ public class DataInitializer implements CommandLineRunner {
 
     private void initConfigs() {
         initConfig("site_name", "Zincoid's", "Website name");
-        initConfig("site_desc_en", "Personal website and blog", "Website description (English)");
+        initConfig("site_desc_en", "Personal website and blogs", "Website description (English)");
         initConfig("site_desc_zh", "个人网站与博客", "Website description (Chinese)");
         initConfig("page_size", "10", "Default pagination page size");
         initConfig("message_max_count", "100", "Maximum number of messages to keep");

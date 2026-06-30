@@ -196,7 +196,7 @@ CREATE TABLE IF NOT EXISTS `message` (
 -- =============================================
 INSERT INTO `config` (`config_key`, `config_value`, `description`) VALUES
 ('site_name', 'Zincoid\'s', 'Website name'),
-('site_desc_en', 'Personal website and blog', 'Website description (English)'),
+('site_desc_en', 'Personal website and blogs', 'Website description (English)'),
 ('site_desc_zh', '个人网站与博客', 'Website description (Chinese)'),
 ('page_size', '10', 'Default pagination page size'),
 ('message_max_count', '100', 'Maximum number of messages to keep'),

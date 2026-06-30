@@ -13,6 +13,7 @@ public interface MessageConverter {
     MessageConverter INSTANCE = Mappers.getMapper(MessageConverter.class);
 
     @Mapping(target = "id", source = "message.id")
+    @Mapping(target = "createdAt", source = "message.createdAt")
     @Mapping(target = "userNickname", source = "user.nickname")
     @Mapping(target = "userAvatar", source = "user.avatar")
     MessageVO toVO(Message message, User user);

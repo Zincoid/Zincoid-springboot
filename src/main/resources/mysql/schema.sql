@@ -192,7 +192,7 @@ CREATE TABLE IF NOT EXISTS `message` (
 -- =============================================
 
 -- =============================================
--- Default site configurations
+-- Default site configurations can also be auto-created by DataInitializer on first startup
 -- =============================================
 INSERT INTO `config` (`config_key`, `config_value`, `description`) VALUES
 ('site_name', 'Zincoid\'s', 'Website name'),

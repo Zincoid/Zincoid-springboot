@@ -1,9 +1,12 @@
 package com.zincoid.me.service.impl;
 
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.model.po.User;
 import com.zincoid.me.service.EmailService;
+import com.zincoid.me.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -23,39 +26,51 @@ public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
     private final String from;
+    private final UserService userService;
 
     public EmailServiceImpl(JavaMailSender mailSender,
-                            @Value("${spring.mail.username}") String from) {
+                            @Value("${spring.mail.username}") String from,
+                            @Lazy UserService userService) {
         this.mailSender = mailSender;
         this.from = from;
+        this.userService = userService;
     }
 
     private record CodeEntry(String code, long expiresAt) {}
 
     @Override
-    public void sendCode(String toEmail) {
-        if (toEmail == null || toEmail.isBlank())
+    public void sendRegisterCode(String email) {
+        if (email == null || email.isBlank())
             throw new BusinessException(400, "Email is required");
-        CodeEntry existing = codes.get(toEmail);
+        if (userService.lambdaQuery().eq(User::getEmail, email).exists())
+            throw new BusinessException("Email already registered");
+        CodeEntry existing = codes.get(email);
         if (existing != null && System.currentTimeMillis() < existing.expiresAt)
             throw new BusinessException(429, "Verification code already requested, please wait");
         String code = String.format("%06d", RANDOM.nextInt(1_000_000));
-        codes.put(toEmail, new CodeEntry(code, System.currentTimeMillis() + CODE_TTL));
-        log.info("Verification code generated for {}", toEmail);
+        codes.put(email, new CodeEntry(code, System.currentTimeMillis() + CODE_TTL));
+        log.info("Verification code generated for {}", email);
         CompletableFuture.runAsync(() -> {
             try {
                 SimpleMailMessage msg = new SimpleMailMessage();
                 msg.setFrom(from);
-                msg.setTo(toEmail);
+                msg.setTo(email);
                 msg.setSubject("Zincoid's - Verification Code");
                 msg.setText("Your verification code is: " + code + "\n\nThis code expires in 5 minutes.");
                 mailSender.send(msg);
-                log.info("Verification code sent to {}", toEmail);
+                log.info("Verification code sent to {}", email);
             } catch (Exception e) {
-                log.error("Failed to send verification code to {}", toEmail, e);
-                codes.remove(toEmail);
+                log.error("Failed to send verification code to {}", email, e);
+                codes.remove(email);
             }
         });
+    }
+
+    @Override
+    public void sendResetCode(String email) {
+        if (!userService.lambdaQuery().eq(User::getEmail, email).exists())
+            throw new BusinessException(404, "Email not registered");
+        sendRegisterCode(email);
     }
 
     @Override

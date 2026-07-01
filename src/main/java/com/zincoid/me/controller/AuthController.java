@@ -25,8 +25,8 @@ public class AuthController {
     // ──── Public endpoints ────────────────
 
     @PostMapping("/send-code")
-    public ApiResponse<Void> sendCode(@RequestBody Map<String, String> body) {
-        emailService.sendCode(body.get("email"));
+    public ApiResponse<Void> sendRegisterCode(@RequestBody Map<String, String> body) {
+        emailService.sendRegisterCode(body.get("email"));
         return ApiResponse.success();
     }
 
@@ -44,6 +44,12 @@ public class AuthController {
     public ApiResponse<Void> logout(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) userService.logout(header.substring(7));
+        return ApiResponse.success();
+    }
+
+    @PostMapping("/forgot-password/send-code")
+    public ApiResponse<Void> sendResetCode(@RequestBody Map<String, String> body) {
+        emailService.sendResetCode(body.get("email"));
         return ApiResponse.success();
     }
 

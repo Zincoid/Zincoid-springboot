@@ -42,29 +42,34 @@ public class JwtInterceptor implements HandlerInterceptor {
 
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) return true;
 
+        String path = request.getRequestURI();
+        boolean isPublic = PUBLIC_PATHS.stream().anyMatch(path::startsWith);
+
         // Populate from token if present
         String authHeader = request.getHeader("Authorization");
         boolean hasToken = authHeader != null && authHeader.startsWith("Bearer ");
 
         if (hasToken) {
             String token = authHeader.substring(7);
-            if (!jwtUtils.validate(token))
+            boolean valid = jwtUtils.validate(token);
+            boolean revoked = valid && userService.isTokenRevoked(token);
+            if (!isPublic && !valid)
                 throw new UnauthorizedException("Token is invalid");
-            if (userService.isTokenRevoked(token))
+            if (!isPublic && revoked)
                 throw new UnauthorizedException("Token is revoked");
-            AuthCtx.set(
-                    jwtUtils.getUserId(token),
-                    jwtUtils.getUsername(token),
-                    jwtUtils.getRole(token)
-            );
-            User user = userService.getById(jwtUtils.getUserId(token));
-            if (user != null && user.getStatus() == Status.DISABLED)
-                throw new BusinessException(403, "Account is disabled");
+            if (valid && !revoked) {
+                AuthCtx.set(
+                        jwtUtils.getUserId(token),
+                        jwtUtils.getUsername(token),
+                        jwtUtils.getRole(token)
+                );
+                User user = userService.getById(AuthCtx.getUserId());
+                if (user != null && user.getStatus() == Status.DISABLED)
+                    throw new BusinessException(403, "Account is disabled");
+            }
         }
 
         // Allow public paths without auth
-        String path = request.getRequestURI();
-        boolean isPublic = PUBLIC_PATHS.stream().anyMatch(path::startsWith);
         if (isPublic) return true;
 
         // Other paths require auth

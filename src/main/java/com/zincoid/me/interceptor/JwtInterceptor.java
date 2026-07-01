@@ -40,15 +40,16 @@ public class JwtInterceptor implements HandlerInterceptor {
                              @NonNull HttpServletResponse response,
                              @NonNull Object handler) {
 
+        // Allow preflight requests
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) return true;
 
+        // Check public paths
         String path = request.getRequestURI();
         boolean isPublic = PUBLIC_PATHS.stream().anyMatch(path::startsWith);
 
         // Populate from token if present
         String authHeader = request.getHeader("Authorization");
         boolean hasToken = authHeader != null && authHeader.startsWith("Bearer ");
-
         if (hasToken) {
             String token = authHeader.substring(7);
             boolean valid = jwtUtils.validate(token);
@@ -57,16 +58,12 @@ public class JwtInterceptor implements HandlerInterceptor {
                 throw new UnauthorizedException("Token is invalid");
             if (!isPublic && revoked)
                 throw new UnauthorizedException("Token is revoked");
-            if (valid && !revoked) {
+            if (valid && !revoked)
                 AuthCtx.set(
                         jwtUtils.getUserId(token),
                         jwtUtils.getUsername(token),
                         jwtUtils.getRole(token)
                 );
-                User user = userService.getById(AuthCtx.getUserId());
-                if (user != null && user.getStatus() == Status.DISABLED)
-                    throw new BusinessException(403, "Account is disabled");
-            }
         }
 
         // Allow public paths without auth
@@ -76,6 +73,13 @@ public class JwtInterceptor implements HandlerInterceptor {
         if (!AuthCtx.isAuthed())
             throw new UnauthorizedException("Authentication required");
 
+        // Check user exist and active
+        User user = userService.getById(AuthCtx.getUserId());
+        if (user == null)
+            throw new BusinessException(404, "Account not found");
+        if (user.getStatus() == Status.DISABLED)
+            throw new BusinessException(403, "Account is disabled");
+
         return true;
     }
 
@@ -84,6 +88,7 @@ public class JwtInterceptor implements HandlerInterceptor {
                                 @NonNull HttpServletResponse response,
                                 @NonNull Object handler,
                                 Exception ex) {
+        // Clear auth context
         AuthCtx.clear();
     }
 }

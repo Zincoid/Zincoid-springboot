@@ -41,4 +41,6 @@ public interface UserService extends IService<User> {
     void updateStatus(Long userId, Status status);
 
     boolean isTokenRevoked(String token);
+
+    void updateActiveAt(Long userId);
 }

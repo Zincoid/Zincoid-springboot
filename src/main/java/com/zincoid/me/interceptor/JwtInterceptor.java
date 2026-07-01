@@ -80,6 +80,9 @@ public class JwtInterceptor implements HandlerInterceptor {
         if (user.getStatus() == Status.DISABLED)
             throw new BusinessException(403, "Account is disabled");
 
+        // Update user last active time
+        userService.updateActiveAt(user.getId());
+
         return true;
     }
 

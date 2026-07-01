@@ -21,4 +21,5 @@ public class UserCardVO {
     private Role role;
     private Status status;
     private LocalDateTime createdAt;
+    private LocalDateTime activeAt;
 }

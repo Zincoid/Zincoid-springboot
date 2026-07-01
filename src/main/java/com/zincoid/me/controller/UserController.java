@@ -8,7 +8,6 @@ import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.UserCardVO;
 import com.zincoid.me.model.vo.UserDetailVO;
-import com.zincoid.me.service.EmailService;
 import com.zincoid.me.service.UserService;
 import com.zincoid.me.utils.AuthCtx;
 import jakarta.validation.Valid;
@@ -23,7 +22,6 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
-    private final EmailService emailService;
 
     // ──── Private endpoints ────────────────
 
@@ -54,22 +52,6 @@ public class UserController {
     @PutMapping("/password")
     public ApiResponse<Void> changePassword(@Valid @RequestBody PasswordChangeRequest request) {
         userService.changePassword(AuthCtx.getUserId(), request.getOldPassword(), request.getNewPassword());
-        return ApiResponse.success();
-    }
-
-    @PostMapping("/email/send-code")
-    public ApiResponse<Void> sendChangeCode(@RequestBody Map<String, String> body) {
-        emailService.sendChangeCode(body.get("email"));
-        return ApiResponse.success();
-    }
-
-    @PutMapping("/email")
-    public ApiResponse<Void> changeEmail(@RequestBody Map<String, String> body) {
-        String email = body.get("email");
-        String code = body.get("code");
-        if (email == null || email.isBlank() || code == null || code.isBlank())
-            return ApiResponse.badRequest("Email and code are required");
-        userService.changeEmail(AuthCtx.getUserId(), email, code);
         return ApiResponse.success();
     }
 

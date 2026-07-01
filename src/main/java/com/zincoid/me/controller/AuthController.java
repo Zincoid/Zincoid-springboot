@@ -56,7 +56,7 @@ public class AuthController {
 
     @PutMapping("/reset-password")
     public ApiResponse<Void> reset(@Valid @RequestBody ForgotPasswordRequest request) {
-        userService.resetPasswordByEmail(request);
+        userService.resetPassword(request);
         return ApiResponse.success();
     }
 

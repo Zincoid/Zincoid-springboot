@@ -36,7 +36,7 @@ public class UserController {
     }
 
     @PutMapping("/avatar")
-    public ApiResponse<UserDetailVO> updateAvatar(@RequestBody Map<String, String> body) {
+    public ApiResponse<UserDetailVO> updateUserAvatar(@RequestBody Map<String, String> body) {
         String avatar = body.get("avatar");
         if (avatar == null || avatar.isBlank())
             return ApiResponse.badRequest("Avatar is required");
@@ -50,7 +50,7 @@ public class UserController {
     }
 
     @PutMapping("/password")
-    public ApiResponse<Void> changePassword(@Valid @RequestBody PasswordChangeRequest request) {
+    public ApiResponse<Void> changeUserPassword(@Valid @RequestBody PasswordChangeRequest request) {
         userService.changePassword(AuthCtx.getUserId(), request.getOldPassword(), request.getNewPassword());
         return ApiResponse.success();
     }
@@ -70,14 +70,14 @@ public class UserController {
         return ApiResponse.success();
     }
 
-    @PutMapping("/password/reset")
-    public ApiResponse<Void> resetPassword(@RequestBody Map<String, String> body) {
+    @PutMapping("/password/force")
+    public ApiResponse<Void> changeUserPassword(@RequestBody Map<String, String> body) {
         AuthCtx.requireAdmin();
         String username = body.get("username");
         String password = body.get("password");
         if (username == null || username.isBlank() || password == null || password.isBlank())
             return ApiResponse.badRequest("Username and password are required");
-        userService.resetPasswordByForce(username, password);
+        userService.changePasswordByForce(username, password);
         return ApiResponse.success();
     }
 

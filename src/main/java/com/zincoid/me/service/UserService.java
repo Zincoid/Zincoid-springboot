@@ -37,9 +37,9 @@ public interface UserService extends IService<User> {
 
     void changePassword(Long userId, String oldPassword, String newPassword);
 
-    void resetPasswordByForce(String username, String newPassword);
+    void changePasswordByForce(String username, String newPassword);
 
-    void resetPasswordByEmail(ForgotPasswordRequest request);
+    void resetPassword(ForgotPasswordRequest request);
 
     void updateStatus(Long userId, Status status);
 

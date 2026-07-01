@@ -265,7 +265,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public void resetPasswordByForce(String username, String newPassword) {
+    public void changePasswordByForce(String username, String newPassword) {
         User user = lambdaQuery().eq(User::getUsername, username).one();
         if (user == null)
             throw new BusinessException(404, "User not found");
@@ -276,7 +276,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public void resetPasswordByEmail(ForgotPasswordRequest request) {
+    public void resetPassword(ForgotPasswordRequest request) {
         if (!emailService.verify(request.getEmail(), request.getCode(), CodeType.RESET_PASSWORD))
             throw new BusinessException("Invalid or expired verification code");
         User user = lambdaQuery().eq(User::getEmail, request.getEmail()).one();

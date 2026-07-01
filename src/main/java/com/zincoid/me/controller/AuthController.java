@@ -33,7 +33,8 @@ public class AuthController {
     @PostMapping("/logout")
     public ApiResponse<Void> logout(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
-        if (header != null && header.startsWith("Bearer ")) userService.logout(header.substring(7));
+        if (header != null && header.startsWith("Bearer "))
+            userService.logout(header.substring(7));
         return ApiResponse.success();
     }
 

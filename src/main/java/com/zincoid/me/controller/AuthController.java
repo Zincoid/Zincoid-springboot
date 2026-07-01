@@ -1,5 +1,6 @@
 package com.zincoid.me.controller;
 
+import com.zincoid.me.model.dto.ForgotPasswordRequest;
 import com.zincoid.me.model.dto.LoginRequest;
 import com.zincoid.me.model.dto.RegisterRequest;
 import com.zincoid.me.model.ApiResponse;
@@ -43,6 +44,12 @@ public class AuthController {
     public ApiResponse<Void> logout(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) userService.logout(header.substring(7));
+        return ApiResponse.success();
+    }
+
+    @PostMapping("/forgot-password")
+    public ApiResponse<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        userService.resetPasswordByEmail(request);
         return ApiResponse.success();
     }
 }

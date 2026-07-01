@@ -8,6 +8,7 @@ import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.UserMapper;
 import com.zincoid.me.converter.UserConverter;
+import com.zincoid.me.model.dto.ForgotPasswordRequest;
 import com.zincoid.me.model.dto.LoginRequest;
 import com.zincoid.me.model.dto.RegisterRequest;
 import com.zincoid.me.model.dto.UserUpdateRequest;
@@ -236,18 +237,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    @Transactional
-    public void changePassword(Long userId, String oldPassword, String newPassword) {
-        User user = getOrThrowExById(userId);
-        if (!passwordEncoder.matches(oldPassword, user.getPassword()))
-            throw new BusinessException("Old password is incorrect");
-        user.setPassword(passwordEncoder.encode(newPassword));
-        user.setUpdatedAt(LocalDateTime.now());
-        updateById(user);
-        log.info("User password changed: id={}, username={}", userId, user.getUsername());
-    }
-
-    @Override
     public void changeEmail(Long userId, String email, String code) {
         User user = getOrThrowExById(userId);
         if (email.equals(user.getEmail()))
@@ -263,6 +252,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @Transactional
+    public void changePassword(Long userId, String oldPassword, String newPassword) {
+        User user = getOrThrowExById(userId);
+        if (!passwordEncoder.matches(oldPassword, user.getPassword()))
+            throw new BusinessException("Old password is incorrect");
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setUpdatedAt(LocalDateTime.now());
+        updateById(user);
+        log.info("User password changed: id={}, username={}", userId, user.getUsername());
+    }
+
+    @Override
     public void resetPassword(String username, String newPassword) {
         User user = lambdaQuery().eq(User::getUsername, username).one();
         if (user == null)
@@ -271,6 +272,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setUpdatedAt(LocalDateTime.now());
         updateById(user);
         log.info("Force password reset: id={}, username={}", user.getId(), username);
+    }
+
+    @Override
+    public void resetPasswordByEmail(ForgotPasswordRequest request) {
+        if (!emailService.verify(request.getEmail(), request.getCode()))
+            throw new BusinessException("Invalid or expired verification code");
+        User user = lambdaQuery().eq(User::getEmail, request.getEmail()).one();
+        if (user == null)
+            throw new BusinessException(404, "Email not registered");
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setUpdatedAt(LocalDateTime.now());
+        updateById(user);
+        log.info("Password reset via email: id={}, username={}", user.getId(), user.getUsername());
     }
 
     @Override

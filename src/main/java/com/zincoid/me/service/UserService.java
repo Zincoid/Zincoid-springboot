@@ -1,6 +1,7 @@
 package com.zincoid.me.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.zincoid.me.model.dto.ForgotPasswordRequest;
 import com.zincoid.me.model.dto.LoginRequest;
 import com.zincoid.me.model.dto.RegisterRequest;
 import com.zincoid.me.model.dto.UserUpdateRequest;
@@ -32,11 +33,13 @@ public interface UserService extends IService<User> {
 
     UserDetailVO updateAvatar(Long userId, String avatar);
 
-    void changePassword(Long userId, String oldPassword, String newPassword);
-
     void changeEmail(Long userId, String email, String code);
 
+    void changePassword(Long userId, String oldPassword, String newPassword);
+
     void resetPassword(String username, String newPassword);
+
+    void resetPasswordByEmail(ForgotPasswordRequest request);
 
     void updateStatus(Long userId, Status status);
 

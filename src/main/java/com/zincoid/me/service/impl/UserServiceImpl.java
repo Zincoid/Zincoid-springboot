@@ -2,6 +2,7 @@ package com.zincoid.me.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zincoid.me.model.enums.CodeType;
 import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.vo.PageVO;
@@ -70,7 +71,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException("Username already exists");
         if (lambdaQuery().eq(User::getEmail, request.getEmail()).exists())
             throw new BusinessException("Email already registered");
-        if (!emailService.verify(request.getEmail(), request.getCode()))
+        if (!emailService.verify(request.getEmail(), request.getCode(), CodeType.REGISTER))
             throw new BusinessException("Invalid or expired verification code");
         User user = User.builder()
                 .username(request.getUsername())
@@ -243,7 +244,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException("New email is the same as current email");
         if (lambdaQuery().eq(User::getEmail, email).exists())
             throw new BusinessException("Email already registered");
-        if (!emailService.verify(email, code))
+        if (!emailService.verify(email, code, CodeType.CHANGE_EMAIL))
             throw new BusinessException("Invalid or expired verification code");
         user.setEmail(email);
         user.setUpdatedAt(LocalDateTime.now());
@@ -264,7 +265,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public void resetPassword(String username, String newPassword) {
+    public void resetPasswordByForce(String username, String newPassword) {
         User user = lambdaQuery().eq(User::getUsername, username).one();
         if (user == null)
             throw new BusinessException(404, "User not found");
@@ -276,7 +277,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public void resetPasswordByEmail(ForgotPasswordRequest request) {
-        if (!emailService.verify(request.getEmail(), request.getCode()))
+        if (!emailService.verify(request.getEmail(), request.getCode(), CodeType.RESET_PASSWORD))
             throw new BusinessException("Invalid or expired verification code");
         User user = lambdaQuery().eq(User::getEmail, request.getEmail()).one();
         if (user == null)

@@ -54,7 +54,7 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ApiResponse<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+    public ApiResponse<Void> reset(@Valid @RequestBody ForgotPasswordRequest request) {
         userService.resetPasswordByEmail(request);
         return ApiResponse.success();
     }

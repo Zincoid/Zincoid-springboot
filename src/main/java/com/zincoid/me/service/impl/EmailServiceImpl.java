@@ -1,6 +1,7 @@
 package com.zincoid.me.service.impl;
 
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.model.enums.CodeType;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.service.EmailService;
 import com.zincoid.me.service.UserService;
@@ -36,7 +37,7 @@ public class EmailServiceImpl implements EmailService {
         this.userService = userService;
     }
 
-    private record CodeEntry(String code, long expiresAt) {}
+    private record CodeEntry(String code, long expiresAt, CodeType type) {}
 
     @Override
     public void sendRegisterCode(String email) {
@@ -44,19 +45,58 @@ public class EmailServiceImpl implements EmailService {
             throw new BusinessException(400, "Email is required");
         if (userService.lambdaQuery().eq(User::getEmail, email).exists())
             throw new BusinessException("Email already registered");
+        doSend(email, CodeType.REGISTER);
+    }
+
+    @Override
+    public void sendResetCode(String email) {
+        if (!userService.lambdaQuery().eq(User::getEmail, email).exists())
+            throw new BusinessException(404, "Email not registered");
+        doSend(email, CodeType.RESET_PASSWORD);
+    }
+
+    @Override
+    public void sendChangeCode(String email) {
+        if (email == null || email.isBlank())
+            throw new BusinessException(400, "Email is required");
+        if (userService.lambdaQuery().eq(User::getEmail, email).exists())
+            throw new BusinessException("Email already registered");
+        doSend(email, CodeType.CHANGE_EMAIL);
+    }
+
+    @Override
+    public boolean verify(String email, String code, CodeType type) {
+        if (email == null || code == null) return false;
+        CodeEntry entry = codes.get(email);
+        if (entry == null || System.currentTimeMillis() > entry.expiresAt) {
+            codes.remove(email);
+            return false;
+        }
+        if (entry.type != type) return false;
+        if (entry.code.equals(code)) {
+            codes.remove(email);
+            return true;
+        }
+        return false;
+    }
+
+    private void doSend(String email, CodeType type) {
         CodeEntry existing = codes.get(email);
         if (existing != null && System.currentTimeMillis() < existing.expiresAt)
             throw new BusinessException(429, "Verification code already requested, please wait");
         String code = String.format("%06d", RANDOM.nextInt(1_000_000));
-        codes.put(email, new CodeEntry(code, System.currentTimeMillis() + CODE_TTL));
-        log.info("Verification code generated for {}", email);
+        codes.put(email, new CodeEntry(code, System.currentTimeMillis() + CODE_TTL, type));
+        log.info("Verification code generated for {} (type={})", email, type);
         CompletableFuture.runAsync(() -> {
             try {
                 SimpleMailMessage msg = new SimpleMailMessage();
                 msg.setFrom(from);
                 msg.setTo(email);
                 msg.setSubject("Zincoid's - Verification Code");
-                msg.setText("Your verification code is: " + code + "\n\nThis code expires in 5 minutes.");
+                msg.setText("""
+                        Your verification code is: %s
+                        
+                        This code expires in 5 minutes.""".formatted(code));
                 mailSender.send(msg);
                 log.info("Verification code sent to {}", email);
             } catch (Exception e) {
@@ -64,27 +104,5 @@ public class EmailServiceImpl implements EmailService {
                 codes.remove(email);
             }
         });
-    }
-
-    @Override
-    public void sendResetCode(String email) {
-        if (!userService.lambdaQuery().eq(User::getEmail, email).exists())
-            throw new BusinessException(404, "Email not registered");
-        sendRegisterCode(email);
-    }
-
-    @Override
-    public boolean verify(String email, String code) {
-        if (email == null || code == null) return false;
-        CodeEntry entry = codes.get(email);
-        if (entry == null || System.currentTimeMillis() > entry.expiresAt) {
-            codes.remove(email);
-            return false;
-        }
-        if (entry.code.equals(code)) {
-            codes.remove(email);
-            return true;
-        }
-        return false;
     }
 }

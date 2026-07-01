@@ -87,16 +87,27 @@ public class EmailServiceImpl implements EmailService {
         String code = String.format("%06d", RANDOM.nextInt(1_000_000));
         codes.put(email, new CodeEntry(code, System.currentTimeMillis() + CODE_TTL, type));
         log.info("Verification code generated for {} (type={})", email, type);
+        String subject = switch (type) {
+            case REGISTER -> "Zincoid's - Registration Verification";
+            case RESET_PASSWORD -> "Zincoid's - Password Reset Verification";
+            case CHANGE_EMAIL -> "Zincoid's - Email Change Verification";
+        };
+        String purpose = switch (type) {
+            case REGISTER -> "register your account";
+            case RESET_PASSWORD -> "reset your password";
+            case CHANGE_EMAIL -> "change your email";
+        };
         CompletableFuture.runAsync(() -> {
             try {
                 SimpleMailMessage msg = new SimpleMailMessage();
                 msg.setFrom(from);
                 msg.setTo(email);
-                msg.setSubject("Zincoid's - Verification Code");
+                msg.setSubject(subject);
                 msg.setText("""
                         Your verification code is: %s
-                        
-                        This code expires in 5 minutes.""".formatted(code));
+
+                        Use this code to %s.
+                        This code expires in 5 minutes.""".formatted(code, purpose));
                 mailSender.send(msg);
                 log.info("Verification code sent to {}", email);
             } catch (Exception e) {

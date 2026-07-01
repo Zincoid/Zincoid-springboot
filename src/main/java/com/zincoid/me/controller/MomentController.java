@@ -86,4 +86,10 @@ public class MomentController {
     public ApiResponse<MomentDetailVO> momentDetail(@PathVariable Long momentId) {
         return ApiResponse.success(momentService.get(momentId));
     }
+
+    @PostMapping("/public/{momentId}/view")
+    public ApiResponse<Void> momentView(@PathVariable Long momentId) {
+        momentService.view(momentId);
+        return ApiResponse.success();
+    }
 }

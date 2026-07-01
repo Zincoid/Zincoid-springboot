@@ -31,4 +31,6 @@ public interface MomentService extends IService<Moment> {
     MomentDetailVO get(Long momentId);
 
     MomentCardVO random();
+
+    void view(Long momentId);
 }

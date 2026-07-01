@@ -201,6 +201,11 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
         return MomentConverter.INSTANCE.toDetailVO(moment, user, isLiked, likeCount, recentLikers);
     }
 
+    @Override
+    public void view(Long momentId) {
+        baseMapper.addViewCount(momentId);
+    }
+
     // ──────── Private tool ────────────────────────────────
 
     private MomentCardVO buildCardVO(Moment moment) {

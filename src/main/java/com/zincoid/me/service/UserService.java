@@ -33,7 +33,7 @@ public interface UserService extends IService<User> {
 
     UserDetailVO updateAvatar(Long userId, String avatar);
 
-    void changeEmail(Long userId, String email, String code);
+    void changeEmail(Long userId, String email, String newCode, String oldCode);
 
     void changePassword(Long userId, String oldPassword, String newPassword);
 

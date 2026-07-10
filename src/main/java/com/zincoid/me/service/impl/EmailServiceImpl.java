@@ -61,11 +61,21 @@ public class EmailServiceImpl implements EmailService {
             throw new BusinessException(400, "Email is required");
         if (userService.lambdaQuery().eq(User::getEmail, email).exists())
             throw new BusinessException("Email already registered");
-        doSend(email, CodeType.CHANGE_EMAIL);
+        doSend(email, CodeType.CHANGE_EMAIL_NEW);
     }
 
     @Override
-    public boolean verify(String email, String code, CodeType type) {
+    public void sendChangeCode(Long userId) {
+        User user = userService.getById(userId);
+        if (user == null)
+            throw new BusinessException(404, "Account not found");
+        if (user.getEmail() == null || user.getEmail().isBlank())
+            throw new BusinessException(400, "No email set");
+        doSend(user.getEmail(), CodeType.CHANGE_EMAIL_OLD);
+    }
+
+    @Override
+    public boolean verify(String email, String code, CodeType type, boolean remove) {
         if (email == null || code == null) return false;
         CodeEntry entry = codes.get(email);
         if (entry == null || System.currentTimeMillis() > entry.expiresAt) {
@@ -74,10 +84,17 @@ public class EmailServiceImpl implements EmailService {
         }
         if (entry.type != type) return false;
         if (entry.code.equals(code)) {
-            codes.remove(email);
+            if (remove) codes.remove(email);
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void remove(String email, CodeType type) {
+        CodeEntry entry = codes.get(email);
+        if (entry != null && entry.type == type)
+            codes.remove(email);
     }
 
     private void doSend(String email, CodeType type) {
@@ -90,12 +107,12 @@ public class EmailServiceImpl implements EmailService {
         String subject = switch (type) {
             case REGISTER -> "Zincoid's - Registration Verification";
             case RESET_PASSWORD -> "Zincoid's - Password Reset Verification";
-            case CHANGE_EMAIL -> "Zincoid's - Email Change Verification";
+            case CHANGE_EMAIL_OLD, CHANGE_EMAIL_NEW -> "Zincoid's - Email Change Verification";
         };
         String purpose = switch (type) {
             case REGISTER -> "register your account";
             case RESET_PASSWORD -> "reset your password";
-            case CHANGE_EMAIL -> "change your email";
+            case CHANGE_EMAIL_OLD, CHANGE_EMAIL_NEW -> "change your email";
         };
         CompletableFuture.runAsync(() -> {
             try {

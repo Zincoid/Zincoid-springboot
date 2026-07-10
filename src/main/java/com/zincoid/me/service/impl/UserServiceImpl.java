@@ -71,7 +71,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException("Username already exists");
         if (lambdaQuery().eq(User::getEmail, request.getEmail()).exists())
             throw new BusinessException("Email already registered");
-        if (!emailService.verify(request.getEmail(), request.getCode(), CodeType.REGISTER))
+        if (!emailService.verify(request.getEmail(), request.getCode(), CodeType.REGISTER, true))
             throw new BusinessException("Invalid or expired verification code");
         User user = User.builder()
                 .username(request.getUsername())
@@ -238,14 +238,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public void changeEmail(Long userId, String email, String code) {
+    public void changeEmail(Long userId, String email, String newCode, String oldCode) {
         User user = getOrThrowExById(userId);
+        if (user.getEmail() != null && !user.getEmail().isBlank())
+            if (!emailService.verify(user.getEmail(), oldCode, CodeType.CHANGE_EMAIL_OLD, false))
+                throw new BusinessException("Invalid or expired old email verification code");
         if (email.equals(user.getEmail()))
             throw new BusinessException("New email is the same as current email");
         if (lambdaQuery().eq(User::getEmail, email).exists())
             throw new BusinessException("Email already registered");
-        if (!emailService.verify(email, code, CodeType.CHANGE_EMAIL))
-            throw new BusinessException("Invalid or expired verification code");
+        if (!emailService.verify(email, newCode, CodeType.CHANGE_EMAIL_NEW, true))
+            throw new BusinessException("Invalid or expired new email verification code");
+        if (user.getEmail() != null && !user.getEmail().isBlank())
+            emailService.remove(user.getEmail(), CodeType.CHANGE_EMAIL_OLD);
         user.setEmail(email);
         user.setUpdatedAt(LocalDateTime.now());
         updateById(user);
@@ -277,7 +282,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public void resetPassword(ForgotPasswordRequest request) {
-        if (!emailService.verify(request.getEmail(), request.getCode(), CodeType.RESET_PASSWORD))
+        if (!emailService.verify(request.getEmail(), request.getCode(), CodeType.RESET_PASSWORD, true))
             throw new BusinessException("Invalid or expired verification code");
         User user = lambdaQuery().eq(User::getEmail, request.getEmail()).one();
         if (user == null)

@@ -7,5 +7,6 @@ public enum CodeType {
 
     REGISTER,
     RESET_PASSWORD,
-    CHANGE_EMAIL
+    CHANGE_EMAIL_OLD,
+    CHANGE_EMAIL_NEW
 }

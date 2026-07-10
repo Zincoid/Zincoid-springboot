@@ -61,19 +61,26 @@ public class AuthController {
         return ApiResponse.success();
     }
 
-    @PostMapping("/change-email/send-code")
+    @PostMapping("/change-email/send-new-code")
     public ApiResponse<Void> sendChangeCode(@RequestBody Map<String, String> body) {
         emailService.sendChangeCode(body.get("email"));
+        return ApiResponse.success();
+    }
+
+    @PostMapping("/change-email/send-old-code")
+    public ApiResponse<Void> sendChangeCode() {
+        emailService.sendChangeCode(AuthCtx.getUserId());
         return ApiResponse.success();
     }
 
     @PutMapping("/change-email")
     public ApiResponse<Void> change(@RequestBody Map<String, String> body) {
         String email = body.get("email");
-        String code = body.get("code");
-        if (email == null || email.isBlank() || code == null || code.isBlank())
-            return ApiResponse.badRequest("Email and code are required");
-        userService.changeEmail(AuthCtx.getUserId(), email, code);
+        String newCode = body.get("newCode");
+        String oldCode = body.get("oldCode");
+        if (email == null || email.isBlank() || newCode == null || newCode.isBlank())
+            return ApiResponse.badRequest("Email and newCode are required");
+        userService.changeEmail(AuthCtx.getUserId(), email, newCode, oldCode);
         return ApiResponse.success();
     }
 }

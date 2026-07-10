@@ -10,5 +10,9 @@ public interface EmailService {
 
     void sendChangeCode(String email);
 
-    boolean verify(String email, String code, CodeType type);
+    void sendChangeCode(Long userId);
+
+    boolean verify(String email, String code, CodeType type, boolean remove);
+
+    void remove(String email, CodeType type);
 }

@@ -99,7 +99,7 @@ public class EmailServiceImpl implements EmailService {
 
     private void doSend(String email, CodeType type) {
         CodeEntry existing = codes.get(email);
-        if (existing != null && System.currentTimeMillis() < existing.expiresAt)
+        if (existing != null && existing.type == type && existing.expiresAt > System.currentTimeMillis())
             throw new BusinessException(429, "Verification code already requested, please wait");
         String code = String.format("%06d", RANDOM.nextInt(1_000_000));
         codes.put(email, new CodeEntry(code, System.currentTimeMillis() + CODE_TTL, type));

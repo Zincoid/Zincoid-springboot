@@ -19,6 +19,9 @@ public final class FileUtil {
     public static final Set<String> IMAGE_EXTS = Set.of("jpg", "jpeg", "png", "gif", "webp", "bmp");
     public static final Set<String> VIDEO_EXTS = Set.of("mp4", "webm", "ogg", "mov", "avi");
     public static final Set<String> AUDIO_EXTS = Set.of("mp3", "wav", "ogg", "aac", "flac");
+    public static final Set<String> DOC_EXTS = Set.of("pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx",
+            "txt", "csv", "json", "xml", "yaml", "yml", "md", "java", "py", "js", "ts", "html", "css",
+            "zip", "rar", "7z", "tar", "gz", "bz2", "sql", "sh", "bat", "c", "cpp", "h", "rs", "go");
 
     private FileUtil() {}
 
@@ -89,7 +92,11 @@ public final class FileUtil {
         return ext != null && AUDIO_EXTS.contains(ext);
     }
 
+    public static boolean isDoc(String ext) {
+        return ext != null && DOC_EXTS.contains(ext);
+    }
+
     private static boolean isAllowed(String ext) {
-        return isImage(ext) || isVideo(ext) || isAudio(ext);
+        return isImage(ext) || isVideo(ext) || isAudio(ext) || isDoc(ext);
     }
 }

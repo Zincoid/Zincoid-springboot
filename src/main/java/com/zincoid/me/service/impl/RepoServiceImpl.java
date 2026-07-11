@@ -7,10 +7,7 @@ import com.zincoid.me.mapper.RepoMapper;
 import com.zincoid.me.model.dto.RepoCreateRequest;
 import com.zincoid.me.model.dto.RepoItemAddRequest;
 import com.zincoid.me.model.dto.RepoUpdateRequest;
-import com.zincoid.me.model.enums.RelatedType;
-import com.zincoid.me.model.enums.RepoType;
-import com.zincoid.me.model.enums.Status;
-import com.zincoid.me.model.enums.Visibility;
+import com.zincoid.me.model.enums.*;
 import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.po.Repo;
 import com.zincoid.me.model.po.RepoItem;
@@ -182,6 +179,11 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
 
     // ──────── Private tool ────────────────────────────────
 
+    private String coverOrDefault(Repo repo) {
+        if (repo.getCoverImage() != null) return repo.getCoverImage();
+        return repoItemService.firstImageUrl(repo.getId());
+    }
+
     private RepoCardVO buildCardVO(Repo repo) {
         User user = userService.getById(repo.getUserId());
         return RepoCardVO.builder()
@@ -195,7 +197,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 .visibility(repo.getVisibility())
                 .url(repo.getUrl())
                 .tags(JsonUtil.parseImages(repo.getTags()))
-                .coverImage(repo.getCoverImage())
+                .coverImage(coverOrDefault(repo))
                 .createdAt(repo.getCreatedAt())
                 .build();
     }
@@ -218,7 +220,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 .visibility(repo.getVisibility())
                 .url(repo.getUrl())
                 .tags(JsonUtil.parseImages(repo.getTags()))
-                .coverImage(repo.getCoverImage())
+                .coverImage(coverOrDefault(repo))
                 .items(items)
                 .createdAt(repo.getCreatedAt())
                 .updatedAt(repo.getUpdatedAt())

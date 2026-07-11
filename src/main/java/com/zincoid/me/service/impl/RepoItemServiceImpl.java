@@ -3,6 +3,7 @@ package com.zincoid.me.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.RepoItemMapper;
+import com.zincoid.me.model.enums.FileType;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.po.File;
@@ -88,6 +89,22 @@ public class RepoItemServiceImpl extends ServiceImpl<RepoItemMapper, RepoItem> i
             updateById(item);
         }
         log.info("Repo items sorted: repo={}, itemIds={}", repoId, itemIds);
+    }
+
+    @Override
+    public String firstImageUrl(Long repoId) {
+        return lambdaQuery()
+                .eq(RepoItem::getRepoId, repoId)
+                .eq(RepoItem::getStatus, Status.ACTIVE)
+                .orderByAsc(RepoItem::getSortOrder)
+                .list().stream()
+                .filter(i -> {
+                    File f = fileService.getById(i.getFileId());
+                    return f != null && f.getFileType() == FileType.IMAGE;
+                })
+                .findFirst()
+                .map(i -> "/uploads/" + fileService.getById(i.getFileId()).getFilePath())
+                .orElse(null);
     }
 
     // ──────── Private tool ────────────────────────────────

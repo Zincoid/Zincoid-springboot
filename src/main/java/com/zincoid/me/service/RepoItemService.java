@@ -16,4 +16,6 @@ public interface RepoItemService extends IService<RepoItem> {
     void deleteByRepoId(Long repoId);
 
     void sortItems(Long repoId, List<Long> itemIds);
+
+    String firstImageUrl(Long repoId);
 }

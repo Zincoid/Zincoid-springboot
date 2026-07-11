@@ -15,6 +15,8 @@ public interface FileService extends IService<File> {
 
     void link(List<String> filePathsOrUrls, RelatedType relatedType, Long relatedId);
 
+    void delete(Long fileId);
+
     void delete(String filePathOrUrl);
 
     void delete(RelatedType relatedType, Long relatedId);

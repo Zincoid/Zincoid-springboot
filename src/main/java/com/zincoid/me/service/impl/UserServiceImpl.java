@@ -17,6 +17,7 @@ import com.zincoid.me.model.po.Comment;
 import com.zincoid.me.model.po.Moment;
 import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.Message;
+import com.zincoid.me.model.po.Repo;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.vo.LoginVO;
@@ -29,11 +30,11 @@ import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.MessageService;
 import com.zincoid.me.service.MomentService;
 import com.zincoid.me.service.NotificationService;
+import com.zincoid.me.service.RepoService;
 import com.zincoid.me.service.UserService;
 
 import com.zincoid.me.utils.JsonUtil;
 import com.zincoid.me.utils.JwtTool;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -47,7 +48,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
     private final Map<String, Long> revokedTokens = new ConcurrentHashMap<>();
@@ -58,11 +58,31 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private final CommentService commentService;
     private final MomentService momentService;
     private final ArticleService articleService;
+    private final RepoService repoService;
     private final MessageService messageService;
     private final FileService fileService;
     private final EmailService emailService;
-    @Lazy
     private final NotificationService notificationService;
+
+    public UserServiceImpl(CommentService commentService,
+                           MomentService momentService,
+                           ArticleService articleService,
+                           @Lazy RepoService repoService,
+                           MessageService messageService,
+                           FileService fileService,
+                           EmailService emailService,
+                           JwtTool jwtTool,
+                           NotificationService notificationService) {
+        this.commentService = commentService;
+        this.momentService = momentService;
+        this.articleService = articleService;
+        this.repoService = repoService;
+        this.messageService = messageService;
+        this.fileService = fileService;
+        this.emailService = emailService;
+        this.jwtTool = jwtTool;
+        this.notificationService = notificationService;
+    }
 
     @Override
     @Transactional
@@ -227,6 +247,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         for (Moment m : moments) momentService.delete(null, m.getId(), true);
         List<Article> articles = articleService.lambdaQuery().eq(Article::getUserId, userId).list();
         for (Article a : articles) articleService.delete(null, a.getId(), true);
+        List<Repo> repos = repoService.lambdaQuery().eq(Repo::getUserId, userId).list();
+        for (Repo r : repos) repoService.delete(null, r.getId(), true);
         List<Message> messages = messageService.lambdaQuery().eq(Message::getUserId, userId).list();
         for (Message m : messages) messageService.delete(null, m.getId(), true);
         List<Comment> comments = commentService.lambdaQuery().eq(Comment::getUserId, userId).list();

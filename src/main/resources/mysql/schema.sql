@@ -191,6 +191,49 @@ CREATE TABLE IF NOT EXISTS `message` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Message table';
 
 -- =============================================
+-- 10. Repo Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `repo` (
+    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
+    `user_id`       BIGINT          NOT NULL                 COMMENT 'Creator user ID',
+    `name`          VARCHAR(255)    NOT NULL                 COMMENT 'Repo name',
+    `description`   TEXT            DEFAULT NULL             COMMENT 'Description',
+    `type`          TINYINT         NOT NULL DEFAULT 0       COMMENT 'Repo type: 0=CODE, 1=MEDIA, 2=FILE',
+    `url`           VARCHAR(500)    DEFAULT NULL             COMMENT 'Git URL for CODE, access URL for others',
+    `tags`          VARCHAR(500)    DEFAULT NULL             COMMENT 'Tags as JSON array',
+    `cover_image`   VARCHAR(500)    DEFAULT NULL             COMMENT 'Cover image path',
+    `status`        TINYINT         NOT NULL DEFAULT 1        COMMENT 'Status: 0=DISABLED, 1=ACTIVE',
+    `visibility`    TINYINT         NOT NULL DEFAULT 0       COMMENT 'Visibility: 0=PUBLIC, 1=PRIVATE',
+    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
+    `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Update time',
+    PRIMARY KEY (`id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_type` (`type`),
+    KEY `idx_status` (`status`),
+    KEY `idx_visibility` (`visibility`),
+    KEY `idx_created_at` (`created_at`),
+    CONSTRAINT `fk_repo_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Repo table';
+
+-- =============================================
+-- 11. Repo Item Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `repo_item` (
+    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
+    `repo_id`       BIGINT          NOT NULL                 COMMENT 'Repo ID',
+    `sort_order`    INT             NOT NULL DEFAULT 0       COMMENT 'Sort order',
+    `file_id`       BIGINT          DEFAULT NULL             COMMENT 'File record ID',
+    `name`          VARCHAR(255)    NOT NULL                 COMMENT 'Display name',
+    `status`        TINYINT         NOT NULL DEFAULT 1        COMMENT 'Status: 0=DISABLED, 1=ACTIVE',
+    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
+    PRIMARY KEY (`id`),
+    KEY `idx_repo_id` (`repo_id`),
+    KEY `idx_file_id` (`file_id`),
+    CONSTRAINT `fk_repo_item_repo` FOREIGN KEY (`repo_id`) REFERENCES `repo` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_repo_item_file` FOREIGN KEY (`file_id`) REFERENCES `file` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Repo item table';
+
+-- =============================================
 -- Default admin user is auto-created by DataInitializer on first startup
 -- =============================================
 

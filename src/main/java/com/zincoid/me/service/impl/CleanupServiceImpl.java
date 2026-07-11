@@ -23,6 +23,8 @@ public class CleanupServiceImpl {
     private final LikeService likeService;
     private final CommentService commentService;
     private final NotificationService notificationService;
+    private final RepoService repoService;
+    private final RepoItemService repoItemService;
     private final FileService fileService;
 
     @Transactional
@@ -34,6 +36,8 @@ public class CleanupServiceImpl {
         result.put("like", cleanLikes());
         result.put("comment", cleanComments());
         result.put("notification", cleanNotifications());
+        result.put("repo", cleanRepos());
+        result.put("repoItem", cleanRepoItems());
         log.info("Cleanup done: {}", result);
         return result;
     }
@@ -62,6 +66,11 @@ public class CleanupServiceImpl {
     private Set<Long> commentIds() {
         return new HashSet<>(commentService.lambdaQuery().select(Comment::getId).list()
                 .stream().map(Comment::getId).toList());
+    }
+
+    private Set<Long> repoIds() {
+        return new HashSet<>(repoService.lambdaQuery().select(Repo::getId).list()
+                .stream().map(Repo::getId).toList());
     }
 
     // ── cleaners ──
@@ -150,6 +159,29 @@ public class CleanupServiceImpl {
                 })
                 .map(Notification::getId).toList();
         if (!ids.isEmpty()) notificationService.removeBatchByIds(ids);
+        return ids.size();
+    }
+
+    private int cleanRepos() {
+        Set<Long> users = userIds();
+        List<Long> ids = repoService.lambdaQuery()
+                .select(Repo::getId, Repo::getUserId).list().stream()
+                .filter(r -> !users.contains(r.getUserId()))
+                .map(Repo::getId).toList();
+        if (!ids.isEmpty()) {
+            ids.forEach(repoItemService::deleteByRepoId);
+            repoService.removeBatchByIds(ids);
+        }
+        return ids.size();
+    }
+
+    private int cleanRepoItems() {
+        Set<Long> repos = repoIds();
+        List<Long> ids = repoItemService.lambdaQuery()
+                .select(RepoItem::getId, RepoItem::getRepoId).list().stream()
+                .filter(i -> !repos.contains(i.getRepoId()))
+                .map(RepoItem::getId).toList();
+        if (!ids.isEmpty()) ids.forEach(repoItemService::delete);
         return ids.size();
     }
 }

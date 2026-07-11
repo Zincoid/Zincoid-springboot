@@ -6,18 +6,16 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
-public enum RelatedType {
+public enum RepoType {
 
-    MOMENT(0),
-    ARTICLE(1),
-    AVATAR(2),
-    CHAT(3),
-    REPO(4);
+    CODE(0),
+    MEDIA(1),
+    FILE(2);
 
     @EnumValue
     private final Integer value;
 
-    RelatedType(Integer value) {
+    RepoType(Integer value) {
         this.value = value;
     }
 
@@ -27,9 +25,9 @@ public enum RelatedType {
     }
 
     @JsonCreator
-    public static RelatedType fromValue(Integer value) {
+    public static RepoType fromValue(Integer value) {
         if (value == null) return null;
-        for (RelatedType r : values()) {
+        for (RepoType r : values()) {
             if (r.value.equals(value)) return r;
         }
         return null;

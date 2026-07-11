@@ -107,8 +107,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         if (request.getVisibility() != null) article.setVisibility(request.getVisibility());
         updateById(article);
         List<String> urls = new ArrayList<>();
-        if (request.getCoverImage() != null && !request.getCoverImage().isBlank())
-            urls.add(request.getCoverImage());
+        if (article.getCoverImage() != null && !article.getCoverImage().isBlank())
+            urls.add(article.getCoverImage());
         urls.addAll(extractUploadUrls(article.getContentMd()));
         if (!urls.isEmpty()) fileService.link(urls, RelatedType.ARTICLE, article.getId());
         log.info("Article updated: user={}, id={}", userId, articleId);

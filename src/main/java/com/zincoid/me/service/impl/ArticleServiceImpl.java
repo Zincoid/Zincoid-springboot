@@ -214,7 +214,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         Long viewerId = AuthCtx.getUserId();
         if (article.getVisibility() == Visibility.PRIVATE
                 && (viewerId == null || !viewerId.equals(article.getUserId())))
-            throw new BusinessException(404, "Article not found");
+            throw new BusinessException(404, "Article is private");
         baseMapper.addViewCount(articleId);
         article.setViewCount(article.getViewCount() + 1);
         return buildDetailVO(article);

@@ -205,7 +205,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
         Long viewerId = AuthCtx.getUserId();
         if (moment.getVisibility() == Visibility.PRIVATE
                 && (viewerId == null || !viewerId.equals(moment.getUserId())))
-            throw new BusinessException(404, "Moment not found");
+            throw new BusinessException(404, "Moment is private");
         User user = userService.getById(moment.getUserId());
         long likeCount = likeService.count(RelatedType.MOMENT, momentId);
         boolean isLiked = likeService.liked(AuthCtx.getUserId(), RelatedType.MOMENT, momentId);

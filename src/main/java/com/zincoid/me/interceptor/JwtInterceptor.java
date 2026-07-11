@@ -29,6 +29,7 @@ public class JwtInterceptor implements HandlerInterceptor {
             "/api/users/public",
             "/api/moments/public",
             "/api/articles/public",
+            "/api/repos/public",
             "/api/chats/public",
             "/api/comments/public",
             "/api/likes/public",

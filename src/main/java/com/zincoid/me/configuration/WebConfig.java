@@ -4,6 +4,7 @@ import com.zincoid.me.interceptor.JwtInterceptor;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.enums.Status;
+import com.zincoid.me.model.enums.Visibility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +31,8 @@ public class WebConfig implements WebMvcConfigurer {
                 s -> Role.fromValue(Integer.parseInt(s)));
         registry.addConverter(String.class, Status.class,
                 s -> Status.fromValue(Integer.parseInt(s)));
+        registry.addConverter(String.class, Visibility.class,
+                s -> Visibility.fromValue(Integer.parseInt(s)));
     }
 
     @Override

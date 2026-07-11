@@ -1,6 +1,6 @@
 package com.zincoid.me.model.dto;
 
-import com.zincoid.me.model.enums.Status;
+import com.zincoid.me.model.enums.Visibility;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -15,5 +15,5 @@ public class ArticleCreateRequest {
 
     private String summary;
     private String coverImage;
-    private Status status;
+    private Visibility visibility;
 }

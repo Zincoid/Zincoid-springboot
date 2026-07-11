@@ -1,6 +1,6 @@
 package com.zincoid.me.model.dto;
 
-import com.zincoid.me.model.enums.Status;
+import com.zincoid.me.model.enums.Visibility;
 import lombok.Data;
 
 @Data
@@ -10,5 +10,5 @@ public class ArticleUpdateRequest {
     private String contentMd;
     private String summary;
     private String coverImage;
-    private Status status;
+    private Visibility visibility;
 }

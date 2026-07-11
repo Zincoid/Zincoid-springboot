@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.zincoid.me.model.enums.Status;
+import com.zincoid.me.model.enums.Visibility;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,6 +30,7 @@ public class Article {
     private String coverImage;
     private Boolean isPinned;
     private Status status;
+    private Visibility visibility;
     private Long viewCount;
     private LocalDateTime createdAt;
     @TableField(update = "NOW()")

@@ -13,7 +13,7 @@ import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.Status;
-import com.zincoid.me.model.vo.CommentVO;
+import com.zincoid.me.model.enums.Visibility;
 import com.zincoid.me.model.vo.LikerVO;
 import com.zincoid.me.model.vo.MomentDetailVO;
 import com.zincoid.me.model.vo.MomentCardVO;
@@ -62,6 +62,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
                 .userId(userId)
                 .content(request.getContent())
                 .images(JsonUtil.toJson(request.getImages()))
+                .visibility(request.getVisibility() != null ? request.getVisibility() : Visibility.PUBLIC)
                 .build();
         save(moment);
         notificationService.notify(userId, request.getContent(), NotificationType.MOMENT_MENTION, moment.getId());
@@ -97,6 +98,8 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
             if (!newPaths.isEmpty())
                 fileService.link(newPaths, RelatedType.MOMENT, moment.getId());
         }
+        if (request.getVisibility() != null)
+            moment.setVisibility(request.getVisibility());
         updateById(moment);
         log.info("Moment updated: user={}, id={}", userId, momentId);
         return buildCardVO(moment);
@@ -142,6 +145,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
     public MomentCardVO random() {
         Moment moment = lambdaQuery()
                 .eq(Moment::getStatus, Status.ACTIVE)
+                .eq(Moment::getVisibility, Visibility.PUBLIC)
                 .last("ORDER BY RAND() LIMIT 1")
                 .one();
         if (moment == null) return null;
@@ -152,6 +156,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
     public PageVO<MomentCardVO> list(int page, int size, boolean pinned) {
         Page<Moment> momentPage = lambdaQuery()
                 .eq(Moment::getStatus, Status.ACTIVE)
+                .eq(Moment::getVisibility, Visibility.PUBLIC)
                 .orderByDesc(pinned, Moment::getIsPinned)
                 .orderByDesc(Moment::getCreatedAt)
                 .page(Page.of(page, size));
@@ -162,12 +167,14 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
     public List<MomentCardVO> home(int size) {
         List<Moment> pinned = lambdaQuery()
                 .eq(Moment::getStatus, Status.ACTIVE)
+                .eq(Moment::getVisibility, Visibility.PUBLIC)
                 .eq(Moment::getIsPinned, true)
                 .orderByDesc(Moment::getCreatedAt)
                 .list();
         List<Moment> records = new ArrayList<>(pinned);
         List<Moment> nonPinned = lambdaQuery()
                 .eq(Moment::getStatus, Status.ACTIVE)
+                .eq(Moment::getVisibility, Visibility.PUBLIC)
                 .eq(Moment::getIsPinned, false)
                 .orderByDesc(Moment::getCreatedAt)
                 .last("LIMIT " + size)
@@ -178,9 +185,12 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
 
     @Override
     public PageVO<MomentCardVO> list(Long userId, int page, int size, boolean pinned) {
+        Long viewerId = AuthCtx.getUserId();
+        boolean isOwner = viewerId != null && viewerId.equals(userId);
         Page<Moment> momentPage = lambdaQuery()
                 .eq(Moment::getUserId, userId)
                 .eq(Moment::getStatus, Status.ACTIVE)
+                .eq(!isOwner, Moment::getVisibility, Visibility.PUBLIC)
                 .orderByDesc(pinned, Moment::getIsPinned)
                 .orderByDesc(Moment::getCreatedAt)
                 .page(Page.of(page, size));
@@ -191,6 +201,10 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
     public MomentDetailVO get(Long momentId) {
         Moment moment = getById(momentId);
         if (moment == null || moment.getStatus() == Status.DISABLED)
+            throw new BusinessException(404, "Moment not found");
+        Long viewerId = AuthCtx.getUserId();
+        if (moment.getVisibility() == Visibility.PRIVATE
+                && (viewerId == null || !viewerId.equals(moment.getUserId())))
             throw new BusinessException(404, "Moment not found");
         User user = userService.getById(moment.getUserId());
         long likeCount = likeService.count(RelatedType.MOMENT, momentId);

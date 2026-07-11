@@ -1,5 +1,6 @@
 package com.zincoid.me.model.dto;
 
+import com.zincoid.me.model.enums.Visibility;
 import lombok.Data;
 
 import java.util.List;
@@ -9,4 +10,5 @@ public class MomentUpdateRequest {
 
     private String content;
     private List<String> images;
+    private Visibility visibility;
 }

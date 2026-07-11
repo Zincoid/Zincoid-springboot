@@ -12,9 +12,9 @@ import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.Status;
+import com.zincoid.me.model.enums.Visibility;
 import com.zincoid.me.model.vo.ArticleCardVO;
 import com.zincoid.me.model.vo.ArticleDetailVO;
-import com.zincoid.me.model.vo.CommentVO;
 import com.zincoid.me.model.vo.LikerVO;
 import com.zincoid.me.service.ArticleService;
 import com.zincoid.me.service.CommentService;
@@ -66,6 +66,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
                 .contentHtml(mdTool.renderToHtml(request.getContentMd()))
                 .summary(request.getSummary())
                 .coverImage(request.getCoverImage())
+                .visibility(request.getVisibility() != null ? request.getVisibility() : Visibility.PUBLIC)
                 .build();
         save(article);
         List<String> urls = new ArrayList<>();
@@ -103,7 +104,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             if (oldCover != null && !oldCover.equals(newCover))
                 fileService.delete(oldCover);
         }
-        if (request.getStatus() != null) article.setStatus(request.getStatus());
+        if (request.getVisibility() != null) article.setVisibility(request.getVisibility());
         updateById(article);
         List<String> urls = new ArrayList<>();
         if (request.getCoverImage() != null && !request.getCoverImage().isBlank())
@@ -153,6 +154,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     public ArticleCardVO random() {
         Article article = lambdaQuery()
                 .eq(Article::getStatus, Status.ACTIVE)
+                .eq(Article::getVisibility, Visibility.PUBLIC)
                 .last("ORDER BY RAND() LIMIT 1")
                 .one();
         if (article == null) return null;
@@ -163,6 +165,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     public PageVO<ArticleCardVO> list(int page, int size, boolean pinned) {
         Page<Article> articlePage = lambdaQuery()
                 .eq(Article::getStatus, Status.ACTIVE)
+                .eq(Article::getVisibility, Visibility.PUBLIC)
                 .orderByDesc(pinned, Article::getIsPinned)
                 .orderByDesc(Article::getCreatedAt)
                 .page(Page.of(page, size));
@@ -173,12 +176,14 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     public List<ArticleCardVO> home(int size) {
         List<Article> pinned = lambdaQuery()
                 .eq(Article::getStatus, Status.ACTIVE)
+                .eq(Article::getVisibility, Visibility.PUBLIC)
                 .eq(Article::getIsPinned, true)
                 .orderByDesc(Article::getCreatedAt)
                 .list();
         List<Article> records = new ArrayList<>(pinned);
         List<Article> nonPinned = lambdaQuery()
                 .eq(Article::getStatus, Status.ACTIVE)
+                .eq(Article::getVisibility, Visibility.PUBLIC)
                 .eq(Article::getIsPinned, false)
                 .orderByDesc(Article::getCreatedAt)
                 .last("LIMIT " + size)
@@ -189,9 +194,12 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     public PageVO<ArticleCardVO> list(Long userId, int page, int size, boolean pinned) {
+        Long viewerId = AuthCtx.getUserId();
+        boolean isOwner = viewerId != null && viewerId.equals(userId);
         Page<Article> articlePage = lambdaQuery()
                 .eq(Article::getUserId, userId)
                 .eq(Article::getStatus, Status.ACTIVE)
+                .eq(!isOwner, Article::getVisibility, Visibility.PUBLIC)
                 .orderByDesc(pinned, Article::getIsPinned)
                 .orderByDesc(Article::getCreatedAt)
                 .page(Page.of(page, size));
@@ -201,7 +209,11 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Override
     public ArticleDetailVO get(Long articleId) {
         Article article = getById(articleId);
-        if (article == null)
+        if (article == null || article.getStatus() == Status.DISABLED)
+            throw new BusinessException(404, "Article not found");
+        Long viewerId = AuthCtx.getUserId();
+        if (article.getVisibility() == Visibility.PRIVATE
+                && (viewerId == null || !viewerId.equals(article.getUserId())))
             throw new BusinessException(404, "Article not found");
         baseMapper.addViewCount(articleId);
         article.setViewCount(article.getViewCount() + 1);

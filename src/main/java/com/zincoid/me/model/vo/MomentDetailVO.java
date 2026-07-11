@@ -1,5 +1,6 @@
 package com.zincoid.me.model.vo;
 
+import com.zincoid.me.model.enums.Visibility;
 import lombok.Builder;
 import lombok.Data;
 
@@ -17,6 +18,7 @@ public class MomentDetailVO {
     private String content;
     private List<String> images;
     private Boolean isPinned;
+    private Visibility visibility;
     private Integer likeCount;
     private Long viewCount;
     private Boolean isLiked;

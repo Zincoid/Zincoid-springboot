@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS `moment` (
     `is_pinned`     BOOLEAN         NOT NULL DEFAULT FALSE   COMMENT 'Pinned (admin only)',
     `view_count`    BIGINT          NOT NULL DEFAULT 0       COMMENT 'View count',
     `status`        TINYINT         NOT NULL DEFAULT 1       COMMENT 'Status: 0=DISABLED, 1=ACTIVE',
+    `visibility`    TINYINT         NOT NULL DEFAULT 0       COMMENT 'Visibility: 0=PUBLIC, 1=PRIVATE',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Post time',
     `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
     PRIMARY KEY (`id`),
@@ -90,7 +91,8 @@ CREATE TABLE IF NOT EXISTS `article` (
     `summary`       VARCHAR(500)    DEFAULT NULL             COMMENT 'Article summary / excerpt',
     `cover_image`   VARCHAR(500)    DEFAULT NULL             COMMENT 'Cover image URL',
     `is_pinned`     BOOLEAN         NOT NULL DEFAULT FALSE   COMMENT 'Pinned (admin only)',
-    `status`        TINYINT         NOT NULL DEFAULT 1       COMMENT 'Status: 0=draft, 1=published',
+    `status`        TINYINT         NOT NULL DEFAULT 1       COMMENT 'Status: 0=DISABLED, 1=ACTIVE',
+    `visibility`    TINYINT         NOT NULL DEFAULT 0       COMMENT 'Visibility: 0=PUBLIC, 1=PRIVATE',
     `view_count`    BIGINT          NOT NULL DEFAULT 0       COMMENT 'View count',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Publish time',
     `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
@@ -205,3 +207,6 @@ INSERT INTO `config` (`config_key`, `config_value`, `description`) VALUES
 ('loading_spinner_fade', '125', 'Loading spinner fade-out duration (ms)'),
 ('hero_animation', 'random', 'Hero animation: squares, raindrop, raindrop_sin, or random')
 ON DUPLICATE KEY UPDATE `config_key` = VALUES(`config_key`);
+
+ALTER TABLE moment ADD COLUMN visibility TINYINT NOT NULL DEFAULT 0 AFTER status;
+ALTER TABLE article ADD COLUMN visibility TINYINT NOT NULL DEFAULT 0 AFTER status;

@@ -1,5 +1,6 @@
 package com.zincoid.me.model.dto;
 
+import com.zincoid.me.model.enums.Visibility;
 import jakarta.validation.constraints.AssertTrue;
 import lombok.Data;
 
@@ -10,6 +11,7 @@ public class MomentCreateRequest {
 
     private String content;
     private List<String> images;
+    private Visibility visibility;
 
     @AssertTrue(message = "content and images must not both be empty")
     public boolean isValid() {

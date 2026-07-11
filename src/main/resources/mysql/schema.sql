@@ -207,6 +207,3 @@ INSERT INTO `config` (`config_key`, `config_value`, `description`) VALUES
 ('loading_spinner_fade', '125', 'Loading spinner fade-out duration (ms)'),
 ('hero_animation', 'random', 'Hero animation: squares, raindrop, raindrop_sin, or random')
 ON DUPLICATE KEY UPDATE `config_key` = VALUES(`config_key`);
-
-ALTER TABLE moment ADD COLUMN visibility TINYINT NOT NULL DEFAULT 0 AFTER status;
-ALTER TABLE article ADD COLUMN visibility TINYINT NOT NULL DEFAULT 0 AFTER status;

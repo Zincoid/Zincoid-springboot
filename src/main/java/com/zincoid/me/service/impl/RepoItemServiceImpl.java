@@ -78,13 +78,13 @@ public class RepoItemServiceImpl extends ServiceImpl<RepoItemMapper, RepoItem> i
                 .eq(RepoItem::getRepoId, repoId)
                 .list();
         if (itemIds.size() != items.size())
-            throw new BusinessException(400, "Item count mismatch");
+            throw new BusinessException(400, "Invalid Item Sort");
         for (int i = 0; i < itemIds.size(); i++) {
             Long itemId = itemIds.get(i);
             RepoItem item = items.stream()
                     .filter(it -> it.getId().equals(itemId))
                     .findFirst()
-                    .orElseThrow(() -> new BusinessException(400, "Item not found: " + itemId));
+                    .orElseThrow(() -> new BusinessException(400, "Invalid Item Sort"));
             item.setSortOrder(i);
             updateById(item);
         }

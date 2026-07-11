@@ -169,6 +169,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .eq(Article::getUserId, userId)
                 .set(Article::getStatus, status)
                 .update();
+        repoService.lambdaUpdate()
+                .eq(Repo::getUserId, userId)
+                .set(Repo::getStatus, status)
+                .update();
         log.info("User status updated: id={}, username={}, status={}", userId, user.getUsername(), status);
     }
 

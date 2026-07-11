@@ -78,6 +78,19 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     }
 
     @Override
+    public void _link(List<Long> fileIds, RelatedType relatedType, Long relatedId) {
+        if (fileIds == null || fileIds.isEmpty()) return;
+        lambdaUpdate()
+                .isNull(File::getRelatedType)
+                .isNull(File::getRelatedId)
+                .in(File::getId, fileIds)
+                .set(File::getRelatedType, relatedType)
+                .set(File::getRelatedId, relatedId)
+                .update();
+        log.info("Files linked: {} -> {}:{}", fileIds, relatedType, relatedId);
+    }
+
+    @Override
     @Transactional
     public void link(List<String> filePathsOrUrls, RelatedType relatedType, Long relatedId) {
         if (filePathsOrUrls == null || filePathsOrUrls.isEmpty()) return;

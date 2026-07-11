@@ -5,6 +5,7 @@ import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.RepoItemMapper;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.Status;
+import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.po.RepoItem;
 import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.RepoItemService;
@@ -42,6 +43,7 @@ public class RepoItemServiceImpl extends ServiceImpl<RepoItemMapper, RepoItem> i
                 .status(Status.ACTIVE)
                 .build();
         save(item);
+        fileService._link(List.of(fileId), RelatedType.REPO, repoId);
         log.info("Repo item added: repo={}, item={}", repoId, item.getId());
         return item;
     }

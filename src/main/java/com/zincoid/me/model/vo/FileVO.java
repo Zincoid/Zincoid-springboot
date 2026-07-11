@@ -7,6 +7,7 @@ import lombok.Data;
 @Builder
 public class FileVO {
 
+    private Long id;
     private String fileName;
     private String filePath;
     private String url;

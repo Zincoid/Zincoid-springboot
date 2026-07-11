@@ -69,6 +69,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
         save(uploadFile);
         log.info("File uploaded: path={}, type={}, relation={}:{}", filePath, fileType, relatedType, relatedId);
         return FileVO.builder()
+                .id(uploadFile.getId())
                 .fileName(file.getOriginalFilename())
                 .filePath(filePath)
                 .url("/uploads/" + filePath)

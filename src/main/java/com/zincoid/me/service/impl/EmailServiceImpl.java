@@ -5,6 +5,7 @@ import com.zincoid.me.model.enums.CodeType;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.service.EmailService;
 import com.zincoid.me.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -18,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
     private static final int CODE_TTL = 5 * 60 * 1000; // 5 minutes
@@ -26,16 +28,10 @@ public class EmailServiceImpl implements EmailService {
     private final ConcurrentHashMap<String, CodeEntry> codes = new ConcurrentHashMap<>();
 
     private final JavaMailSender mailSender;
-    private final String from;
     private final UserService userService;
 
-    public EmailServiceImpl(JavaMailSender mailSender,
-                            @Value("${spring.mail.username}") String from,
-                            @Lazy UserService userService) {
-        this.mailSender = mailSender;
-        this.from = from;
-        this.userService = userService;
-    }
+    @Value("${spring.mail.username}")
+    private String from;
 
     private record CodeEntry(String code, long expiresAt, CodeType type) {}
 

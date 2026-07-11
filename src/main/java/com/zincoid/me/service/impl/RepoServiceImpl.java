@@ -37,9 +37,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements RepoService {
 
-    private final RepoItemService repoItemService;
-    private final UserService userService;
     private final FileService fileService;
+    private final UserService userService;
+    private final RepoItemService repoItemService;
 
     @Override
     @Transactional

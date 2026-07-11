@@ -16,16 +16,16 @@ import java.util.*;
 @RequiredArgsConstructor
 public class CleanupServiceImpl {
 
+    private final FileService fileService;
     private final UserService userService;
-    private final MessageService messageService;
     private final MomentService momentService;
     private final ArticleService articleService;
+    private final RepoService repoService;
+    private final RepoItemService repoItemService;
+    private final MessageService messageService;
     private final LikeService likeService;
     private final CommentService commentService;
     private final NotificationService notificationService;
-    private final RepoService repoService;
-    private final RepoItemService repoItemService;
-    private final FileService fileService;
 
     @Transactional
     public Map<String, Integer> cleanupRecords() {

@@ -25,6 +25,7 @@ import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.UserService;
 import com.zincoid.me.utils.AuthCtx;
 import com.zincoid.me.utils.JsonUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -37,23 +38,14 @@ import java.util.Set;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> implements MomentService {
 
-    private final UserService userService;
-    private final CommentService commentService;
     private final FileService fileService;
+    private final UserService userService;
     private final LikeService likeService;
+    private final CommentService commentService;
     private final NotificationService notificationService;
-
-    public MomentServiceImpl(@Lazy UserService userService, CommentService commentService,
-                             FileService fileService, LikeService likeService,
-                             @Lazy NotificationService notificationService) {
-        this.userService = userService;
-        this.commentService = commentService;
-        this.fileService = fileService;
-        this.likeService = likeService;
-        this.notificationService = notificationService;
-    }
 
     @Override
     @Transactional

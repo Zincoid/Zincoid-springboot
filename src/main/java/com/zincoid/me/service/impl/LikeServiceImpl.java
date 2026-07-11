@@ -28,16 +28,18 @@ import java.util.Objects;
 public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements LikeService {
 
     private final UserService userService;
-    private final NotificationService notificationService;
     private final MomentService momentService;
     private final ArticleService articleService;
+    private final NotificationService notificationService;
 
-    public LikeServiceImpl(@Lazy UserService userService, @Lazy NotificationService notificationService,
-                           @Lazy MomentService momentService, @Lazy ArticleService articleService) {
+    public LikeServiceImpl(UserService userService,
+                           @Lazy MomentService momentService,
+                           @Lazy ArticleService articleService,
+                           NotificationService notificationService) {
         this.userService = userService;
-        this.notificationService = notificationService;
         this.momentService = momentService;
         this.articleService = articleService;
+        this.notificationService = notificationService;
     }
 
     @Override

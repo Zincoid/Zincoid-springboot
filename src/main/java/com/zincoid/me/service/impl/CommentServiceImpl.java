@@ -19,6 +19,7 @@ import com.zincoid.me.service.CommentService;
 import com.zincoid.me.service.MomentService;
 import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -32,16 +33,18 @@ import java.util.stream.Collectors;
 public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> implements CommentService {
 
     private final UserService userService;
-    private final NotificationService notificationService;
     private final MomentService momentService;
     private final ArticleService articleService;
+    private final NotificationService notificationService;
 
-    public CommentServiceImpl(@Lazy UserService userService, NotificationService notificationService,
-                              @Lazy MomentService momentService, @Lazy ArticleService articleService) {
+    public CommentServiceImpl(UserService userService,
+                              @Lazy MomentService momentService,
+                              @Lazy ArticleService articleService,
+                              NotificationService notificationService) {
         this.userService = userService;
-        this.notificationService = notificationService;
         this.momentService = momentService;
         this.articleService = articleService;
+        this.notificationService = notificationService;
     }
 
     @Override

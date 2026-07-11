@@ -33,22 +33,22 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     @Value("${upload.path:./uploads}")
     private String uploadPath;
 
+    private final UserService userService;
     private final MomentService momentService;
     private final ArticleService articleService;
-    private final UserService userService;
-    private final MessageService messageService;
     private final RepoService repoService;
+    private final MessageService messageService;
 
-    public FileServiceImpl(@Lazy MomentService momentService,
+    public FileServiceImpl(UserService userService,
+                           @Lazy MomentService momentService,
                            @Lazy ArticleService articleService,
-                           @Lazy UserService userService,
-                           @Lazy MessageService messageService,
-                           @Lazy RepoService repoService) {
+                           @Lazy RepoService repoService,
+                           @Lazy MessageService messageService) {
+        this.userService = userService;
         this.momentService = momentService;
         this.articleService = articleService;
-        this.userService = userService;
-        this.messageService = messageService;
         this.repoService = repoService;
+        this.messageService = messageService;
     }
 
     @Override

@@ -41,21 +41,24 @@ import java.util.regex.Pattern;
 public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Notification> implements NotificationService {
 
     private final UserService userService;
-    private final CommentService commentService;
-    private final MessageService messageService;
     private final MomentService momentService;
     private final ArticleService articleService;
+    private final MessageService messageService;
     private final LikeService likeService;
+    private final CommentService commentService;
 
-    public NotificationServiceImpl(@Lazy UserService userService, @Lazy CommentService commentService,
-                                    @Lazy MessageService messageService, @Lazy MomentService momentService,
-                                    @Lazy ArticleService articleService, @Lazy LikeService likeService) {
+    public NotificationServiceImpl(UserService userService,
+                                   @Lazy MomentService momentService,
+                                   @Lazy ArticleService articleService,
+                                   @Lazy MessageService messageService,
+                                   @Lazy LikeService likeService,
+                                   @Lazy CommentService commentService) {
         this.userService = userService;
-        this.commentService = commentService;
-        this.messageService = messageService;
         this.momentService = momentService;
         this.articleService = articleService;
+        this.messageService = messageService;
         this.likeService = likeService;
+        this.commentService = commentService;
     }
 
     @Override

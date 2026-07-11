@@ -51,37 +51,37 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
     private final Map<String, Long> revokedTokens = new ConcurrentHashMap<>();
-
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    private final JwtTool jwtTool;
 
-    private final CommentService commentService;
+    private final EmailService emailService;
+    private final FileService fileService;
     private final MomentService momentService;
     private final ArticleService articleService;
     private final RepoService repoService;
     private final MessageService messageService;
-    private final FileService fileService;
-    private final EmailService emailService;
+    private final CommentService commentService;
     private final NotificationService notificationService;
 
-    public UserServiceImpl(CommentService commentService,
-                           MomentService momentService,
-                           ArticleService articleService,
+    private final JwtTool jwtTool;
+
+    public UserServiceImpl(@Lazy EmailService emailService,
+                           @Lazy FileService fileService,
+                           @Lazy MomentService momentService,
+                           @Lazy ArticleService articleService,
                            @Lazy RepoService repoService,
-                           MessageService messageService,
-                           FileService fileService,
-                           EmailService emailService,
-                           JwtTool jwtTool,
-                           NotificationService notificationService) {
-        this.commentService = commentService;
+                           @Lazy MessageService messageService,
+                           @Lazy CommentService commentService,
+                           @Lazy NotificationService notificationService,
+                           JwtTool jwtTool) {
+        this.emailService = emailService;
+        this.fileService = fileService;
         this.momentService = momentService;
         this.articleService = articleService;
         this.repoService = repoService;
         this.messageService = messageService;
-        this.fileService = fileService;
-        this.emailService = emailService;
-        this.jwtTool = jwtTool;
+        this.commentService = commentService;
         this.notificationService = notificationService;
+        this.jwtTool = jwtTool;
     }
 
     @Override

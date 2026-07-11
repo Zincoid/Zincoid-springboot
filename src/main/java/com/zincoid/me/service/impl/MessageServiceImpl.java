@@ -16,6 +16,7 @@ import com.zincoid.me.service.FileService;
 import com.zincoid.me.converter.MessageConverter;
 import com.zincoid.me.service.MessageService;
 import com.zincoid.me.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -26,20 +27,13 @@ import java.util.*;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> implements MessageService {
 
-    private final UserService userService;
-    private final FileService fileService;
     private final ConfigService configService;
+    private final FileService fileService;
+    private final UserService userService;
     private final NotificationService notificationService;
-
-    public MessageServiceImpl(@Lazy UserService userService, FileService fileService,
-                               ConfigService configService, NotificationService notificationService) {
-        this.userService = userService;
-        this.fileService = fileService;
-        this.configService = configService;
-        this.notificationService = notificationService;
-    }
 
     @Override
     @Transactional

@@ -23,6 +23,7 @@ import com.zincoid.me.service.LikeService;
 import com.zincoid.me.service.UserService;
 import com.zincoid.me.utils.MdTool;
 import com.zincoid.me.utils.AuthCtx;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -37,24 +38,16 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> implements ArticleService {
 
     private static final Pattern MD_IMAGE_PATTERN = Pattern.compile("!\\[[^\\]]*\\]\\((/uploads/[^\\s)]+)\\)");
 
-    private final UserService userService;
-    private final CommentService commentService;
     private final FileService fileService;
+    private final UserService userService;
     private final LikeService likeService;
+    private final CommentService commentService;
     private final MdTool mdTool;
-
-    public ArticleServiceImpl(@Lazy UserService userService, CommentService commentService,
-                              FileService fileService, LikeService likeService, MdTool mdTool) {
-        this.userService = userService;
-        this.commentService = commentService;
-        this.fileService = fileService;
-        this.likeService = likeService;
-        this.mdTool = mdTool;
-    }
 
     @Override
     @Transactional

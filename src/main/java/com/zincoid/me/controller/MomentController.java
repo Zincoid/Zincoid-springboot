@@ -62,16 +62,16 @@ public class MomentController {
         return ApiResponse.success(momentService.random());
     }
 
+    @GetMapping("/public/home")
+    public ApiResponse<List<MomentCardVO>> homeMoments(@RequestParam(defaultValue = "10") int size) {
+        return ApiResponse.success(momentService.home(size));
+    }
+
     @GetMapping("/public")
     public ApiResponse<PageVO<MomentCardVO>> listMoments(@RequestParam(defaultValue = "1") int page,
                                                          @RequestParam(defaultValue = "10") int size,
                                                          @RequestParam(defaultValue = "false") boolean pinned) {
         return ApiResponse.success(momentService.list(page, size, pinned));
-    }
-
-    @GetMapping("/public/home")
-    public ApiResponse<List<MomentCardVO>> homeFeed(@RequestParam(defaultValue = "10") int size) {
-        return ApiResponse.success(momentService.home(size));
     }
 
     @GetMapping("/public/user/{userId}")

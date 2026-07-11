@@ -62,16 +62,16 @@ public class ArticleController {
         return ApiResponse.success(articleService.random());
     }
 
+    @GetMapping("/public/home")
+    public ApiResponse<List<ArticleCardVO>> homeArticles(@RequestParam(defaultValue = "10") int size) {
+        return ApiResponse.success(articleService.home(size));
+    }
+
     @GetMapping("/public")
     public ApiResponse<PageVO<ArticleCardVO>> listArticles(@RequestParam(defaultValue = "1") int page,
                                                            @RequestParam(defaultValue = "10") int size,
                                                            @RequestParam(defaultValue = "false") boolean pinned) {
         return ApiResponse.success(articleService.list(page, size, pinned));
-    }
-
-    @GetMapping("/public/home")
-    public ApiResponse<List<ArticleCardVO>> homeFeed(@RequestParam(defaultValue = "10") int size) {
-        return ApiResponse.success(articleService.home(size));
     }
 
     @GetMapping("/public/user/{userId}")

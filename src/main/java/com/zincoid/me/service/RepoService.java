@@ -27,7 +27,9 @@ public interface RepoService extends IService<Repo> {
 
     void sortItems(Long userId, Long repoId, List<Long> itemIds);
 
-    PageVO<RepoCardVO> list(RepoType type, Long userId, String keyword, int page, int size);
+    PageVO<RepoCardVO> list(RepoType type, String keyword, int page, int size);
+
+    PageVO<RepoCardVO> list(Long userId, RepoType type, int page, int size);
 
     RepoDetailVO get(Long repoId);
 }

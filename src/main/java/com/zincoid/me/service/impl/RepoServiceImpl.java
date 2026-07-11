@@ -143,18 +143,26 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     }
 
     @Override
-    public PageVO<RepoCardVO> list(RepoType type, Long userId, String keyword, int page, int size) {
+    public PageVO<RepoCardVO> list(RepoType type, String keyword, int page, int size) {
+        Page<Repo> repoPage = lambdaQuery()
+                .eq(Repo::getStatus, Status.ACTIVE)
+                .eq(Repo::getVisibility, Visibility.PUBLIC)
+                .eq(type != null, Repo::getType, type)
+                .like(keyword != null && !keyword.isBlank(), Repo::getName, keyword)
+                .orderByDesc(Repo::getCreatedAt)
+                .page(Page.of(page, size));
+        return PageVO.of(repoPage, this::buildCardVO);
+    }
+
+    @Override
+    public PageVO<RepoCardVO> list(Long userId, RepoType type, int page, int size) {
         Long viewerId = AuthCtx.getUserId();
+        boolean isOwner = viewerId != null && viewerId.equals(userId);
         var wrapper = lambdaQuery()
                 .eq(Repo::getStatus, Status.ACTIVE)
+                .eq(Repo::getUserId, userId)
                 .eq(type != null, Repo::getType, type)
-                .eq(userId != null, Repo::getUserId, userId)
-                .like(keyword != null && !keyword.isBlank(), Repo::getName, keyword)
-                .and(w -> {
-                    w.eq(Repo::getVisibility, Visibility.PUBLIC);
-                    if (viewerId != null)
-                        w.or().eq(Repo::getUserId, viewerId);
-                })
+                .eq(!isOwner, Repo::getVisibility, Visibility.PUBLIC)
                 .orderByDesc(Repo::getCreatedAt);
         Page<Repo> repoPage = wrapper.page(Page.of(page, size));
         return PageVO.of(repoPage, this::buildCardVO);

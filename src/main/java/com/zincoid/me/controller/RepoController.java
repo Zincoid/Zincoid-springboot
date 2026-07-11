@@ -34,7 +34,7 @@ public class RepoController {
 
     @PutMapping("/{repoId}")
     public ApiResponse<RepoDetailVO> updateRepo(@PathVariable Long repoId,
-                                            @Valid @RequestBody RepoUpdateRequest request) {
+                                                @Valid @RequestBody RepoUpdateRequest request) {
         return ApiResponse.success(repoService.update(AuthCtx.getUserId(), repoId, request));
     }
 
@@ -46,13 +46,13 @@ public class RepoController {
 
     @PostMapping("/{repoId}/items")
     public ApiResponse<RepoItemVO> addRepoItem(@PathVariable Long repoId,
-                                           @Valid @RequestBody RepoItemAddRequest request) {
+                                               @Valid @RequestBody RepoItemAddRequest request) {
         return ApiResponse.success(repoService.addItem(AuthCtx.getUserId(), repoId, request));
     }
 
     @DeleteMapping("/{repoId}/items/{itemId}")
     public ApiResponse<Void> deleteRepoItem(@PathVariable Long repoId,
-                                        @PathVariable Long itemId) {
+                                            @PathVariable Long itemId) {
         repoService.deleteItem(AuthCtx.getUserId(), repoId, itemId);
         return ApiResponse.success();
     }
@@ -68,11 +68,18 @@ public class RepoController {
 
     @GetMapping("/public")
     public ApiResponse<PageVO<RepoCardVO>> listRepos(@RequestParam(defaultValue = "1") int page,
-                                                @RequestParam(defaultValue = "10") int size,
-                                                @RequestParam(required = false) RepoType type,
-                                                @RequestParam(required = false) Long userId,
-                                                @RequestParam(required = false) String keyword) {
-        return ApiResponse.success(repoService.list(type, userId, keyword, page, size));
+                                                     @RequestParam(defaultValue = "10") int size,
+                                                     @RequestParam(required = false) RepoType type,
+                                                     @RequestParam(required = false) String keyword) {
+        return ApiResponse.success(repoService.list(type, keyword, page, size));
+    }
+
+    @GetMapping("/public/user/{userId}")
+    public ApiResponse<PageVO<RepoCardVO>> userRepos(@PathVariable Long userId,
+                                                     @RequestParam(defaultValue = "1") int page,
+                                                     @RequestParam(defaultValue = "10") int size,
+                                                     @RequestParam(required = false) RepoType type) {
+        return ApiResponse.success(repoService.list(userId, type, page, size));
     }
 
     @GetMapping("/public/{repoId}")

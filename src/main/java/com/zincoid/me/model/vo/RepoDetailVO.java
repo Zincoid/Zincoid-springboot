@@ -23,6 +23,7 @@ public class RepoDetailVO {
     private String url;
     private List<String> tags;
     private String coverImage;
+    private Boolean isDefaultCover;
     private List<RepoItemVO> items;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

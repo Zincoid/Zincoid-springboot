@@ -180,9 +180,12 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
 
     // ──────── Private tool ────────────────────────────────
 
+    private boolean isDefaultCover(Repo repo) {
+        return repo.getCoverImage() == null || repo.getCoverImage().isBlank();
+    }
+
     private String coverOrDefault(Repo repo) {
-        if (repo.getCoverImage() != null && !repo.getCoverImage().isBlank())
-            return repo.getCoverImage();
+        if (!isDefaultCover(repo)) return repo.getCoverImage();
         return repoItemService.firstImageUrl(repo.getId());
     }
 
@@ -223,6 +226,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 .url(repo.getUrl())
                 .tags(JsonUtil.parseImages(repo.getTags()))
                 .coverImage(coverOrDefault(repo))
+                .isDefaultCover(isDefaultCover(repo))
                 .items(items)
                 .createdAt(repo.getCreatedAt())
                 .updatedAt(repo.getUpdatedAt())

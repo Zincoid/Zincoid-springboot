@@ -49,7 +49,8 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 .visibility(request.getVisibility() != null ? request.getVisibility() : Visibility.PUBLIC)
                 .url(request.getUrl())
                 .tags(JsonUtil.toJson(request.getTags()))
-                .coverImage(request.getCoverImage())
+                .coverImage(request.getCoverImage() != null && !request.getCoverImage().isBlank()
+                        ? request.getCoverImage() : null)
                 .status(Status.ACTIVE)
                 .build();
         save(repo);
@@ -180,7 +181,8 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     // ──────── Private tool ────────────────────────────────
 
     private String coverOrDefault(Repo repo) {
-        if (repo.getCoverImage() != null) return repo.getCoverImage();
+        if (repo.getCoverImage() != null && !repo.getCoverImage().isBlank())
+            return repo.getCoverImage();
         return repoItemService.firstImageUrl(repo.getId());
     }
 

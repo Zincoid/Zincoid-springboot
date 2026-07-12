@@ -186,16 +186,21 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         if (repo == null || repo.getStatus() == Status.DISABLED)
             throw new BusinessException(404, "Repo not found");
         Long viewerId = AuthCtx.getUserId();
+        boolean isAdmin = viewerId != null && AuthCtx.getRole() == Role.ADMIN;
         if (repo.getVisibility() == Visibility.PRIVATE
+                && !isAdmin
                 && (viewerId == null || !viewerId.equals(repo.getUserId())))
             throw new BusinessException(404, "Repo is private");
-        boolean accessDenied = repo.getVisibility() == Visibility.RESTRICTED
+        boolean isDenied = repo.getVisibility() == Visibility.RESTRICTED
+                && !isAdmin
                 && (viewerId == null || !viewerId.equals(repo.getUserId()))
                 && !repoAccessService.authorize(viewerId, repoId);
         RepoDetailVO vo = buildDetailVO(repo);
-        if (accessDenied) {
+        if (isDenied) {
             vo.setRestricted(true);
             vo.setItems(List.of());
+            vo.setUrl(null);
+            vo.setGithub(null);
         }
         return vo;
     }

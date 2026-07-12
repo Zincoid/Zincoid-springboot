@@ -1,6 +1,7 @@
 package com.zincoid.me.configuration;
 
 import com.zincoid.me.interceptor.JwtInterceptor;
+import com.zincoid.me.model.enums.Access;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.RepoType;
 import com.zincoid.me.model.enums.Role;
@@ -36,6 +37,8 @@ public class WebConfig implements WebMvcConfigurer {
                 s -> Visibility.fromValue(Integer.parseInt(s)));
         registry.addConverter(String.class, RepoType.class,
                 s -> RepoType.fromValue(Integer.parseInt(s)));
+        registry.addConverter(String.class, Access.class,
+                s -> Access.fromValue(Integer.parseInt(s)));
     }
 
     @Override

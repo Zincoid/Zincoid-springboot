@@ -234,6 +234,24 @@ CREATE TABLE IF NOT EXISTS `repo_item` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Repo item table';
 
 -- =============================================
+-- 12. Repo Access Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `repo_access` (
+    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
+    `repo_id`       BIGINT          NOT NULL                 COMMENT 'Repo ID',
+    `user_id`       BIGINT          NOT NULL                 COMMENT 'User who requested access',
+    `access`        TINYINT         NOT NULL DEFAULT 0       COMMENT 'Access: 0=PENDING, 1=APPROVED, 2=REJECTED',
+    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Request time',
+    `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Update time',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_repo_user` (`repo_id`, `user_id`),
+    KEY `idx_repo_id` (`repo_id`),
+    KEY `idx_user_id` (`user_id`),
+    CONSTRAINT `fk_repo_access_repo` FOREIGN KEY (`repo_id`) REFERENCES `repo` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_repo_access_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Repo access request table';
+
+-- =============================================
 -- Default admin user is auto-created by DataInitializer on first startup
 -- =============================================
 

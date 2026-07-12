@@ -7,23 +7,11 @@ import com.zincoid.me.mapper.NotificationMapper;
 import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.Status;
-import com.zincoid.me.model.po.Article;
-import com.zincoid.me.model.po.Comment;
-import com.zincoid.me.model.po.Like;
-import com.zincoid.me.model.po.Message;
-import com.zincoid.me.model.po.Moment;
-import com.zincoid.me.model.po.Notification;
-import com.zincoid.me.model.po.User;
+import com.zincoid.me.model.po.*;
 import com.zincoid.me.model.vo.NotificationVO;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.converter.NotificationConverter;
-import com.zincoid.me.service.ArticleService;
-import com.zincoid.me.service.CommentService;
-import com.zincoid.me.service.LikeService;
-import com.zincoid.me.service.MessageService;
-import com.zincoid.me.service.MomentService;
-import com.zincoid.me.service.NotificationService;
-import com.zincoid.me.service.UserService;
+import com.zincoid.me.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -43,6 +31,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
     private final UserService userService;
     private final MomentService momentService;
     private final ArticleService articleService;
+    private final RepoService repoService;
     private final MessageService messageService;
     private final LikeService likeService;
     private final CommentService commentService;
@@ -50,12 +39,14 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
     public NotificationServiceImpl(UserService userService,
                                    @Lazy MomentService momentService,
                                    @Lazy ArticleService articleService,
+                                   @Lazy RepoService repoService,
                                    @Lazy MessageService messageService,
                                    @Lazy LikeService likeService,
                                    @Lazy CommentService commentService) {
         this.userService = userService;
         this.momentService = momentService;
         this.articleService = articleService;
+        this.repoService = repoService;
         this.messageService = messageService;
         this.likeService = likeService;
         this.commentService = commentService;
@@ -128,6 +119,11 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                 snippet = n.getMessage();
             } else if (n.getRelatedType() == NotificationType.REGISTER) {
                 snippet = "Email: " + sender.getEmail();
+            } else if (n.getRelatedType() == NotificationType.ACCESS_REQUEST
+                    || n.getRelatedType() == NotificationType.ACCESS_REJECTED
+                    || n.getRelatedType() == NotificationType.ACCESS_APPROVED) {
+                Repo repo = repoService.getById(n.getRelatedId());
+                snippet = "Repo: " + repo.getName();
             }
             vos.add(NotificationConverter.INSTANCE.toVO(n, sender, targetType, targetId, snippet));
         }

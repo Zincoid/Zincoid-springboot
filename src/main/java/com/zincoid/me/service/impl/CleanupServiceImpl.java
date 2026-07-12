@@ -154,6 +154,8 @@ public class CleanupServiceImpl {
                         case MOMENT_MENTION -> !moments.contains(n.getRelatedId());
                         case CHAT_MENTION -> messageService.getById(n.getRelatedId()) == null;
                         case LIKE -> likeService.getById(n.getRelatedId()) == null;
+                        case ACCESS_REQUEST, ACCESS_APPROVED, ACCESS_REJECTED ->
+                                repoService.getById(n.getRelatedId()) == null;
                         default -> false;
                     };
                 })

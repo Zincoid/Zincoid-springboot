@@ -9,7 +9,8 @@ import lombok.Getter;
 public enum Visibility {
 
     PUBLIC(0),
-    PRIVATE(1);
+    PRIVATE(1),
+    RESTRICTED(2);
 
     @EnumValue
     private final Integer value;

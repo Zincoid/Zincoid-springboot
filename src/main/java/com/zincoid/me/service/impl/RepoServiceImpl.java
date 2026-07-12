@@ -10,6 +10,7 @@ import com.zincoid.me.model.dto.RepoUpdateRequest;
 import com.zincoid.me.model.enums.*;
 import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.po.Repo;
+import com.zincoid.me.model.po.RepoAccess;
 import com.zincoid.me.model.po.RepoItem;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.vo.PageVO;
@@ -18,6 +19,8 @@ import com.zincoid.me.model.vo.RepoDetailVO;
 import com.zincoid.me.model.vo.RepoItemVO;
 import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.GitHubService;
+import com.zincoid.me.service.RepoAccessService;
+import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.RepoItemService;
 import com.zincoid.me.service.RepoService;
 import com.zincoid.me.service.UserService;
@@ -38,6 +41,8 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     private final FileService fileService;
     private final UserService userService;
     private final RepoItemService repoItemService;
+    private final RepoAccessService repoAccessService;
+    private final NotificationService notificationService;
     private final GitHubService gitHubService;
 
     @Override
@@ -83,7 +88,11 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
             if (oldCover != null && !oldCover.equals(newCover))
                 fileService.delete(oldCover);
         }
-        if (request.getVisibility() != null) repo.setVisibility(request.getVisibility());
+        if (request.getVisibility() != null) {
+            if (repo.getVisibility() == Visibility.RESTRICTED && request.getVisibility() != Visibility.RESTRICTED)
+                repoAccessService.lambdaUpdate().eq(RepoAccess::getRepoId, repoId).remove();
+            repo.setVisibility(request.getVisibility());
+        }
         updateById(repo);
         if (repo.getCoverImage() != null && !repo.getCoverImage().isBlank())
             fileService.link(List.of(repo.getCoverImage()), RelatedType.REPO, repo.getId());
@@ -100,6 +109,9 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         if (!isAdmin && !repo.getUserId().equals(userId))
             throw new BusinessException(403, "No permission to delete this repo");
         repoItemService.deleteByRepoId(repoId);
+        notificationService.deleteAll(NotificationType.ACCESS_REQUEST, repoId);
+        notificationService.deleteAll(NotificationType.ACCESS_APPROVED, repoId);
+        notificationService.deleteAll(NotificationType.ACCESS_REJECTED, repoId);
         removeById(repoId);
         log.info("Repo deleted: user={}, admin={}, id={}", userId, isAdmin, repoId);
     }
@@ -146,7 +158,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     public PageVO<RepoCardVO> list(RepoType type, String keyword, int page, int size) {
         Page<Repo> repoPage = lambdaQuery()
                 .eq(Repo::getStatus, Status.ACTIVE)
-                .eq(Repo::getVisibility, Visibility.PUBLIC)
+                .ne(Repo::getVisibility, Visibility.PRIVATE)
                 .eq(type != null, Repo::getType, type)
                 .like(keyword != null && !keyword.isBlank(), Repo::getName, keyword)
                 .orderByDesc(Repo::getCreatedAt)
@@ -162,7 +174,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 .eq(Repo::getStatus, Status.ACTIVE)
                 .eq(Repo::getUserId, userId)
                 .eq(type != null, Repo::getType, type)
-                .eq(!isOwner, Repo::getVisibility, Visibility.PUBLIC)
+                .ne(!isOwner, Repo::getVisibility, Visibility.PRIVATE)
                 .orderByDesc(Repo::getCreatedAt);
         Page<Repo> repoPage = wrapper.page(Page.of(page, size));
         return PageVO.of(repoPage, this::buildCardVO);
@@ -177,7 +189,15 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         if (repo.getVisibility() == Visibility.PRIVATE
                 && (viewerId == null || !viewerId.equals(repo.getUserId())))
             throw new BusinessException(404, "Repo is private");
-        return buildDetailVO(repo);
+        boolean accessDenied = repo.getVisibility() == Visibility.RESTRICTED
+                && (viewerId == null || !viewerId.equals(repo.getUserId()))
+                && !repoAccessService.authorize(viewerId, repoId);
+        RepoDetailVO vo = buildDetailVO(repo);
+        if (accessDenied) {
+            vo.setRestricted(true);
+            vo.setItems(List.of());
+        }
+        return vo;
     }
 
     // ──────── Private tool ────────────────────────────────

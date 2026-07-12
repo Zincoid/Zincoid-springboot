@@ -25,6 +25,7 @@ public class RepoDetailVO {
     private String coverImage;
     private Boolean isDefaultCover;
     private List<RepoItemVO> items;
+    private GitHubRepoVO github;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

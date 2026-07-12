@@ -119,6 +119,13 @@
             <artifactId>flexmark-all</artifactId>
             <version>0.64.8</version>
         </dependency>
+
+        <!-- GitHub -->
+        <dependency>
+            <groupId>org.kohsuke</groupId>
+            <artifactId>github-api</artifactId>
+            <version>1.327</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>

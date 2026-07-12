@@ -17,6 +17,7 @@ import com.zincoid.me.model.vo.RepoCardVO;
 import com.zincoid.me.model.vo.RepoDetailVO;
 import com.zincoid.me.model.vo.RepoItemVO;
 import com.zincoid.me.service.FileService;
+import com.zincoid.me.service.GitHubService;
 import com.zincoid.me.service.RepoItemService;
 import com.zincoid.me.service.RepoService;
 import com.zincoid.me.service.UserService;
@@ -37,6 +38,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     private final FileService fileService;
     private final UserService userService;
     private final RepoItemService repoItemService;
+    private final GitHubService gitHubService;
 
     @Override
     @Transactional
@@ -228,6 +230,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 .coverImage(coverOrDefault(repo))
                 .isDefaultCover(isDefaultCover(repo))
                 .items(items)
+                .github(repo.getType() == RepoType.CODE ? gitHubService.fetch(repo.getUrl()) : null)
                 .createdAt(repo.getCreatedAt())
                 .updatedAt(repo.getUpdatedAt())
                 .build();

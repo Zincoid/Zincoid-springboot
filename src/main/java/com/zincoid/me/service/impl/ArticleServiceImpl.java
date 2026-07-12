@@ -25,7 +25,6 @@ import com.zincoid.me.utils.MdTool;
 import com.zincoid.me.utils.AuthCtx;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

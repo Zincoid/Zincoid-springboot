@@ -1,5 +1,6 @@
 package com.zincoid.me.service.impl;
 
+import com.zincoid.me.model.vo.GitHubCommitVO;
 import com.zincoid.me.model.vo.GitHubRepoVO;
 import com.zincoid.me.service.GitHubService;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,7 +22,7 @@ public class GitHubServiceImpl implements GitHubService {
     private static final Pattern GITHUB_URL = Pattern.compile("github\\.com/([^/]+)/([^/]+)");
 
     @Value("${github.token:}")
-    private String githubToken;
+    private String token;
 
     @Override
     public GitHubRepoVO fetch(String url) {
@@ -31,8 +33,8 @@ public class GitHubServiceImpl implements GitHubService {
         String repo = m.group(2).replaceAll("\\.git$", "");
         try {
             GitHubBuilder builder = new GitHubBuilder();
-            if (githubToken != null && !githubToken.isBlank())
-                builder.withOAuthToken(githubToken);
+            if (token != null && !token.isBlank())
+                builder.withOAuthToken(token);
             GitHub github = builder.build();
             GHRepository ghRepo = github.getRepository(owner + "/" + repo);
             return GitHubRepoVO.builder()
@@ -40,6 +42,19 @@ public class GitHubServiceImpl implements GitHubService {
                     .forks(ghRepo.getForksCount())
                     .language(ghRepo.getLanguage())
                     .description(ghRepo.getDescription())
+                    .commits(ghRepo.listCommits().toList().stream().limit(10).map(c -> {
+                        try {
+                            return GitHubCommitVO.builder()
+                                    .sha(c.getSHA1().substring(0, 7))
+                                    .message(c.getCommitShortInfo().getMessage())
+                                    .author(c.getCommitShortInfo().getAuthor().getName())
+                                    .authorAvatar(c.getAuthor() != null ? c.getAuthor().getAvatarUrl() : null)
+                                    .date(c.getCommitShortInfo().getAuthor().getDate() != null
+                                            ? c.getCommitShortInfo().getAuthor().getDate().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
+                                            : null)
+                                    .build();
+                        } catch (IOException ex) { return null; }
+                    }).filter(Objects::nonNull).toList())
                     .build();
         } catch (IOException e) {
             log.warn("Failed to fetch GitHub repo: {}/{}", owner, repo);

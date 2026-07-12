@@ -4,6 +4,7 @@ import com.zincoid.me.model.vo.GitHubCommitVO;
 import com.zincoid.me.model.vo.GitHubRepoVO;
 import com.zincoid.me.service.GitHubService;
 import lombok.extern.slf4j.Slf4j;
+import org.kohsuke.github.GHCommit;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GitHubBuilder;
@@ -11,7 +12,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,6 +21,7 @@ import java.util.regex.Pattern;
 @Service
 public class GitHubServiceImpl implements GitHubService {
 
+    private static final int MAX_COMMITS = 10;
     private static final Pattern GITHUB_URL = Pattern.compile("github\\.com/([^/]+)/([^/]+)");
 
     @Value("${github.token:}")
@@ -42,23 +45,35 @@ public class GitHubServiceImpl implements GitHubService {
                     .forks(ghRepo.getForksCount())
                     .language(ghRepo.getLanguage())
                     .description(ghRepo.getDescription())
-                    .commits(ghRepo.listCommits().toList().stream().limit(10).map(c -> {
-                        try {
-                            return GitHubCommitVO.builder()
-                                    .sha(c.getSHA1().substring(0, 7))
-                                    .message(c.getCommitShortInfo().getMessage())
-                                    .author(c.getCommitShortInfo().getAuthor().getName())
-                                    .authorAvatar(c.getAuthor() != null ? c.getAuthor().getAvatarUrl() : null)
-                                    .date(c.getCommitShortInfo().getAuthor().getDate() != null
-                                            ? c.getCommitShortInfo().getAuthor().getDate().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
-                                            : null)
-                                    .build();
-                        } catch (IOException ex) { return null; }
-                    }).filter(Objects::nonNull).toList())
+                    .commits(fetchCommits(ghRepo))
                     .build();
         } catch (IOException e) {
             log.warn("Failed to fetch GitHub repo: {}/{}", owner, repo);
             return null;
         }
+    }
+
+    // ──────── Private tool ────────────────────────────────
+
+    private List<GitHubCommitVO> fetchCommits(GHRepository ghRepo) {
+        List<GitHubCommitVO> commits = new ArrayList<>();
+        try {
+            for (GHCommit c : ghRepo.listCommits()) {
+                if (commits.size() >= MAX_COMMITS) break;
+                commits.add(GitHubCommitVO.builder()
+                        .sha(c.getSHA1().substring(0, 7))
+                        .message(c.getCommitShortInfo().getMessage())
+                        .author(c.getCommitShortInfo().getAuthor().getName())
+                        .authorAvatar(c.getAuthor() != null ? c.getAuthor().getAvatarUrl() : null)
+                        .date(c.getCommitShortInfo().getAuthor().getDate() != null
+                                ? c.getCommitShortInfo().getAuthor().getDate()
+                                        .atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
+                                : null)
+                        .build());
+            }
+        } catch (IOException e) {
+            log.warn("Failed to fetch commits", e);
+        }
+        return commits;
     }
 }

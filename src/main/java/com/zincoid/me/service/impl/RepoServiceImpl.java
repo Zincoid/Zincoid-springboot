@@ -169,13 +169,13 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     @Override
     public PageVO<RepoCardVO> list(Long userId, RepoType type, int page, int size) {
         Long viewerId = AuthCtx.getUserId();
-        boolean isAdmin = viewerId != null && AuthCtx.getRole() == Role.ADMIN;
         boolean isOwner = viewerId != null && viewerId.equals(userId);
+        boolean isAdmin = viewerId != null && AuthCtx.getRole() == Role.ADMIN;
         var wrapper = lambdaQuery()
                 .eq(Repo::getStatus, Status.ACTIVE)
                 .eq(Repo::getUserId, userId)
                 .eq(type != null, Repo::getType, type)
-                .ne(!isAdmin && !isOwner, Repo::getVisibility, Visibility.PRIVATE)
+                .ne(!isOwner && !isAdmin, Repo::getVisibility, Visibility.PRIVATE)
                 .orderByDesc(Repo::getCreatedAt);
         Page<Repo> repoPage = wrapper.page(Page.of(page, size));
         return PageVO.of(repoPage, this::buildCardVO);

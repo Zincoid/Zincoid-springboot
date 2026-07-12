@@ -12,6 +12,7 @@ import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.Status;
+import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.enums.Visibility;
 import com.zincoid.me.model.vo.ArticleCardVO;
 import com.zincoid.me.model.vo.ArticleDetailVO;
@@ -188,10 +189,11 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     public PageVO<ArticleCardVO> list(Long userId, int page, int size, boolean pinned) {
         Long viewerId = AuthCtx.getUserId();
         boolean isOwner = viewerId != null && viewerId.equals(userId);
+        boolean isAdmin = viewerId != null && AuthCtx.getRole() == Role.ADMIN;
         Page<Article> articlePage = lambdaQuery()
                 .eq(Article::getUserId, userId)
                 .eq(Article::getStatus, Status.ACTIVE)
-                .eq(!isOwner, Article::getVisibility, Visibility.PUBLIC)
+                .eq(!isOwner && !isAdmin, Article::getVisibility, Visibility.PUBLIC)
                 .orderByDesc(pinned, Article::getIsPinned)
                 .orderByDesc(Article::getCreatedAt)
                 .page(Page.of(page, size));
@@ -204,7 +206,9 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         if (article == null || article.getStatus() == Status.DISABLED)
             throw new BusinessException(404, "Article not found");
         Long viewerId = AuthCtx.getUserId();
+        boolean isAdmin = viewerId != null && AuthCtx.getRole() == Role.ADMIN;
         if (article.getVisibility() == Visibility.PRIVATE
+                && !isAdmin
                 && (viewerId == null || !viewerId.equals(article.getUserId())))
             throw new BusinessException(404, "Article is private");
         baseMapper.addViewCount(articleId);

@@ -13,6 +13,7 @@ import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.Status;
+import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.enums.Visibility;
 import com.zincoid.me.model.vo.LikerVO;
 import com.zincoid.me.model.vo.MomentDetailVO;
@@ -178,10 +179,11 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
     public PageVO<MomentCardVO> list(Long userId, int page, int size, boolean pinned) {
         Long viewerId = AuthCtx.getUserId();
         boolean isOwner = viewerId != null && viewerId.equals(userId);
+        boolean isAdmin = viewerId != null && AuthCtx.getRole() == Role.ADMIN;
         Page<Moment> momentPage = lambdaQuery()
                 .eq(Moment::getUserId, userId)
                 .eq(Moment::getStatus, Status.ACTIVE)
-                .eq(!isOwner, Moment::getVisibility, Visibility.PUBLIC)
+                .eq(!isOwner && !isAdmin, Moment::getVisibility, Visibility.PUBLIC)
                 .orderByDesc(pinned, Moment::getIsPinned)
                 .orderByDesc(Moment::getCreatedAt)
                 .page(Page.of(page, size));
@@ -194,7 +196,9 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
         if (moment == null || moment.getStatus() == Status.DISABLED)
             throw new BusinessException(404, "Moment not found");
         Long viewerId = AuthCtx.getUserId();
+        boolean isAdmin = viewerId != null && AuthCtx.getRole() == Role.ADMIN;
         if (moment.getVisibility() == Visibility.PRIVATE
+                && !isAdmin
                 && (viewerId == null || !viewerId.equals(moment.getUserId())))
             throw new BusinessException(404, "Moment is private");
         User user = userService.getById(moment.getUserId());

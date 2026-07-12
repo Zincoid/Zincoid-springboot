@@ -1,7 +1,9 @@
 package com.zincoid.me.service.impl;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.mapper.RepoAccessMapper;
 import com.zincoid.me.model.enums.Access;
 import com.zincoid.me.model.po.Repo;
@@ -90,37 +92,39 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
     }
 
     @Override
-    public List<RepoAccess> sentPending(Long userId) {
-        return lambdaQuery()
-                .eq(RepoAccess::getUserId, userId)
-                .eq(RepoAccess::getAccess, Access.PENDING).list();
+    public PageVO<RepoAccess> sentPending(Long userId, int page, int size) {
+        Page<RepoAccess> p = lambdaQuery().eq(RepoAccess::getUserId, userId)
+                .eq(RepoAccess::getAccess, Access.PENDING).orderByDesc(RepoAccess::getCreatedAt)
+                .page(Page.of(page, size));
+        return PageVO.of(p);
     }
 
     @Override
-    public List<RepoAccess> sentResolved(Long userId) {
-        return lambdaQuery()
-                .eq(RepoAccess::getUserId, userId)
-                .ne(RepoAccess::getAccess, Access.PENDING).list();
+    public PageVO<RepoAccess> sentResolved(Long userId, int page, int size) {
+        Page<RepoAccess> p = lambdaQuery().eq(RepoAccess::getUserId, userId)
+                .ne(RepoAccess::getAccess, Access.PENDING).orderByDesc(RepoAccess::getUpdatedAt)
+                .page(Page.of(page, size));
+        return PageVO.of(p);
     }
 
     @Override
-    public List<RepoAccess> receivedPending(Long ownerId) {
-        List<Long> repoIds = repoService.lambdaQuery()
-                .eq(Repo::getUserId, ownerId).select(Repo::getId).list()
+    public PageVO<RepoAccess> receivedPending(Long ownerId, int page, int size) {
+        List<Long> ids = repoService.lambdaQuery().eq(Repo::getUserId, ownerId).select(Repo::getId).list()
                 .stream().map(Repo::getId).toList();
-        return repoIds.isEmpty() ? List.of() : lambdaQuery()
-                .in(RepoAccess::getRepoId, repoIds)
-                .eq(RepoAccess::getAccess, Access.PENDING).list();
+        Page<RepoAccess> p = ids.isEmpty() ? Page.of(page, size) : lambdaQuery()
+                .in(RepoAccess::getRepoId, ids).eq(RepoAccess::getAccess, Access.PENDING)
+                .orderByDesc(RepoAccess::getCreatedAt).page(Page.of(page, size));
+        return PageVO.of(p);
     }
 
     @Override
-    public List<RepoAccess> receivedResolved(Long ownerId) {
-        List<Long> repoIds = repoService.lambdaQuery()
-                .eq(Repo::getUserId, ownerId).select(Repo::getId).list()
+    public PageVO<RepoAccess> receivedResolved(Long ownerId, int page, int size) {
+        List<Long> ids = repoService.lambdaQuery().eq(Repo::getUserId, ownerId).select(Repo::getId).list()
                 .stream().map(Repo::getId).toList();
-        return repoIds.isEmpty() ? List.of() : lambdaQuery()
-                .in(RepoAccess::getRepoId, repoIds)
-                .ne(RepoAccess::getAccess, Access.PENDING).list();
+        Page<RepoAccess> p = ids.isEmpty() ? Page.of(page, size) : lambdaQuery()
+                .in(RepoAccess::getRepoId, ids).ne(RepoAccess::getAccess, Access.PENDING)
+                .orderByDesc(RepoAccess::getUpdatedAt).page(Page.of(page, size));
+        return PageVO.of(p);
     }
 
     // ──────── Private tool ────────────────────────────────

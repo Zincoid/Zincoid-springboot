@@ -31,3 +31,7 @@ zincoid:
   logging:
     level: INFO                                     # 日志级别
     path: ./output.log                              # 日志路径
+
+  # ──────────────────────────── GitHub ─────────────────────────── #
+  github:                                           # GitHub 令牌
+    token:

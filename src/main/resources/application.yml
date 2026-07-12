@@ -51,3 +51,7 @@ jwt:
 # File
 upload:
   path: ${zincoid.upload.path}
+
+# GitHub
+github:
+  token: ${zincoid.github.token}

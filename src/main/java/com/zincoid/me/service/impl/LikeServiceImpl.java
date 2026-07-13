@@ -9,11 +9,13 @@ import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.Moment;
+import com.zincoid.me.model.po.Repo;
 import com.zincoid.me.model.vo.LikerVO;
 import com.zincoid.me.service.ArticleService;
 import com.zincoid.me.service.LikeService;
 import com.zincoid.me.service.MomentService;
 import com.zincoid.me.service.NotificationService;
+import com.zincoid.me.service.RepoService;
 import com.zincoid.me.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -30,15 +32,18 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
     private final UserService userService;
     private final MomentService momentService;
     private final ArticleService articleService;
+    private final RepoService repoService;
     private final NotificationService notificationService;
 
     public LikeServiceImpl(UserService userService,
                            @Lazy MomentService momentService,
                            @Lazy ArticleService articleService,
+                           @Lazy RepoService repoService,
                            NotificationService notificationService) {
         this.userService = userService;
         this.momentService = momentService;
         this.articleService = articleService;
+        this.repoService = repoService;
         this.notificationService = notificationService;
     }
 
@@ -76,10 +81,13 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
         if (targetType == RelatedType.MOMENT) {
             Moment m = momentService.lambdaQuery().select(Moment::getUserId).eq(Moment::getId, targetId).one();
             if (m != null) authorId = m.getUserId();
-        } else {
+        } else if (targetType == RelatedType.ARTICLE) {
             Article a = articleService.lambdaQuery().select(Article::getUserId).eq(Article::getId, targetId).one();
             if (a != null) authorId = a.getUserId();
-        }
+        } else if (targetType == RelatedType.REPO) {
+            Repo r = repoService.lambdaQuery().select(Repo::getUserId).eq(Repo::getId, targetId).one();
+            if (r != null) authorId = r.getUserId();
+        } else throw new IllegalArgumentException("Invalid target type");
         if (authorId != null && !authorId.equals(userId))
             notificationService.notify(userId, authorId, NotificationType.LIKE, like.getId());
         log.info("Like added: user={}, target={}:{}", userId, targetType, targetId);

@@ -204,6 +204,7 @@ CREATE TABLE IF NOT EXISTS `repo` (
     `cover_image`   VARCHAR(500)    DEFAULT NULL             COMMENT 'Cover image path',
     `status`        TINYINT         NOT NULL DEFAULT 1        COMMENT 'Status: 0=DISABLED, 1=ACTIVE',
     `visibility`    TINYINT         NOT NULL DEFAULT 0       COMMENT 'Visibility: 0=PUBLIC, 1=PRIVATE',
+    `view_count`    BIGINT          NOT NULL DEFAULT 0       COMMENT 'View count',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
     `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Update time',
     PRIMARY KEY (`id`),

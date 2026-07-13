@@ -32,6 +32,7 @@ public class Repo {
     private String coverImage;
     private Status status;
     private Visibility visibility;
+    private Long viewCount;
     private LocalDateTime createdAt;
     @TableField(update = "NOW()")
     private LocalDateTime updatedAt;

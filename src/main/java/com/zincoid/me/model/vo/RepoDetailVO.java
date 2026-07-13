@@ -24,6 +24,10 @@ public class RepoDetailVO {
     private List<String> tags;
     private String coverImage;
     private Boolean isDefaultCover;
+    private Long viewCount;
+    private Integer likeCount;
+    private Boolean isLiked;
+    private List<LikerVO> recentLikers;
     private Boolean restricted;
     private List<RepoItemVO> items;
     private GitHubRepoVO github;

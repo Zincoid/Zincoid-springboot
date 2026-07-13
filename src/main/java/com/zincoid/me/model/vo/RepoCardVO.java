@@ -23,5 +23,8 @@ public class RepoCardVO {
     private String url;
     private List<String> tags;
     private String coverImage;
+    private Long viewCount;
+    private Integer likeCount;
+    private Boolean isLiked;
     private LocalDateTime createdAt;
 }

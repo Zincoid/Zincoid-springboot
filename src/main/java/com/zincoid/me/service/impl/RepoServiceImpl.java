@@ -17,8 +17,10 @@ import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.RepoCardVO;
 import com.zincoid.me.model.vo.RepoDetailVO;
 import com.zincoid.me.model.vo.RepoItemVO;
+import com.zincoid.me.model.vo.LikerVO;
 import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.GitHubService;
+import com.zincoid.me.service.LikeService;
 import com.zincoid.me.service.RepoAccessService;
 import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.RepoItemService;
@@ -42,6 +44,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     private final UserService userService;
     private final RepoItemService repoItemService;
     private final RepoAccessService repoAccessService;
+    private final LikeService likeService;
     private final NotificationService notificationService;
     private final GitHubService gitHubService;
 
@@ -109,6 +112,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         if (!isAdmin && !repo.getUserId().equals(userId))
             throw new BusinessException(403, "No permission to delete this repo");
         repoItemService.deleteByRepoId(repoId);
+        likeService.delete(RelatedType.REPO, repoId);
         notificationService.deleteAll(NotificationType.ACCESS_REQUEST, repoId);
         notificationService.deleteAll(NotificationType.ACCESS_APPROVED, repoId);
         notificationService.deleteAll(NotificationType.ACCESS_REJECTED, repoId);
@@ -196,6 +200,10 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 && !isAdmin
                 && (viewerId == null || !viewerId.equals(repo.getUserId()))
                 && !repoAccessService.authorize(viewerId, repoId);
+        if (!isDenied) {
+            baseMapper.addViewCount(repoId);
+            repo.setViewCount(repo.getViewCount() != null ? repo.getViewCount() + 1 : 1L);
+        }
         RepoDetailVO vo = buildDetailVO(repo);
         if (isDenied) {
             vo.setRestricted(true);
@@ -219,6 +227,8 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
 
     private RepoCardVO buildCardVO(Repo repo) {
         User user = userService.getById(repo.getUserId());
+        long likeCount = likeService.count(RelatedType.REPO, repo.getId());
+        boolean isLiked = likeService.liked(AuthCtx.getUserId(), RelatedType.REPO, repo.getId());
         return RepoCardVO.builder()
                 .id(repo.getId())
                 .userId(repo.getUserId())
@@ -231,12 +241,18 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 .url(repo.getUrl())
                 .tags(JsonUtil.parseImages(repo.getTags()))
                 .coverImage(coverOrDefault(repo))
+                .viewCount(repo.getViewCount() != null ? repo.getViewCount() : 0L)
+                .likeCount((int) likeCount)
+                .isLiked(isLiked)
                 .createdAt(repo.getCreatedAt())
                 .build();
     }
 
     private RepoDetailVO buildDetailVO(Repo repo) {
         User user = userService.getById(repo.getUserId());
+        long likeCount = likeService.count(RelatedType.REPO, repo.getId());
+        boolean isLiked = likeService.liked(AuthCtx.getUserId(), RelatedType.REPO, repo.getId());
+        List<LikerVO> recentLikers = likeService.getLikers(RelatedType.REPO, repo.getId(), 5);
         List<RepoItemVO> items = List.of();
         if (repo.getType() != RepoType.CODE) {
             items = repoItemService.list(repo.getId())
@@ -255,6 +271,10 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 .tags(JsonUtil.parseImages(repo.getTags()))
                 .coverImage(coverOrDefault(repo))
                 .isDefaultCover(isDefaultCover(repo))
+                .viewCount(repo.getViewCount() != null ? repo.getViewCount() : 0L)
+                .likeCount((int) likeCount)
+                .isLiked(isLiked)
+                .recentLikers(recentLikers)
                 .items(items)
                 .github(repo.getType() == RepoType.CODE ? gitHubService.fetch(repo.getUrl()) : null)
                 .createdAt(repo.getCreatedAt())

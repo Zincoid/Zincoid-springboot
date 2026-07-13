@@ -109,9 +109,12 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                 if (targetType == RelatedType.MOMENT) {
                     Moment moment = momentService.lambdaQuery().select(Moment::getContent).eq(Moment::getId, targetId).one();
                     if (moment != null) snippet = moment.getContent();
-                } else {
+                } else if (targetType == RelatedType.ARTICLE) {
                     Article article = articleService.lambdaQuery().select(Article::getTitle).eq(Article::getId, targetId).one();
                     if (article != null) snippet = article.getTitle();
+                } else if (targetType == RelatedType.REPO) {
+                    Repo repo = repoService.lambdaQuery().select(Repo::getName).eq(Repo::getId, targetId).one();
+                    if (repo != null) snippet = repo.getName();
                 }
                 if (snippet != null && snippet.length() > 80)
                     snippet = snippet.substring(0, 80) + "...";

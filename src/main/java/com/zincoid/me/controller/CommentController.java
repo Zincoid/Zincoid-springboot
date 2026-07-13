@@ -37,6 +37,13 @@ public class CommentController {
                 RelatedType.ARTICLE, articleId, request.getContent(), request.getParentId()));
     }
 
+    @PostMapping("/repo/{repoId}")
+    public ApiResponse<CommentVO> addRepoComment(@PathVariable Long repoId,
+                                                 @Valid @RequestBody CommentCreateRequest request) {
+        return ApiResponse.success(commentService.add(AuthCtx.getUserId(),
+                RelatedType.REPO, repoId, request.getContent(), request.getParentId()));
+    }
+
     @DeleteMapping("/{commentId}")
     public ApiResponse<Void> deleteComment(@PathVariable Long commentId) {
         commentService.delete(AuthCtx.getUserId(), commentId, AuthCtx.getRole() == Role.ADMIN);
@@ -57,6 +64,13 @@ public class CommentController {
                                                            @RequestParam(defaultValue = "1") int page,
                                                            @RequestParam(defaultValue = "10") int size) {
         return ApiResponse.success(commentService.list(RelatedType.ARTICLE, articleId, page, size));
+    }
+
+    @GetMapping("/public/repo/{repoId}")
+    public ApiResponse<PageVO<CommentVO>> repoComments(@PathVariable Long repoId,
+                                                        @RequestParam(defaultValue = "1") int page,
+                                                        @RequestParam(defaultValue = "10") int size) {
+        return ApiResponse.success(commentService.list(RelatedType.REPO, repoId, page, size));
     }
 
     @GetMapping("/public/replies/{parentId}")

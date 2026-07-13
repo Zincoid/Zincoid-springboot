@@ -21,6 +21,7 @@ import com.zincoid.me.model.vo.LikerVO;
 import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.GitHubService;
 import com.zincoid.me.service.LikeService;
+import com.zincoid.me.service.CommentService;
 import com.zincoid.me.service.RepoAccessService;
 import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.RepoItemService;
@@ -45,6 +46,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     private final RepoItemService repoItemService;
     private final RepoAccessService repoAccessService;
     private final LikeService likeService;
+    private final CommentService commentService;
     private final NotificationService notificationService;
     private final GitHubService gitHubService;
 
@@ -113,6 +115,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
             throw new BusinessException(403, "No permission to delete this repo");
         repoItemService.deleteByRepoId(repoId);
         likeService.delete(RelatedType.REPO, repoId);
+        commentService.delete(RelatedType.REPO, repoId);
         notificationService.deleteAll(NotificationType.ACCESS_REQUEST, repoId);
         notificationService.deleteAll(NotificationType.ACCESS_APPROVED, repoId);
         notificationService.deleteAll(NotificationType.ACCESS_REJECTED, repoId);

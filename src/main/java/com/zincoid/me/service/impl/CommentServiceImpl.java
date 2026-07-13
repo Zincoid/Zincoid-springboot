@@ -8,6 +8,7 @@ import com.zincoid.me.mapper.CommentMapper;
 import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.Comment;
 import com.zincoid.me.model.po.Moment;
+import com.zincoid.me.model.po.Repo;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.RelatedType;
@@ -17,9 +18,9 @@ import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.service.ArticleService;
 import com.zincoid.me.service.CommentService;
 import com.zincoid.me.service.MomentService;
+import com.zincoid.me.service.RepoService;
 import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.UserService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -35,15 +36,18 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     private final UserService userService;
     private final MomentService momentService;
     private final ArticleService articleService;
+    private final RepoService repoService;
     private final NotificationService notificationService;
 
     public CommentServiceImpl(UserService userService,
                               @Lazy MomentService momentService,
                               @Lazy ArticleService articleService,
+                              @Lazy RepoService repoService,
                               NotificationService notificationService) {
         this.userService = userService;
         this.momentService = momentService;
         this.articleService = articleService;
+        this.repoService = repoService;
         this.notificationService = notificationService;
     }
 
@@ -115,10 +119,13 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             if (targetType == RelatedType.MOMENT) {
                 Moment m = momentService.getById(targetId);
                 if (m != null) authorId = m.getUserId();
-            } else {
+            } else if (targetType == RelatedType.ARTICLE) {
                 Article a = articleService.getById(targetId);
                 if (a != null) authorId = a.getUserId();
-            }
+            } else if (targetType == RelatedType.REPO) {
+                Repo r = repoService.getById(targetId);
+                if (r != null) authorId = r.getUserId();
+            } else throw new IllegalArgumentException("Invalid target type");
             if (authorId != null && !authorId.equals(userId))
                 notificationService.notify(userId, authorId,
                         NotificationType.COMMENT, comment.getId());

@@ -25,6 +25,7 @@ public class RepoCardVO {
     private String coverImage;
     private Long viewCount;
     private Integer likeCount;
+    private Integer commentCount;
     private Boolean isLiked;
     private LocalDateTime createdAt;
 }

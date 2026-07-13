@@ -231,6 +231,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     private RepoCardVO buildCardVO(Repo repo) {
         User user = userService.getById(repo.getUserId());
         long likeCount = likeService.count(RelatedType.REPO, repo.getId());
+        long commentCount = commentService.count(RelatedType.REPO, repo.getId());
         boolean isLiked = likeService.liked(AuthCtx.getUserId(), RelatedType.REPO, repo.getId());
         return RepoCardVO.builder()
                 .id(repo.getId())
@@ -246,6 +247,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 .coverImage(coverOrDefault(repo))
                 .viewCount(repo.getViewCount() != null ? repo.getViewCount() : 0L)
                 .likeCount((int) likeCount)
+                .commentCount((int) commentCount)
                 .isLiked(isLiked)
                 .createdAt(repo.getCreatedAt())
                 .build();

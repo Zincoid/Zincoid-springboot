@@ -233,6 +233,12 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         long likeCount = likeService.count(RelatedType.REPO, repo.getId());
         long commentCount = commentService.count(RelatedType.REPO, repo.getId());
         boolean isLiked = likeService.liked(AuthCtx.getUserId(), RelatedType.REPO, repo.getId());
+        Long viewerId = AuthCtx.getUserId();
+        boolean isAdmin = viewerId != null && AuthCtx.getRole() == Role.ADMIN;
+        boolean isRestricted = repo.getVisibility() == Visibility.RESTRICTED
+                && !isAdmin
+                && (viewerId == null || !viewerId.equals(repo.getUserId()))
+                && !repoAccessService.authorize(viewerId, repo.getId());
         return RepoCardVO.builder()
                 .id(repo.getId())
                 .userId(repo.getUserId())
@@ -249,6 +255,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 .likeCount((int) likeCount)
                 .commentCount((int) commentCount)
                 .isLiked(isLiked)
+                .restricted(isRestricted)
                 .createdAt(repo.getCreatedAt())
                 .build();
     }

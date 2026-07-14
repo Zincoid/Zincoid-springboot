@@ -27,5 +27,6 @@ public class RepoCardVO {
     private Integer likeCount;
     private Integer commentCount;
     private Boolean isLiked;
+    private Boolean restricted;
     private LocalDateTime createdAt;
 }

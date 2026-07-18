@@ -119,6 +119,7 @@ public class EmailServiceImpl implements EmailService {
         List<User> users = userService.lambdaQuery()
                 .eq(User::getStatus, Status.ACTIVE)
                 .list();
+        int count = 0;
         for (User user : users) {
             if (user.getEmail() == null || user.getEmail().isBlank()) continue;
             if (!force) {
@@ -126,8 +127,9 @@ public class EmailServiceImpl implements EmailService {
                 if (config != null && !config.getReceiveEmail()) continue;
             }
             sendEmail(user.getEmail(), subject, content);
+            count++;
         }
-        log.info("Email broadcast sent: subject={}, force={}, recipients={}", subject, force, users.size());
+        log.info("Email broadcast sent: subject={}, force={}, recipients={}", subject, force, count);
     }
 
     // ──────── Private tool ────────────────────────────────

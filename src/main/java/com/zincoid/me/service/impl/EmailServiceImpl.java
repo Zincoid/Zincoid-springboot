@@ -3,7 +3,10 @@ package com.zincoid.me.service.impl;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.enums.CodeType;
 import com.zincoid.me.model.po.User;
+import com.zincoid.me.model.po.UserConfig;
+import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.service.EmailService;
+import com.zincoid.me.service.UserConfigService;
 import com.zincoid.me.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +16,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,6 +32,7 @@ public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
     private final UserService userService;
+    private final UserConfigService userConfigService;
 
     @Value("${spring.mail.username}")
     private String from;
@@ -107,6 +112,22 @@ public class EmailServiceImpl implements EmailService {
                 log.error("Failed to send email to {}", to, e);
             }
         });
+    }
+
+    @Override
+    public void sendBroadcast(String subject, String content, boolean force) {
+        List<User> users = userService.lambdaQuery()
+                .eq(User::getStatus, Status.ACTIVE)
+                .list();
+        for (User user : users) {
+            if (user.getEmail() == null || user.getEmail().isBlank()) continue;
+            if (!force) {
+                UserConfig config = userConfigService.lambdaQuery().eq(UserConfig::getUserId, user.getId()).one();
+                if (config != null && !config.getReceiveEmail()) continue;
+            }
+            sendEmail(user.getEmail(), subject, content);
+        }
+        log.info("Email broadcast sent: subject={}, force={}, recipients={}", subject, force, users.size());
     }
 
     // ──────── Private tool ────────────────────────────────

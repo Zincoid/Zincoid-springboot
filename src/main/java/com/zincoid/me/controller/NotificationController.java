@@ -1,10 +1,13 @@
 package com.zincoid.me.controller;
 
 import com.zincoid.me.model.ApiResponse;
+import com.zincoid.me.model.dto.EmailBroadcastRequest;
 import com.zincoid.me.model.vo.NotificationVO;
 import com.zincoid.me.model.vo.PageVO;
+import com.zincoid.me.service.EmailService;
 import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.utils.AuthCtx;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +19,7 @@ import java.util.Map;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final EmailService emailService;
 
     // ──── Private endpoints ────────────────
 
@@ -61,6 +65,14 @@ public class NotificationController {
         if (content == null || content.isBlank())
             return ApiResponse.error(400, "Content is required");
         notificationService.broadcast(AuthCtx.getUserId(), content.trim());
+        return ApiResponse.success();
+    }
+
+    @PostMapping("/broadcast/email")
+    public ApiResponse<Void> broadcast(@Valid @RequestBody EmailBroadcastRequest request) {
+        AuthCtx.requireAdmin();
+        emailService.sendBroadcast(request.getSubject().trim(), request.getContent().trim(),
+                Boolean.TRUE.equals(request.getForce()));
         return ApiResponse.success();
     }
 }

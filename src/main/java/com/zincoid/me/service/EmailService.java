@@ -17,4 +17,6 @@ public interface EmailService {
     void removeCode(String email, CodeType type);
 
     void sendEmail(String to, String subject, String text);
+
+    void sendBroadcast(String subject, String content, boolean force);
 }

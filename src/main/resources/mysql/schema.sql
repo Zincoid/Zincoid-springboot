@@ -158,7 +158,21 @@ CREATE TABLE IF NOT EXISTS `config` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Configuration table';
 
 -- =============================================
--- 8. Notification Table
+-- 8. User Configuration Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `user_config` (
+    `id`            BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
+    `user_id`       BIGINT      NOT NULL                 COMMENT 'User ID',
+    `receive_email` BOOLEAN     NOT NULL DEFAULT FALSE    COMMENT 'Whether to receive email notifications',
+    `created_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
+    `updated_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Update time',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_user_id` (`user_id`),
+    CONSTRAINT `fk_user_config_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User configuration table';
+
+-- =============================================
+-- 9. Notification Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `notification` (
     `id`            BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
@@ -177,7 +191,7 @@ CREATE TABLE IF NOT EXISTS `notification` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Notification table';
 
 -- =============================================
--- 9. Message Table
+-- 10. Message Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `message` (
     `id`            BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
@@ -191,7 +205,7 @@ CREATE TABLE IF NOT EXISTS `message` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Message table';
 
 -- =============================================
--- 10. Repo Table
+-- 11. Repo Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `repo` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
@@ -217,7 +231,7 @@ CREATE TABLE IF NOT EXISTS `repo` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Repo table';
 
 -- =============================================
--- 11. Repo Item Table
+-- 12. Repo Item Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `repo_item` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
@@ -235,7 +249,7 @@ CREATE TABLE IF NOT EXISTS `repo_item` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Repo item table';
 
 -- =============================================
--- 12. Repo Access Table
+-- 13. Repo Access Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `repo_access` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',

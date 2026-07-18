@@ -31,6 +31,7 @@ import com.zincoid.me.service.MessageService;
 import com.zincoid.me.service.MomentService;
 import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.RepoService;
+import com.zincoid.me.service.UserConfigService;
 import com.zincoid.me.service.UserService;
 
 import com.zincoid.me.utils.JsonUtil;
@@ -61,6 +62,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private final MessageService messageService;
     private final CommentService commentService;
     private final NotificationService notificationService;
+    private final UserConfigService userConfigService;
 
     private final JwtTool jwtTool;
 
@@ -72,6 +74,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                            @Lazy MessageService messageService,
                            @Lazy CommentService commentService,
                            @Lazy NotificationService notificationService,
+                           UserConfigService userConfigService,
                            JwtTool jwtTool) {
         this.emailService = emailService;
         this.fileService = fileService;
@@ -81,6 +84,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         this.messageService = messageService;
         this.commentService = commentService;
         this.notificationService = notificationService;
+        this.userConfigService = userConfigService;
         this.jwtTool = jwtTool;
     }
 
@@ -102,6 +106,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .role(Role.USER)  // 无法回填需手动设置
                 .build();
         save(user);
+        userConfigService.create(user.getId());
         log.info("User registered: id={}, username={}, email={}", user.getId(), user.getUsername(), user.getEmail());
         List<User> admins = lambdaQuery().eq(User::getRole, Role.ADMIN).list();
         for (User admin : admins)
@@ -258,7 +263,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         List<Comment> comments = commentService.lambdaQuery().eq(Comment::getUserId, userId).list();
         for (Comment c : comments) commentService.delete(null, c.getId(), true);
         if (user.getAvatar() != null) fileService.delete(user.getAvatar());
-        // Notifications and likes are deleted through cascade
+        // Notifications, likes and user config are deleted through cascade
         removeById(userId);
         log.info("User account deleted: id={}, username={}", userId, user.getUsername());
     }

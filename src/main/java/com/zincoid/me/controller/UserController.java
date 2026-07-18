@@ -8,6 +8,9 @@ import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.UserCardVO;
 import com.zincoid.me.model.vo.UserDetailVO;
+import com.zincoid.me.model.dto.UserConfigUpdateRequest;
+import com.zincoid.me.model.vo.UserConfigVO;
+import com.zincoid.me.service.UserConfigService;
 import com.zincoid.me.service.UserService;
 import com.zincoid.me.utils.AuthCtx;
 import jakarta.validation.Valid;
@@ -22,6 +25,7 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+    private final UserConfigService userConfigService;
 
     // ──── Private endpoints ────────────────
 
@@ -79,6 +83,16 @@ public class UserController {
             return ApiResponse.badRequest("Username and password are required");
         userService.changePasswordByForce(username, password);
         return ApiResponse.success();
+    }
+
+    @GetMapping("/config")
+    public ApiResponse<UserConfigVO> getUserConfig() {
+        return ApiResponse.success(userConfigService.get(AuthCtx.getUserId()));
+    }
+
+    @PutMapping("/config")
+    public ApiResponse<UserConfigVO> updateUserConfig(@Valid @RequestBody UserConfigUpdateRequest request) {
+        return ApiResponse.success(userConfigService.update(AuthCtx.getUserId(), request));
     }
 
     // ──── Public endpoints ────────────────

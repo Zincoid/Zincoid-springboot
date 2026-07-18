@@ -2,9 +2,11 @@ package com.zincoid.me.configuration;
 
 import com.zincoid.me.model.po.Config;
 import com.zincoid.me.model.po.User;
+import com.zincoid.me.model.po.UserConfig;
 import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.service.ConfigService;
+import com.zincoid.me.service.UserConfigService;
 import com.zincoid.me.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,12 +24,14 @@ public class DataInitializer implements CommandLineRunner {
 
     private final UserService userService;
     private final ConfigService configService;
+    private final UserConfigService userConfigService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
     public void run(String @NonNull ... args) {
         initAdminUser();
         initConfigs();
+        initUserConfigs();
     }
 
     private void initConfigs() {
@@ -69,5 +73,17 @@ public class DataInitializer implements CommandLineRunner {
                 .build();
         userService.save(admin);
         log.info("Default admin user created (username: admin, password: admin)");
+    }
+
+    private void initUserConfigs() {
+        int count = 0;
+        for (User user : userService.list()) {
+            if (userConfigService.lambdaQuery()
+                    .eq(UserConfig::getUserId, user.getId()).exists())
+                continue;
+            userConfigService.create(user.getId());
+            count++;
+        }
+        if (count > 0) log.info("Default user configs created for {} existing users", count);
     }
 }

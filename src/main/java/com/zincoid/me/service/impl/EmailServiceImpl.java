@@ -8,7 +8,6 @@ import com.zincoid.me.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -41,14 +40,14 @@ public class EmailServiceImpl implements EmailService {
             throw new BusinessException(400, "Email is required");
         if (userService.lambdaQuery().eq(User::getEmail, email).exists())
             throw new BusinessException("Email already registered");
-        doSend(email, CodeType.REGISTER);
+        sendCode(email, CodeType.REGISTER);
     }
 
     @Override
     public void sendResetCode(String email) {
         if (!userService.lambdaQuery().eq(User::getEmail, email).exists())
             throw new BusinessException(404, "Email not registered");
-        doSend(email, CodeType.RESET_PASSWORD);
+        sendCode(email, CodeType.RESET_PASSWORD);
     }
 
     @Override
@@ -57,7 +56,7 @@ public class EmailServiceImpl implements EmailService {
             throw new BusinessException(400, "Email is required");
         if (userService.lambdaQuery().eq(User::getEmail, email).exists())
             throw new BusinessException("Email already registered");
-        doSend(email, CodeType.CHANGE_EMAIL_NEW);
+        sendCode(email, CodeType.CHANGE_EMAIL_NEW);
     }
 
     @Override
@@ -67,11 +66,11 @@ public class EmailServiceImpl implements EmailService {
             throw new BusinessException(404, "Account not found");
         if (user.getEmail() == null || user.getEmail().isBlank())
             throw new BusinessException(400, "No email set");
-        doSend(user.getEmail(), CodeType.CHANGE_EMAIL_OLD);
+        sendCode(user.getEmail(), CodeType.CHANGE_EMAIL_OLD);
     }
 
     @Override
-    public boolean verify(String email, String code, CodeType type, boolean remove) {
+    public boolean verifyCode(String email, String code, CodeType type, boolean remove) {
         if (email == null || code == null) return false;
         CodeEntry entry = codes.get(email);
         if (entry == null || System.currentTimeMillis() > entry.expiresAt) {
@@ -87,13 +86,32 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void remove(String email, CodeType type) {
+    public void removeCode(String email, CodeType type) {
         CodeEntry entry = codes.get(email);
         if (entry != null && entry.type == type)
             codes.remove(email);
     }
 
-    private void doSend(String email, CodeType type) {
+    @Override
+    public void sendEmail(String to, String subject, String text) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                SimpleMailMessage msg = new SimpleMailMessage();
+                msg.setFrom(from);
+                msg.setTo(to);
+                msg.setSubject(subject);
+                msg.setText(text);
+                mailSender.send(msg);
+                log.info("Email sent to {}", to);
+            } catch (Exception e) {
+                log.error("Failed to send email to {}", to, e);
+            }
+        });
+    }
+
+    // ──────── Private tool ────────────────────────────────
+
+    private void sendCode(String email, CodeType type) {
         CodeEntry existing = codes.get(email);
         if (existing != null && existing.type == type && existing.expiresAt > System.currentTimeMillis())
             throw new BusinessException(429, "Verification code already requested, please wait");
@@ -110,23 +128,11 @@ public class EmailServiceImpl implements EmailService {
             case RESET_PASSWORD -> "reset your password";
             case CHANGE_EMAIL_OLD, CHANGE_EMAIL_NEW -> "change your email";
         };
-        CompletableFuture.runAsync(() -> {
-            try {
-                SimpleMailMessage msg = new SimpleMailMessage();
-                msg.setFrom(from);
-                msg.setTo(email);
-                msg.setSubject(subject);
-                msg.setText("""
-                        Your verification code is: %s
+        String text = """
+                Your verification code is: %s
 
-                        Use this code to %s.
-                        This code expires in 5 minutes.""".formatted(code, purpose));
-                mailSender.send(msg);
-                log.info("Verification code sent to {}", email);
-            } catch (Exception e) {
-                log.error("Failed to send verification code to {}", email, e);
-                codes.remove(email);
-            }
-        });
+                Use this code to %s.
+                This code expires in 5 minutes.""".formatted(code, purpose);
+        sendEmail(email, subject, text);
     }
 }

@@ -19,4 +19,6 @@ public interface EmailService {
     void sendEmail(String to, String subject, String text);
 
     void sendBroadcast(String subject, String content, boolean force);
+
+    void sendAccessApproved(Long userId, String repoName);
 }

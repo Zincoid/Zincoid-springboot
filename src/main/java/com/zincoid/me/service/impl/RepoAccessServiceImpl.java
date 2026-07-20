@@ -9,6 +9,7 @@ import com.zincoid.me.model.enums.Access;
 import com.zincoid.me.model.po.Repo;
 import com.zincoid.me.model.po.RepoAccess;
 import com.zincoid.me.model.enums.NotificationType;
+import com.zincoid.me.service.EmailService;
 import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.RepoAccessService;
 import com.zincoid.me.service.RepoService;
@@ -25,11 +26,14 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
 
     private final RepoService repoService;
     private final NotificationService notificationService;
+    private final EmailService emailService;
 
     public RepoAccessServiceImpl(@Lazy RepoService repoService,
-                                 NotificationService notificationService) {
+                                 NotificationService notificationService,
+                                 EmailService emailService) {
         this.repoService = repoService;
         this.notificationService = notificationService;
+        this.emailService = emailService;
     }
 
     @Override
@@ -54,10 +58,11 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
     @Transactional
     public void approve(Long ownerId, Long accessId) {
         RepoAccess access = getOrThrow(accessId);
-        verifyOwner(ownerId, access);
+        Repo repo = verifyOwner(ownerId, access);
         access.setAccess(Access.APPROVED);
         updateById(access);
         notificationService.notify(ownerId, access.getUserId(), NotificationType.ACCESS_APPROVED, access.getRepoId());
+        emailService.sendAccessApproved(access.getUserId(), repo.getName());
         log.info("Access approved: id={}, user={}, repo={}", accessId, access.getUserId(), access.getRepoId());
     }
 
@@ -135,9 +140,10 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
         return a;
     }
 
-    private void verifyOwner(Long ownerId, RepoAccess access) {
+    private Repo verifyOwner(Long ownerId, RepoAccess access) {
         Repo repo = repoService.getById(access.getRepoId());
         if (repo == null || !repo.getUserId().equals(ownerId))
             throw new BusinessException(403, "Only repo owner can manage access");
+        return repo;
     }
 }

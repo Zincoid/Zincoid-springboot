@@ -132,6 +132,17 @@ public class EmailServiceImpl implements EmailService {
         log.info("Email broadcast sent: subject={}, force={}, recipients={}", subject, force, count);
     }
 
+    @Override
+    public void sendAccessApproved(Long userId, String repoName) {
+        User user = userService.getById(userId);
+        if (user == null || user.getEmail() == null || user.getEmail().isBlank()) return;
+        UserConfig config = userConfigService.lambdaQuery().eq(UserConfig::getUserId, userId).one();
+        if (config != null && !config.getReceiveEmail()) return;
+        String subject = "Zincoid's - Access request approved";
+        String text = "Your access request to repo \"%s\" has been approved.".formatted(repoName);
+        sendEmail(user.getEmail(), subject, text);
+    }
+
     // ──────── Private tool ────────────────────────────────
 
     private void sendCode(String email, CodeType type) {

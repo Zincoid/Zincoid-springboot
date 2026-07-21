@@ -22,7 +22,9 @@ public class UserConfigServiceImpl extends ServiceImpl<UserConfigMapper, UserCon
             throw new BusinessException("User config already exists");
         UserConfig config = UserConfig.builder()
                 .userId(userId)
-                .receiveEmail(false)
+                .receiveEmail(true)
+                .receiveEmailSys(false)
+                .receiveEmailRepoAccess(true)
                 .build();
         save(config);
         return config;
@@ -41,8 +43,11 @@ public class UserConfigServiceImpl extends ServiceImpl<UserConfigMapper, UserCon
         UserConfig config = lambdaQuery().eq(UserConfig::getUserId, userId).one();
         if (config == null) config = create(userId);
         config.setReceiveEmail(request.getReceiveEmail());
+        config.setReceiveEmailSys(request.getReceiveEmailSys());
+        config.setReceiveEmailRepoAccess(request.getReceiveEmailRepoAccess());
         saveOrUpdate(config);
-        log.info("User config updated: user={}, receiveEmail={}", userId, config.getReceiveEmail());
+        log.info("User config updated: user={}, receiveEmail={}, receiveEmailSys={}, receiveEmailRepoAccess={}",
+                userId, config.getReceiveEmail(), config.getReceiveEmailSys(), config.getReceiveEmailRepoAccess());
         return UserConfigConverter.INSTANCE.toVO(config);
     }
 

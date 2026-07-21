@@ -43,6 +43,11 @@ logging:
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
 
+# Site
+site:
+  name: ${zincoid.site.name}
+  url: ${zincoid.site.url}
+
 # JWT
 jwt:
   secret: ${zincoid.jwt.secret}

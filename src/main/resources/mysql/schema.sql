@@ -163,7 +163,9 @@ CREATE TABLE IF NOT EXISTS `config` (
 CREATE TABLE IF NOT EXISTS `user_config` (
     `id`            BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
     `user_id`       BIGINT      NOT NULL                 COMMENT 'User ID',
-    `receive_email` BOOLEAN     NOT NULL DEFAULT FALSE    COMMENT 'Whether to receive email notifications',
+    `receive_email`             BOOLEAN     NOT NULL DEFAULT TRUE    COMMENT 'Email notification master switch',
+    `receive_email_sys`         BOOLEAN     NOT NULL DEFAULT FALSE   COMMENT 'Whether to receive system email notifications',
+    `receive_email_repo_access` BOOLEAN     NOT NULL DEFAULT TRUE    COMMENT 'Whether to receive repo access email notifications',
     `created_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
     `updated_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Update time',
     PRIMARY KEY (`id`),

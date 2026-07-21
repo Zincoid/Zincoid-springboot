@@ -8,4 +8,6 @@ import lombok.Data;
 public class UserConfigVO {
 
     private Boolean receiveEmail;
+    private Boolean receiveEmailSys;
+    private Boolean receiveEmailRepoAccess;
 }

@@ -3,8 +3,8 @@ package com.zincoid.me.service.impl;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.enums.CodeType;
 import com.zincoid.me.model.po.User;
-import com.zincoid.me.model.po.UserConfig;
 import com.zincoid.me.model.enums.Status;
+import com.zincoid.me.model.vo.UserConfigVO;
 import com.zincoid.me.service.EmailService;
 import com.zincoid.me.service.UserConfigService;
 import com.zincoid.me.service.UserService;
@@ -36,6 +36,10 @@ public class EmailServiceImpl implements EmailService {
 
     @Value("${spring.mail.username}")
     private String from;
+    @Value("${site.name}")
+    private String siteName;
+    @Value("${site.url}")
+    private String siteUrl;
 
     private record CodeEntry(String code, long expiresAt, CodeType type) {}
 
@@ -123,8 +127,8 @@ public class EmailServiceImpl implements EmailService {
         for (User user : users) {
             if (user.getEmail() == null || user.getEmail().isBlank()) continue;
             if (!force) {
-                UserConfig config = userConfigService.lambdaQuery().eq(UserConfig::getUserId, user.getId()).one();
-                if (config != null && !config.getReceiveEmail()) continue;
+                UserConfigVO config = userConfigService.get(user.getId());
+                if (!(config.getReceiveEmail() && config.getReceiveEmailSys())) continue;
             }
             sendEmail(user.getEmail(), subject, content);
             count++;
@@ -136,10 +140,13 @@ public class EmailServiceImpl implements EmailService {
     public void sendAccessApproved(Long userId, String repoName) {
         User user = userService.getById(userId);
         if (user == null || user.getEmail() == null || user.getEmail().isBlank()) return;
-        UserConfig config = userConfigService.lambdaQuery().eq(UserConfig::getUserId, userId).one();
-        if (config != null && !config.getReceiveEmail()) return;
+        UserConfigVO config = userConfigService.get(userId);
+        if (!(config.getReceiveEmail() && config.getReceiveEmailRepoAccess())) return;
         String subject = "Zincoid's - Access request approved";
-        String text = "Your access request to repo \"%s\" has been approved.".formatted(repoName);
+        String text = """
+                Your access request to repo "%s" has been approved.
+
+                --- %s (%s) ---""".formatted(repoName, siteName, siteUrl);
         sendEmail(user.getEmail(), subject, text);
     }
 

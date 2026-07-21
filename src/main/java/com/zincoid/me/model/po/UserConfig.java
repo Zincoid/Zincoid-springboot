@@ -22,6 +22,8 @@ public class UserConfig {
     private Long id;
     private Long userId;
     private Boolean receiveEmail;
+    private Boolean receiveEmailSys;
+    private Boolean receiveEmailRepoAccess;
     private LocalDateTime createdAt;
     @TableField(update = "NOW()")
     private LocalDateTime updatedAt;

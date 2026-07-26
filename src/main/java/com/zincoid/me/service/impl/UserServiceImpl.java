@@ -218,7 +218,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             String nickname = request.getNickname().trim();
             user.setNickname(nickname.isEmpty() ? user.getUsername() : nickname);
         }
-        if (request.getGender() != null) user.setGender(request.getGender());
+        user.setGender(request.getGender());
         if (request.getTitle() != null) user.setTitle(request.getTitle());
         if (request.getBio() != null) user.setBio(request.getBio());
         if (request.getSkills() != null) {

@@ -1,6 +1,8 @@
 package com.zincoid.me.model.po;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.zincoid.me.model.enums.Gender;
@@ -26,6 +28,7 @@ public class User {
     private String password;
     private String email;
     private String nickname;
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private Gender gender;
     private String title;
     private String bio;

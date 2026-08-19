@@ -16,8 +16,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/repos")
 @RequiredArgsConstructor
@@ -59,8 +57,9 @@ public class RepoController {
 
     @PutMapping("/{repoId}/items/sort")
     public ApiResponse<Void> sortItems(@PathVariable Long repoId,
-                                       @RequestBody List<Long> itemIds) {
-        repoService.sortItems(AuthCtx.getUserId(), repoId, itemIds);
+                                       @RequestParam Long from,
+                                       @RequestParam Long to) {
+        repoService.swapItems(AuthCtx.getUserId(), repoId, from, to);
         return ApiResponse.success();
     }
 

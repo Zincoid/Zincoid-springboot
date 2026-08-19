@@ -80,22 +80,18 @@ public class RepoItemServiceImpl extends ServiceImpl<RepoItemMapper, RepoItem> i
 
     @Override
     @Transactional
-    public void sortItems(Long repoId, List<Long> itemIds) {
-        List<RepoItem> items = lambdaQuery()
-                .eq(RepoItem::getRepoId, repoId)
-                .list();
-        if (itemIds.size() != items.size())
+    public void swap(Long repoId, Long itemIdA, Long itemIdB) {
+        RepoItem itemA = getById(itemIdA);
+        RepoItem itemB = getById(itemIdB);
+        if (itemA == null || itemB == null
+                || !itemA.getRepoId().equals(repoId) || !itemB.getRepoId().equals(repoId))
             throw new BusinessException(400, "Invalid Item Sort");
-        for (int i = 0; i < itemIds.size(); i++) {
-            Long itemId = itemIds.get(i);
-            RepoItem item = items.stream()
-                    .filter(it -> it.getId().equals(itemId))
-                    .findFirst()
-                    .orElseThrow(() -> new BusinessException(400, "Invalid Item Sort"));
-            item.setSortOrder(i);
-            updateById(item);
-        }
-        log.info("Repo items sorted: repo={}, itemIds={}", repoId, itemIds);
+        int orderA = itemA.getSortOrder();
+        itemA.setSortOrder(itemB.getSortOrder());
+        itemB.setSortOrder(orderA);
+        updateById(itemA);
+        updateById(itemB);
+        log.info("Repo items swapped: repo={}, a={}, b={}", repoId, itemIdA, itemIdB);
     }
 
     @Override

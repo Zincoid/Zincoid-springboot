@@ -11,8 +11,6 @@ import com.zincoid.me.model.vo.RepoCardVO;
 import com.zincoid.me.model.vo.RepoDetailVO;
 import com.zincoid.me.model.vo.RepoItemVO;
 
-import java.util.List;
-
 public interface RepoService extends IService<Repo> {
 
     RepoDetailVO create(Long userId, RepoCreateRequest request);
@@ -25,7 +23,7 @@ public interface RepoService extends IService<Repo> {
 
     void deleteItem(Long userId, Long repoId, Long itemId);
 
-    void sortItems(Long userId, Long repoId, List<Long> itemIds);
+    void swapItems(Long userId, Long repoId, Long itemIdA, Long itemIdB);
 
     PageVO<RepoCardVO> list(RepoType type, String keyword, int page, int size);
 

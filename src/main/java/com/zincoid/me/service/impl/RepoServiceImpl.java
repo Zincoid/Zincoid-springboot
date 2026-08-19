@@ -151,13 +151,13 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
 
     @Override
     @Transactional
-    public void sortItems(Long userId, Long repoId, List<Long> itemIds) {
+    public void swapItems(Long userId, Long repoId, Long itemIdA, Long itemIdB) {
         Repo repo = getById(repoId);
         if (repo == null)
             throw new BusinessException(404, "Repo not found");
         if (!repo.getUserId().equals(userId))
             throw new BusinessException(403, "You can only edit your own repos");
-        repoItemService.sortItems(repoId, itemIds);
+        repoItemService.swap(repoId, itemIdA, itemIdB);
     }
 
     @Override

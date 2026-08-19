@@ -5,8 +5,6 @@ import com.zincoid.me.model.po.RepoItem;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.RepoItemVO;
 
-import java.util.List;
-
 public interface RepoItemService extends IService<RepoItem> {
 
     PageVO<RepoItemVO> list(Long repoId, int page, int size);
@@ -17,7 +15,7 @@ public interface RepoItemService extends IService<RepoItem> {
 
     void deleteByRepoId(Long repoId);
 
-    void sortItems(Long repoId, List<Long> itemIds);
+    void swap(Long repoId, Long itemIdA, Long itemIdB);
 
     String firstImageUrl(Long repoId);
 }

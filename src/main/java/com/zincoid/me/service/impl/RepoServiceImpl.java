@@ -131,8 +131,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
             throw new BusinessException(404, "Repo not found");
         if (!repo.getUserId().equals(userId))
             throw new BusinessException(403, "You can only edit your own repos");
-        RepoItem item = repoItemService.add(repoId, request.getFileId(), request.getName());
-        return buildItemVO(item);
+        return repoItemService.add(repoId, request.getFileId(), request.getName());
     }
 
     @Override
@@ -210,11 +209,32 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         RepoDetailVO vo = buildDetailVO(repo);
         if (isDenied) {
             vo.setRestricted(true);
-            vo.setItems(List.of());
             vo.setUrl(null);
             vo.setGithub(null);
         }
         return vo;
+    }
+
+    @Override
+    public PageVO<RepoItemVO> items(Long repoId, int page, int size) {
+        Repo repo = getById(repoId);
+        if (repo == null || repo.getStatus() == Status.DISABLED)
+            throw new BusinessException(404, "Repo not found");
+        Long viewerId = AuthCtx.getUserId();
+        boolean isAdmin = viewerId != null && AuthCtx.getRole() == Role.ADMIN;
+        if (repo.getVisibility() == Visibility.PRIVATE
+                && !isAdmin
+                && (viewerId == null || !viewerId.equals(repo.getUserId())))
+            throw new BusinessException(404, "Repo is private");
+        boolean isDenied = repo.getVisibility() == Visibility.RESTRICTED
+                && !isAdmin
+                && (viewerId == null || !viewerId.equals(repo.getUserId()))
+                && !repoAccessService.authorize(viewerId, repoId);
+        if (isDenied || repo.getType() == RepoType.CODE)
+            return PageVO.<RepoItemVO>builder()
+                    .records(List.of()).total(0).page(page).size(size).pages(0)
+                    .build();
+        return repoItemService.list(repoId, page, size);
     }
 
     // ──────── Private tool ────────────────────────────────
@@ -250,19 +270,10 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         long likeCount = likeService.count(RelatedType.REPO, repo.getId());
         boolean isLiked = likeService.liked(AuthCtx.getUserId(), RelatedType.REPO, repo.getId());
         List<LikerVO> recentLikers = likeService.getLikers(RelatedType.REPO, repo.getId(), 5);
-        List<RepoItemVO> items = List.of();
-        if (repo.getType() != RepoType.CODE) {
-            items = repoItemService.list(repo.getId())
-                    .stream().map(this::buildItemVO).toList();
-        }
         return RepoConverter.INSTANCE.toDetailVO(
-                repo, user, isLiked, likeCount, recentLikers, items,
+                repo, user, isLiked, likeCount, recentLikers,
                 repo.getType() == RepoType.CODE ? gitHubService.fetch(repo.getUrl()) : null,
                 isDefaultCover(repo), coverOrDefault(repo)
         );
-    }
-
-    private RepoItemVO buildItemVO(RepoItem item) {
-        return RepoConverter.INSTANCE.toItemVO(item, fileService.getById(item.getFileId()));
     }
 }

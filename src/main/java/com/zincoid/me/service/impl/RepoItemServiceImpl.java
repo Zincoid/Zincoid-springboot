@@ -1,6 +1,8 @@
 package com.zincoid.me.service.impl;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zincoid.me.converter.RepoConverter;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.RepoItemMapper;
 import com.zincoid.me.model.enums.FileType;
@@ -8,6 +10,8 @@ import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.po.RepoItem;
+import com.zincoid.me.model.vo.PageVO;
+import com.zincoid.me.model.vo.RepoItemVO;
 import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.RepoItemService;
 import lombok.RequiredArgsConstructor;
@@ -25,17 +29,20 @@ public class RepoItemServiceImpl extends ServiceImpl<RepoItemMapper, RepoItem> i
     private final FileService fileService;
 
     @Override
-    public List<RepoItem> list(Long repoId) {
-        return lambdaQuery()
-                .eq(RepoItem::getRepoId, repoId)
-                .eq(RepoItem::getStatus, Status.ACTIVE)
-                .orderByAsc(RepoItem::getSortOrder)
-                .list();
+    public PageVO<RepoItemVO> list(Long repoId, int page, int size) {
+        return PageVO.of(
+                lambdaQuery()
+                        .eq(RepoItem::getRepoId, repoId)
+                        .eq(RepoItem::getStatus, Status.ACTIVE)
+                        .orderByAsc(RepoItem::getSortOrder)
+                        .page(Page.of(page, size)),
+                this::buildItemVO
+        );
     }
 
     @Override
     @Transactional
-    public RepoItem add(Long repoId, Long fileId, String name) {
+    public RepoItemVO add(Long repoId, Long fileId, String name) {
         RepoItem item = RepoItem.builder()
                 .repoId(repoId)
                 .fileId(fileId)
@@ -46,7 +53,7 @@ public class RepoItemServiceImpl extends ServiceImpl<RepoItemMapper, RepoItem> i
         save(item);
         fileService._link(List.of(fileId), RelatedType.REPO, repoId);
         log.info("Repo item added: repo={}, item={}", repoId, item.getId());
-        return item;
+        return buildItemVO(item);
     }
 
     @Override
@@ -108,6 +115,10 @@ public class RepoItemServiceImpl extends ServiceImpl<RepoItemMapper, RepoItem> i
     }
 
     // ──────── Private tool ────────────────────────────────
+
+    private RepoItemVO buildItemVO(RepoItem item) {
+        return RepoConverter.INSTANCE.toItemVO(item, fileService.getById(item.getFileId()));
+    }
 
     private int getMaxSortOrder(Long repoId) {
         RepoItem max = lambdaQuery()

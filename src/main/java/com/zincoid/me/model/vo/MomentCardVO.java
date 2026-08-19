@@ -16,7 +16,8 @@ public class MomentCardVO {
     private String userNickname;
     private String userAvatar;
     private String content;
-    private List<String> images;
+    private List<String> urls;
+    private List<String> thumbs;
     private Boolean isPinned;
     private Visibility visibility;
     private Integer commentCount;

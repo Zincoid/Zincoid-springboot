@@ -53,14 +53,14 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
         Moment moment = Moment.builder()
                 .userId(userId)
                 .content(request.getContent())
-                .images(JsonUtil.toJson(request.getImages()))
+                .urls(JsonUtil.toJson(request.getUrls()))
                 .visibility(request.getVisibility() != null ? request.getVisibility() : Visibility.PUBLIC)
                 .build();
         save(moment);
         notificationService.notify(userId, request.getContent(), NotificationType.MOMENT_MENTION, moment.getId());
         log.info("Moment created: user={}, id={}", userId, moment.getId());
-        if (request.getImages() != null && !request.getImages().isEmpty())
-            fileService.link(request.getImages(), RelatedType.MOMENT, moment.getId());
+        if (request.getUrls() != null && !request.getUrls().isEmpty())
+            fileService.link(request.getUrls(), RelatedType.MOMENT, moment.getId());
         return buildCardVO(moment);
     }
 
@@ -78,14 +78,14 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
             if (!request.getContent().isBlank())
                 notificationService.notify(userId, request.getContent(), NotificationType.MOMENT_MENTION, momentId);
         }
-        if (request.getImages() != null) {
-            List<String> oldImages = JsonUtil.parseImages(moment.getImages());
+        if (request.getUrls() != null) {
+            List<String> oldImages = JsonUtil.parseImages(moment.getUrls());
             Set<String> oldSet = new HashSet<>(oldImages);
-            Set<String> newSet = new HashSet<>(request.getImages());
+            Set<String> newSet = new HashSet<>(request.getUrls());
             for (String oldPath : oldSet)
                 if (!newSet.contains(oldPath))
                     fileService.delete(oldPath);
-            moment.setImages(JsonUtil.toJson(request.getImages()));
+            moment.setUrls(JsonUtil.toJson(request.getUrls()));
             List<String> newPaths = new ArrayList<>(newSet);
             if (!newPaths.isEmpty())
                 fileService.link(newPaths, RelatedType.MOMENT, moment.getId());

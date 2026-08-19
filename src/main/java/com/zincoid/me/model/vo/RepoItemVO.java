@@ -14,6 +14,7 @@ public class RepoItemVO {
     private Long fileId;
     private String name;
     private String url;
+    private String thumb;
     private Long fileSize;
     private LocalDateTime createdAt;
 }

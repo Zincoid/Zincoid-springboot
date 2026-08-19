@@ -5,8 +5,10 @@ import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.vo.ArticleCardVO;
 import com.zincoid.me.model.vo.ArticleDetailVO;
 import com.zincoid.me.model.vo.LikerVO;
+import com.zincoid.me.utils.FileUtil;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
@@ -21,6 +23,7 @@ public interface ArticleConverter {
     @Mapping(target = "createdAt", source = "article.createdAt")
     @Mapping(target = "userNickname", source = "user.nickname")
     @Mapping(target = "userAvatar", source = "user.avatar")
+    @Mapping(target = "coverThumb", source = "article.coverImage", qualifiedByName = "thumbUrl")
     ArticleCardVO toCardVO(Article article, User user, boolean isLiked, long likeCount, int commentCount);
 
     @Mapping(target = "id", source = "article.id")
@@ -31,4 +34,9 @@ public interface ArticleConverter {
     @Mapping(target = "userAvatar", source = "user.avatar")
     ArticleDetailVO toDetailVO(Article article, User user, boolean isLiked, long likeCount,
                                List<LikerVO> recentLikers);
+
+    @Named("thumbUrl")
+    default String thumbUrl(String url) {
+        return FileUtil.toThumbUrl(url);
+    }
 }

@@ -24,7 +24,7 @@ public class Moment {
     private Long id;
     private Long userId;
     private String content;
-    private String images;
+    private String urls;
     private Boolean isPinned;
     private Long viewCount;
     private Status status;

@@ -9,6 +9,6 @@ import java.util.List;
 public class MomentUpdateRequest {
 
     private String content;
-    private List<String> images;
+    private List<String> urls;
     private Visibility visibility;
 }

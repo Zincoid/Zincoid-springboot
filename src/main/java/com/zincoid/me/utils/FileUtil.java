@@ -62,10 +62,25 @@ public final class FileUtil {
         if (filename == null || filename.isBlank()) return;
         try {
             Files.deleteIfExists(Paths.get(path, filename));
+            Files.deleteIfExists(Paths.get(path, "thumb", toThumbName(filename)));
             log.info("File deleted: {}", filename);
         } catch (IOException e) {
             log.warn("Failed to delete file: {}", filename, e);
         }
+    }
+
+    public static String toThumbName(String filename) {
+        String base = filename.substring(0, filename.lastIndexOf('.'));
+        return base + "_thumb." + (isJpeg(getExt(filename)) ? "jpg" : "png");
+    }
+
+    public static String toThumbUrl(String urlOrPath) {
+        if (urlOrPath == null || !urlOrPath.startsWith("/uploads/")) return urlOrPath;
+        return "/thumbnails/" + urlOrPath.substring("/uploads/".length());
+    }
+
+    public static boolean isJpeg(String ext) {
+        return "jpg".equals(ext) || "jpeg".equals(ext);
     }
 
     public static String getExt(String filename) {

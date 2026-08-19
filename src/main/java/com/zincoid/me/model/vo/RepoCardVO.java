@@ -22,7 +22,7 @@ public class RepoCardVO {
     private Visibility visibility;
     private String url;
     private List<String> tags;
-    private String coverImage;
+    private String coverThumb;
     private Long viewCount;
     private Integer likeCount;
     private Integer commentCount;

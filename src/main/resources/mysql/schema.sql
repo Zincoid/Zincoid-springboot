@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS `moment` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
     `user_id`       BIGINT          NOT NULL                 COMMENT 'Author user ID',
     `content`       TEXT            DEFAULT NULL             COMMENT 'Text content',
-    `images`        JSON            DEFAULT NULL             COMMENT 'Image URLs array',
+    `urls`          JSON            DEFAULT NULL             COMMENT 'Media URLs array',
     `is_pinned`     BOOLEAN         NOT NULL DEFAULT FALSE   COMMENT 'Pinned (admin only)',
     `view_count`    BIGINT          NOT NULL DEFAULT 0       COMMENT 'View count',
     `status`        TINYINT         NOT NULL DEFAULT 1       COMMENT 'Status: 0=DISABLED, 1=ACTIVE',

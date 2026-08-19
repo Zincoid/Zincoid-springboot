@@ -4,11 +4,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.RepoMapper;
+import com.zincoid.me.converter.RepoConverter;
 import com.zincoid.me.model.dto.RepoCreateRequest;
 import com.zincoid.me.model.dto.RepoItemAddRequest;
 import com.zincoid.me.model.dto.RepoUpdateRequest;
 import com.zincoid.me.model.enums.*;
-import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.po.Repo;
 import com.zincoid.me.model.po.RepoAccess;
 import com.zincoid.me.model.po.RepoItem;
@@ -239,25 +239,10 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 && !isAdmin
                 && (viewerId == null || !viewerId.equals(repo.getUserId()))
                 && !repoAccessService.authorize(viewerId, repo.getId());
-        return RepoCardVO.builder()
-                .id(repo.getId())
-                .userId(repo.getUserId())
-                .userNickname(user != null ? user.getNickname() : null)
-                .userAvatar(user != null ? user.getAvatar() : null)
-                .name(repo.getName())
-                .description(repo.getDescription())
-                .type(repo.getType())
-                .visibility(repo.getVisibility())
-                .url(repo.getUrl())
-                .tags(JsonUtil.parseImages(repo.getTags()))
-                .coverImage(coverOrDefault(repo))
-                .viewCount(repo.getViewCount() != null ? repo.getViewCount() : 0L)
-                .likeCount((int) likeCount)
-                .commentCount((int) commentCount)
-                .isLiked(isLiked)
-                .restricted(isRestricted)
-                .createdAt(repo.getCreatedAt())
-                .build();
+        return RepoConverter.INSTANCE.toCardVO(
+                repo, user, isLiked, likeCount, (int) commentCount,
+                isRestricted, coverOrDefault(repo)
+        );
     }
 
     private RepoDetailVO buildDetailVO(Repo repo) {
@@ -270,40 +255,14 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
             items = repoItemService.list(repo.getId())
                     .stream().map(this::buildItemVO).toList();
         }
-        return RepoDetailVO.builder()
-                .id(repo.getId())
-                .userId(repo.getUserId())
-                .userNickname(user != null ? user.getNickname() : null)
-                .userAvatar(user != null ? user.getAvatar() : null)
-                .name(repo.getName())
-                .description(repo.getDescription())
-                .type(repo.getType())
-                .visibility(repo.getVisibility())
-                .url(repo.getUrl())
-                .tags(JsonUtil.parseImages(repo.getTags()))
-                .coverImage(coverOrDefault(repo))
-                .isDefaultCover(isDefaultCover(repo))
-                .viewCount(repo.getViewCount() != null ? repo.getViewCount() : 0L)
-                .likeCount((int) likeCount)
-                .isLiked(isLiked)
-                .recentLikers(recentLikers)
-                .items(items)
-                .github(repo.getType() == RepoType.CODE ? gitHubService.fetch(repo.getUrl()) : null)
-                .createdAt(repo.getCreatedAt())
-                .updatedAt(repo.getUpdatedAt())
-                .build();
+        return RepoConverter.INSTANCE.toDetailVO(
+                repo, user, isLiked, likeCount, recentLikers, items,
+                repo.getType() == RepoType.CODE ? gitHubService.fetch(repo.getUrl()) : null,
+                isDefaultCover(repo), coverOrDefault(repo)
+        );
     }
 
     private RepoItemVO buildItemVO(RepoItem item) {
-        File file = fileService.getById(item.getFileId());
-        return RepoItemVO.builder()
-                .id(item.getId())
-                .sortOrder(item.getSortOrder())
-                .fileId(item.getFileId())
-                .name(item.getName())
-                .url(file != null ? "/uploads/" + file.getFilePath() : null)
-                .fileSize(file != null ? file.getFileSize() : null)
-                .createdAt(item.getCreatedAt())
-                .build();
+        return RepoConverter.INSTANCE.toItemVO(item, fileService.getById(item.getFileId()));
     }
 }

@@ -16,7 +16,7 @@ public class ArticleCardVO {
     private String userAvatar;
     private String title;
     private String summary;
-    private String coverImage;
+    private String coverThumb;
     private Boolean isPinned;
     private Visibility visibility;
     private Long viewCount;

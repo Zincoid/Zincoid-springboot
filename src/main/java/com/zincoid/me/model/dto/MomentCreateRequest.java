@@ -10,11 +10,11 @@ import java.util.List;
 public class MomentCreateRequest {
 
     private String content;
-    private List<String> images;
+    private List<String> urls;
     private Visibility visibility;
 
-    @AssertTrue(message = "content and images must not both be empty")
+    @AssertTrue(message = "content and urls must not both be empty")
     public boolean isValid() {
-        return (content != null && !content.isBlank()) || (images != null && !images.isEmpty());
+        return (content != null && !content.isBlank()) || (urls != null && !urls.isEmpty());
     }
 }

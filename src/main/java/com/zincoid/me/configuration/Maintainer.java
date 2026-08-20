@@ -38,9 +38,9 @@ public class Maintainer {
 
     private void runCleanup() {
         try {
-            var records = cleanupService.cleanupRecords();
-            var files = cleanupService.cleanupFiles(false);
-            log.info("Maintenance cleanup done: records={}, files={}", records, files);
+            cleanupService.cleanupRecords();
+            cleanupService.cleanupFiles(true);
+            log.info("Maintenance cleanup done");
         } catch (Exception e) {
             log.error("Maintenance cleanup failed", e);
         }

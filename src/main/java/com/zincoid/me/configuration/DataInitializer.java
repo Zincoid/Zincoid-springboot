@@ -43,6 +43,7 @@ public class DataInitializer implements CommandLineRunner {
         initConfig("loading_spinner_hold", "250", "Loading spinner hold duration (ms) before fade");
         initConfig("loading_spinner_fade", "125", "Loading spinner fade-out duration (ms)");
         initConfig("hero_animation", "random", "Hero animation: squares, raindrop, raindrop_sin, or random");
+        initConfig("maintenance_enabled", "true", "Enable daily maintenance (00:00-00:10, auto cleanup and block all requests)");
     }
 
     private void initConfig(String key, String value, String description) {

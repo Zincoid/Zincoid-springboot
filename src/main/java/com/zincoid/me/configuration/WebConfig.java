@@ -1,6 +1,7 @@
 package com.zincoid.me.configuration;
 
 import com.zincoid.me.interceptor.JwtInterceptor;
+import com.zincoid.me.interceptor.MaintenanceInterceptor;
 import com.zincoid.me.model.enums.Access;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.RepoType;
@@ -21,6 +22,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
 
     private final JwtInterceptor jwtInterceptor;
+    private final MaintenanceInterceptor maintenanceInterceptor;
 
     @Value("${upload.path:./uploads}")
     private String uploadPath;
@@ -53,6 +55,8 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(maintenanceInterceptor)
+                .addPathPatterns("/api/**");
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/api/**");
     }

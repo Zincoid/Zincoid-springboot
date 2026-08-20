@@ -28,6 +28,13 @@ public class GlobalExceptionHandler {
         return ApiResponse.error(e.getCode(), e.getMessage());
     }
 
+    @ExceptionHandler(MaintenanceException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public ApiResponse<Void> handleMaintenanceException(MaintenanceException e) {
+        log.info("Request blocked during maintenance");
+        return ApiResponse.error(503, e.getMessage());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleValidationException(MethodArgumentNotValidException e) {

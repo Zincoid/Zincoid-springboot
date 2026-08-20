@@ -25,7 +25,7 @@ public class Maintainer {
     public void start() {
         if (!isEnabled()) return;
         active = true;
-        log.info("Maintenance window started, blocking all requests");
+        log.info("Maintenance started, req blocked");
         runCleanup();
     }
 
@@ -33,7 +33,7 @@ public class Maintainer {
     public void end() {
         if (!active) return;
         active = false;
-        log.info("Maintenance window ended, resuming all requests");
+        log.info("Maintenance ended, req resumed");
     }
 
     private void runCleanup() {
@@ -47,6 +47,7 @@ public class Maintainer {
     }
 
     private boolean isEnabled() {
-        return "true".equalsIgnoreCase(configService.get(CONFIG_KEY));
+        String value = configService.get(CONFIG_KEY);
+        return "true".equalsIgnoreCase(value);
     }
 }

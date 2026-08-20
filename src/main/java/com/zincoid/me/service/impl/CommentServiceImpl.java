@@ -142,7 +142,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         if (comment == null)
             throw new BusinessException(404, "Comment not found");
         if (!isAdmin && !comment.getUserId().equals(userId))
-            throw new BusinessException(403, "You can only delete your own comments");
+            throw new BusinessException(403, "No permission to delete this comment");
         List<Long> allIds;
         if (comment.getId().equals(comment.getRootId())) {
             allIds = lambdaQuery()

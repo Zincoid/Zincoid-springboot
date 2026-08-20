@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class MaintenanceManager {
+public class Maintainer {
 
     private static final String CONFIG_KEY = "maintenance_enabled";
 

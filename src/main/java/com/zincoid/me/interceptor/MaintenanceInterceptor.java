@@ -1,6 +1,6 @@
 package com.zincoid.me.interceptor;
 
-import com.zincoid.me.configuration.MaintenanceManager;
+import com.zincoid.me.configuration.Maintainer;
 import com.zincoid.me.exception.MaintenanceException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,14 +13,14 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @RequiredArgsConstructor
 public class MaintenanceInterceptor implements HandlerInterceptor {
 
-    private final MaintenanceManager maintenanceManager;
+    private final Maintainer maintainer;
 
     @Override
     public boolean preHandle(HttpServletRequest request,
                              @NonNull HttpServletResponse response,
                              @NonNull Object handler) {
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) return true;
-        if (maintenanceManager.isActive())
+        if (maintainer.isActive())
             throw new MaintenanceException();
         return true;
     }

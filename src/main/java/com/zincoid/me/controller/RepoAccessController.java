@@ -47,19 +47,19 @@ public class RepoAccessController {
 
     @GetMapping("/access/sent/resolved")
     public ApiResponse<PageVO<RepoAccess>> sentResolved(@RequestParam(defaultValue = "1") int page,
-                                                         @RequestParam(defaultValue = "10") int size) {
+                                                        @RequestParam(defaultValue = "10") int size) {
         return ApiResponse.success(repoAccessService.sentResolved(AuthCtx.getUserId(), page, size));
     }
 
     @GetMapping("/access/received/pending")
     public ApiResponse<PageVO<RepoAccess>> receivedPending(@RequestParam(defaultValue = "1") int page,
-                                                            @RequestParam(defaultValue = "10") int size) {
+                                                           @RequestParam(defaultValue = "10") int size) {
         return ApiResponse.success(repoAccessService.receivedPending(AuthCtx.getUserId(), page, size));
     }
 
     @GetMapping("/access/received/resolved")
     public ApiResponse<PageVO<RepoAccess>> receivedResolved(@RequestParam(defaultValue = "1") int page,
-                                                             @RequestParam(defaultValue = "10") int size) {
+                                                            @RequestParam(defaultValue = "10") int size) {
         return ApiResponse.success(repoAccessService.receivedResolved(AuthCtx.getUserId(), page, size));
     }
 }

@@ -31,7 +31,7 @@ public class MomentController {
 
     @PutMapping("/{momentId}")
     public ApiResponse<MomentCardVO> update(@PathVariable Long momentId,
-                                            @RequestBody MomentUpdateRequest request) {
+                                            @Valid @RequestBody MomentUpdateRequest request) {
         return ApiResponse.success(momentService.update(AuthCtx.getUserId(), momentId, request));
     }
 

@@ -9,17 +9,19 @@ import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
 
 @RestController
+@RequestMapping("/thumbnails")
 @RequiredArgsConstructor
 public class ThumbnailController {
 
     private final ThumbnailService thumbnailService;
 
-    @GetMapping("/thumbnails/{filename}")
+    @GetMapping("/{filename}")
     public ResponseEntity<Resource> getThumbnail(@PathVariable String filename) {
         Resource resource = thumbnailService.getThumbnail(filename);
         if (resource == null || !resource.exists())

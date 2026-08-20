@@ -18,7 +18,7 @@ public class ChatController {
 
     @PostMapping
     public ApiResponse<MessageVO> send(@RequestParam(required = false) String content,
-                                        @RequestParam(required = false) String file) {
+                                       @RequestParam(required = false) String file) {
         return ApiResponse.success(messageService.send(AuthCtx.getUserId(), content, file));
     }
 
@@ -30,7 +30,7 @@ public class ChatController {
 
     @GetMapping("/public")
     public ApiResponse<PageVO<MessageVO>> list(@RequestParam(defaultValue = "1") int page,
-                                                @RequestParam(defaultValue = "50") int size) {
+                                               @RequestParam(defaultValue = "50") int size) {
         return ApiResponse.success(messageService.list(page, size));
     }
 }

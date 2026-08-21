@@ -46,6 +46,7 @@ public class AuthCtx {
     }
 
     public static void requireAdmin() {
+        requireLogin();
         if (getRole() != Role.ADMIN)
             throw new BusinessException(403, "Admin permission required");
     }

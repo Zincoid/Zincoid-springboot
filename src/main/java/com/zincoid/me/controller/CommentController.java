@@ -22,7 +22,7 @@ public class CommentController {
 
     private final CommentService commentService;
 
-    // ──── Private endpoints ────────────────
+    // ──── Private endpoints ───────────────
 
     @PostMapping("/moment/{momentId}")
     public ApiResponse<CommentVO> addMomentComment(@PathVariable Long momentId,

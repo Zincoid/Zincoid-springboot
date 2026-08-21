@@ -16,7 +16,7 @@ public class FileController {
 
     private final FileService fileService;
 
-    // ──── Private endpoints ────────────────
+    // ──── Private endpoints ───────────────
 
     @PostMapping("/upload")
     public ApiResponse<FileVO> uploadFile(@RequestParam("file") MultipartFile file,

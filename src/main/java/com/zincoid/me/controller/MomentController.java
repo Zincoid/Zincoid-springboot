@@ -22,7 +22,7 @@ public class MomentController {
 
     private final MomentService momentService;
 
-    // ──── Private endpoints ────────────────
+    // ──── Private endpoints ───────────────
 
     @PostMapping
     public ApiResponse<MomentCardVO> create(@Valid @RequestBody MomentCreateRequest request) {

@@ -16,6 +16,8 @@ public class ChatController {
 
     private final MessageService messageService;
 
+    // ──── Private endpoints ───────────────
+
     @PostMapping
     public ApiResponse<MessageVO> send(@RequestParam(required = false) String content,
                                        @RequestParam(required = false) String file) {
@@ -27,6 +29,8 @@ public class ChatController {
         messageService.delete(AuthCtx.getUserId(), messageId, AuthCtx.getRole() == Role.ADMIN);
         return ApiResponse.success();
     }
+
+    // ──── Public endpoints ────────────────
 
     @GetMapping("/public")
     public ApiResponse<PageVO<MessageVO>> list(@RequestParam(defaultValue = "1") int page,

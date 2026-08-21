@@ -27,7 +27,7 @@ public class UserController {
     private final UserService userService;
     private final UserConfigService userConfigService;
 
-    // ──── Private endpoints ────────────────
+    // ──── Private endpoints ───────────────
 
     @GetMapping
     public ApiResponse<UserDetailVO> getCurrentUserDetail() {

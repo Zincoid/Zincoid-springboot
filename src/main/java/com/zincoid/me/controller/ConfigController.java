@@ -17,7 +17,7 @@ public class ConfigController {
 
     private final ConfigService configService;
 
-    // ──── Private endpoints ────────────────
+    // ──── Private endpoints ───────────────
 
     @GetMapping("/all")
     public ApiResponse<List<Config>> listConfigs() {

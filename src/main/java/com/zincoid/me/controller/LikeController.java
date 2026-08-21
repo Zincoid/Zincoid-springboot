@@ -16,7 +16,7 @@ public class LikeController {
 
     private final LikeService likeService;
 
-    // ──── Private endpoints ────────────────
+    // ──── Private endpoints ───────────────
 
     @PostMapping("/{targetType}/{targetId}")
     public ApiResponse<Map<String, Object>> toggle(@PathVariable RelatedType targetType,

@@ -15,6 +15,8 @@ public class RepoAccessController {
 
     private final RepoAccessService repoAccessService;
 
+    // ──── Private endpoints ───────────────
+
     @PostMapping("/{repoId}/access")
     public ApiResponse<Void> requestAccess(@PathVariable Long repoId) {
         repoAccessService.request(AuthCtx.getUserId(), repoId);

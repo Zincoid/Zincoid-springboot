@@ -21,6 +21,8 @@ public class ThumbnailController {
 
     private final ThumbnailService thumbnailService;
 
+    // ──── Open endpoints ──────────────────
+
     @GetMapping("/{filename}")
     public ResponseEntity<Resource> getThumbnail(@PathVariable String filename) {
         Resource resource = thumbnailService.getThumbnail(filename);

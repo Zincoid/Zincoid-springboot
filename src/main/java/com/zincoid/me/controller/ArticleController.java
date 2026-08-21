@@ -22,7 +22,7 @@ public class ArticleController {
 
     private final ArticleService articleService;
 
-    // ──── Private endpoints ────────────────
+    // ──── Private endpoints ───────────────
 
     @PostMapping
     public ApiResponse<ArticleDetailVO> createArticle(@Valid @RequestBody ArticleCreateRequest request) {

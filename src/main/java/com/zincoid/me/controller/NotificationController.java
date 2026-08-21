@@ -21,7 +21,7 @@ public class NotificationController {
     private final NotificationService notificationService;
     private final EmailService emailService;
 
-    // ──── Private endpoints ────────────────
+    // ──── Private endpoints ───────────────
 
     @GetMapping("/count")
     public ApiResponse<Long> countUnreadNotifications() {

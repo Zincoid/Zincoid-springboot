@@ -23,7 +23,7 @@ public class RepoController {
 
     private final RepoService repoService;
 
-    // ──── Private endpoints ────────────────
+    // ──── Private endpoints ───────────────
 
     @PostMapping
     public ApiResponse<RepoDetailVO> createRepo(@Valid @RequestBody RepoCreateRequest request) {

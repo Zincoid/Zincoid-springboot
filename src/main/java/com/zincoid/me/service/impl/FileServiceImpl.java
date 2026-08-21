@@ -154,14 +154,14 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
             if (!diskFiles.contains(file.getFilePath())) {
                 removeById(file.getId());
                 orphanDb++;
-                log.info("Clean up: orphan DB record - {}", file.getId());
+                log.info("Cleanup: orphan DB record - {}", file.getId());
             }
         }
         for (String diskFile : diskFiles) {
             if (!dbPaths.contains(diskFile)) {
                 FileUtil.delete(diskFile, uploadPath);
                 orphanDisk++;
-                log.info("Clean up: orphan disk file - {}", diskFile);
+                log.info("Cleanup: orphan disk file - {}", diskFile);
             }
         }
         List<File> unlinkedFiles = lambdaQuery()
@@ -171,7 +171,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
             FileUtil.delete(file.getFilePath(), uploadPath);
             removeById(file.getId());
             unlinked++;
-            log.info("Clean up: unlinked file and record - {}:{}", file.getFilePath(), file.getId());
+            log.info("Cleanup: unlinked file and record - {}:{}", file.getFilePath(), file.getId());
         }
         if (isLogic) {
             List<File> linked = lambdaQuery()
@@ -183,7 +183,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
                     FileUtil.delete(file.getFilePath(), uploadPath);
                     removeById(file.getId());
                     invalidRef++;
-                    log.info("Clean up: invalid relation of {}:{} - {}:{}",
+                    log.info("Cleanup: invalid relation of {}:{} - {}:{}",
                             file.getRelatedType(), file.getRelatedId(), file.getFilePath(), file.getId());
                 }
             }
@@ -192,7 +192,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
         result.put("orphanDisk", orphanDisk);
         result.put("unlinked", unlinked);
         if (isLogic) result.put("invalidRef", invalidRef);
-        log.info("Clean up done: {}", result);
+        log.info("Cleanup done: {}", result);
         return result;
     }
 

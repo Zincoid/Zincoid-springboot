@@ -20,6 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,8 +33,11 @@ import java.util.stream.Collectors;
 @Service
 public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements FileService {
 
-    @Value("${upload.path:./uploads}")
+    @Value("${upload.path}")
     private String uploadPath;
+
+    @Value("${logging.file.name}")
+    private String logFilePath;
 
     private final UserService userService;
     private final MomentService momentService;
@@ -194,6 +200,12 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
         if (isLogic) result.put("invalidRef", invalidRef);
         log.info("Cleanup done: {}", result);
         return result;
+    }
+
+    @Override
+    public Path logFile() {
+        Path path = Paths.get(logFilePath);
+        return Files.exists(path) && Files.isRegularFile(path) ? path : null;
     }
 
     // ──────── Private tool ────────────────────────────────

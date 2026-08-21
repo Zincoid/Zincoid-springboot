@@ -29,7 +29,7 @@ public class HealthController {
 
     // ──── Public endpoints ────────────────
 
-    @GetMapping("/storage/space")
+    @GetMapping("/storage")
     public ApiResponse<Map<String, Long>> storageSpace() {
         AuthCtx.requireAdmin();
         Map<String, Long> space = new LinkedHashMap<>();

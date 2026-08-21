@@ -32,12 +32,12 @@ public class LogStreamServiceImpl implements LogStreamService {
         emitter.onCompletion(() -> remove(id));
         emitter.onTimeout(() -> remove(id));
         emitter.onError(e -> remove(id));
+        log.info("Log stream subscribed: id={}, minLevel={}", id, minLevel);
         try {
             emitter.send(SseEmitter.event().name("connected").data("ok"));
         } catch (IOException e) {
             remove(id);
         }
-        log.info("Log stream subscribed: id={}, minLevel={}", id, minLevel);
         return emitter;
     }
 
@@ -72,7 +72,7 @@ public class LogStreamServiceImpl implements LogStreamService {
     // ──────── Private tool ────────────────────────────────
 
     private void remove(String id) {
-        emitters.remove(id);
+        if (emitters.remove(id) == null) return;
         filters.remove(id);
         log.info("Log stream unsubscribed: id={}", id);
     }

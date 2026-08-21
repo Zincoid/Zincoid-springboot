@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.nio.file.Path;
 
 @Slf4j
@@ -31,8 +32,10 @@ public class LogController {
     // ──── Private endpoints ───────────────
 
     @GetMapping("/stream")
-    public SseEmitter stream(@RequestParam(defaultValue = "INFO") String level) {
+    public SseEmitter stream(@RequestParam(defaultValue = "INFO") String level, HttpServletResponse response) {
         AuthCtx.requireAdmin();
+        response.setHeader("X-Accel-Buffering", "no");
+        response.setHeader("Cache-Control", "no-cache, no-transform");
         return logStreamService.subscribe(Level.toLevel(level.toUpperCase(), Level.INFO));
     }
 

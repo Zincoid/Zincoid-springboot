@@ -59,9 +59,9 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(maintenanceInterceptor)
                 .addPathPatterns("/api/**");
-        registry.addInterceptor(jwtInterceptor)
-                .addPathPatterns("/api/**");
         registry.addInterceptor(statInterceptor)
+                .addPathPatterns("/api/**");
+        registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/api/**");
     }
 

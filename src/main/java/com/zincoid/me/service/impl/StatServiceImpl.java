@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.mapper.StatMapper;
 import com.zincoid.me.model.po.Stat;
 import com.zincoid.me.service.StatService;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -34,6 +35,11 @@ public class StatServiceImpl extends ServiceImpl<StatMapper, Stat> implements St
     public void record(String method, String path) {
         String key = LocalDate.now() + "|" + method + " " + path;
         counts.computeIfAbsent(key, k -> new LongAdder()).increment();
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        flush();
     }
 
     @Scheduled(cron = "0 0 * * * *")

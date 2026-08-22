@@ -30,11 +30,11 @@ public class StorageController {
         return ApiResponse.success(storageService.userStorage(AuthCtx.getUserId()));
     }
 
-    @PutMapping("/{userId}/capacity")
-    public ApiResponse<Void> updateCapacity(@PathVariable Long userId,
+    @PutMapping("/{username}/capacity")
+    public ApiResponse<Void> updateCapacity(@PathVariable String username,
                                             @RequestParam Long capacity) {
         AuthCtx.requireAdmin();
-        storageService.updateCapacity(userId, capacity);
+        storageService.updateCapacity(username, capacity);
         return ApiResponse.success();
     }
 

@@ -51,13 +51,13 @@ public class StorageServiceImpl implements StorageService {
     }
 
     @Override
-    public void updateCapacity(Long userId, Long capacity) {
+    public void updateCapacity(String username, Long capacity) {
         if (capacity == null || capacity < 0)
             throw new BusinessException(400, "Capacity must be a non-negative number");
-        User user = userService.getById(userId);
+        User user = userService.lambdaQuery().eq(User::getUsername, username).one();
         if (user == null) throw new BusinessException(404, "User not found");
         user.setCapacity(capacity);
         userService.updateById(user);
-        log.info("User capacity updated: id={}, username={}, capacity={}", userId, user.getUsername(), capacity);
+        log.info("User capacity updated: id={}, username={}, capacity={}", user.getId(), user.getUsername(), capacity);
     }
 }

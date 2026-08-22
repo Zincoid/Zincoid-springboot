@@ -43,9 +43,7 @@ public class StorageServiceImpl implements StorageService {
             space.put("used", total - free);
         } catch (IOException e) {
             log.warn("Failed to get storage space of: {}", uploadPath, e);
-            space.put("total", 0L);
-            space.put("free", 0L);
-            space.put("used", 0L);
+            throw new BusinessException(500, "Failed to get storage space");
         }
         return space;
     }

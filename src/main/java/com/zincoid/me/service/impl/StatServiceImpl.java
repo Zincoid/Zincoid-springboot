@@ -38,16 +38,17 @@ public class StatServiceImpl extends ServiceImpl<StatMapper, Stat> implements St
 
     @Scheduled(cron = "0 0 * * * *")
     public void flush() {
-        String today = LocalDate.now().toString();
+        List<String> flushed = new ArrayList<>();
         for (Map.Entry<String, LongAdder> e : counts.entrySet()) {
             String[] parts = e.getKey().split("\\|", 2);
             try {
                 statMapper.upsert(LocalDate.parse(parts[0], FMT), parts[1], e.getValue().sum());
+                flushed.add(e.getKey());
             } catch (Exception ex) {
                 log.warn("Failed to flush stat: {}", e.getKey(), ex);
             }
         }
-        counts.keySet().removeIf(k -> !k.startsWith(today + "|"));
+        counts.keySet().removeAll(flushed);
     }
 
     @Override
@@ -70,7 +71,7 @@ public class StatServiceImpl extends ServiceImpl<StatMapper, Stat> implements St
             if (!k.startsWith(prefix)) return;
             String api = k.substring(prefix.length());
             long n = v.sum();
-            daily.put(today.toString(), n);
+            daily.merge(today.toString(), n, Long::sum);
             apis.merge(api, n, Long::sum);
         });
 

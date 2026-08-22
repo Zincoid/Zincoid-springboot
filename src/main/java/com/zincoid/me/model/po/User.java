@@ -35,6 +35,7 @@ public class User {
     private String avatar;
     private String skills;
     private String contacts;
+    private Long capacity;
     private Role role;
     private Status status;
     private LocalDateTime createdAt;

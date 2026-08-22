@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS `user` (
     `avatar`        VARCHAR(500)    DEFAULT NULL             COMMENT 'Avatar image URL',
     `skills`        JSON            DEFAULT NULL             COMMENT 'Skill tags array',
     `contacts`      JSON            DEFAULT NULL             COMMENT 'Multi-platform contacts (GitHub, Bilibili, Email, etc.)',
+    `capacity`      BIGINT          NOT NULL DEFAULT 1073741824 COMMENT 'Max disk capacity in bytes, default 1GB',
     `role`          TINYINT         NOT NULL DEFAULT 0       COMMENT 'Role: 0=USER, 1=ADMIN',
     `status`        TINYINT         NOT NULL DEFAULT 1       COMMENT 'Status: 0=DISABLED, 1=ACTIVE',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Registration time',

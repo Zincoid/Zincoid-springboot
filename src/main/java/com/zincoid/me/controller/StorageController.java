@@ -25,6 +25,11 @@ public class StorageController {
         return ApiResponse.success(storageService.storageSpace());
     }
 
+    @GetMapping("/user")
+    public ApiResponse<Map<String, Long>> userStorage() {
+        return ApiResponse.success(storageService.userStorage(AuthCtx.getUserId()));
+    }
+
     @PostMapping("/cleanup")
     public ApiResponse<Map<String, Integer>> cleanupRecords() {
         AuthCtx.requireAdmin();

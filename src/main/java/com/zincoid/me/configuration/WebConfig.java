@@ -2,6 +2,7 @@ package com.zincoid.me.configuration;
 
 import com.zincoid.me.interceptor.JwtInterceptor;
 import com.zincoid.me.interceptor.MaintenanceInterceptor;
+import com.zincoid.me.interceptor.StatInterceptor;
 import com.zincoid.me.model.enums.Access;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.RepoType;
@@ -23,6 +24,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     private final JwtInterceptor jwtInterceptor;
     private final MaintenanceInterceptor maintenanceInterceptor;
+    private final StatInterceptor statInterceptor;
 
     @Value("${upload.path:./uploads}")
     private String uploadPath;
@@ -58,6 +60,8 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(maintenanceInterceptor)
                 .addPathPatterns("/api/**");
         registry.addInterceptor(jwtInterceptor)
+                .addPathPatterns("/api/**");
+        registry.addInterceptor(statInterceptor)
                 .addPathPatterns("/api/**");
     }
 

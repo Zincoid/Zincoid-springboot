@@ -270,6 +270,19 @@ CREATE TABLE IF NOT EXISTS `repo_access` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Repo access request table';
 
 -- =============================================
+-- 14. Stat Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `stat` (
+    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
+    `stat_date`     DATE            NOT NULL                 COMMENT 'Statistics date',
+    `api`           VARCHAR(200)    NOT NULL                 COMMENT 'API endpoint (METHOD /api/path)',
+    `count`         BIGINT          NOT NULL DEFAULT 0       COMMENT 'Access count',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_date_api` (`stat_date`, `api`),
+    KEY `idx_stat_date` (`stat_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Daily API usage statistics';
+
+-- =============================================
 -- Default admin user is auto-created by DataInitializer on first startup
 -- =============================================
 

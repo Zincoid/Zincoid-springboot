@@ -1,7 +1,6 @@
 package com.zincoid.me.service.impl;
 
 import com.zincoid.me.exception.BusinessException;
-import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.StorageService;
@@ -56,11 +55,7 @@ public class StorageServiceImpl implements StorageService {
         User user = userService.getById(userId);
         if (user == null)
             throw new BusinessException(404, "User not found");
-        long used = fileService.lambdaQuery()
-                .select(File::getFileSize)
-                .eq(File::getUserId, userId)
-                .list().stream()
-                .mapToLong(File::getFileSize).sum();
+        long used = fileService.totalSize(userId);
         long capacity = user.getCapacity();
         Map<String, Long> result = new LinkedHashMap<>();
         result.put("capacity", capacity);

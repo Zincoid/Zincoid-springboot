@@ -1,10 +1,12 @@
 package com.zincoid.me.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.FileMapper;
 import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.enums.FileType;
 import com.zincoid.me.model.enums.RelatedType;
+import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.vo.FileVO;
 import com.zincoid.me.service.ArticleService;
 import com.zincoid.me.service.FileService;
@@ -60,6 +62,11 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     @Override
     @Transactional
     public FileVO upload(Long userId, MultipartFile file, RelatedType relatedType, Long relatedId) {
+        User user = userService.getById(userId);
+        if (user == null) throw new BusinessException(404, "User not found");
+        long available = Math.max(user.getCapacity() - totalSize(userId), 0L);
+        if (file.getSize() > available)
+            throw new BusinessException(400, "Insufficient storage space");
         String filePath = FileUtil.save(file, uploadPath);
         String ext = FileUtil.getExt(file.getOriginalFilename());
         FileType fileType = FileUtil.getType(ext);
@@ -200,6 +207,15 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
         if (isLogic) result.put("invalidRef", invalidRef);
         log.info("Cleanup done: {}", result);
         return result;
+    }
+
+    @Override
+    public long totalSize(Long userId) {
+        return lambdaQuery()
+                .select(File::getFileSize)
+                .eq(File::getUserId, userId)
+                .list().stream()
+                .mapToLong(File::getFileSize).sum();
     }
 
     @Override

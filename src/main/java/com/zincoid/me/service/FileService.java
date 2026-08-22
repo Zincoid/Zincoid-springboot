@@ -26,5 +26,7 @@ public interface FileService extends IService<File> {
 
     Map<String, Integer> cleanup(boolean isLogic);
 
+    long totalSize(Long userId);
+
     Path logFile();
 }

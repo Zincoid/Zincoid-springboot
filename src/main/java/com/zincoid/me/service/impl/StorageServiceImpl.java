@@ -63,4 +63,15 @@ public class StorageServiceImpl implements StorageService {
         result.put("available", Math.max(capacity - used, 0L));
         return result;
     }
+
+    @Override
+    public void updateCapacity(Long userId, Long capacity) {
+        if (capacity == null || capacity < 0)
+            throw new BusinessException(400, "Capacity must be a non-negative number");
+        User user = userService.getById(userId);
+        if (user == null) throw new BusinessException(404, "User not found");
+        user.setCapacity(capacity);
+        userService.updateById(user);
+        log.info("User capacity updated: id={}, username={}, capacity={}", userId, user.getUsername(), capacity);
+    }
 }

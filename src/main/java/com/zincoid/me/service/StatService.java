@@ -9,5 +9,5 @@ public interface StatService extends IService<Stat> {
 
     void record(String method, String path);
 
-    Map<String, Object> stats(int days);
+    Map<String, Object> stats(int days, int top);
 }

@@ -58,7 +58,7 @@ public class StatServiceImpl extends ServiceImpl<StatMapper, Stat> implements St
     }
 
     @Override
-    public Map<String, Object> stats(int days) {
+    public Map<String, Object> stats(int days, int top) {
         LocalDate today = LocalDate.now();
         LocalDate start = today.minusDays(days - 1L);
         List<Stat> list = lambdaQuery().between(Stat::getStatDate, start, today).list();
@@ -93,7 +93,7 @@ public class StatServiceImpl extends ServiceImpl<StatMapper, Stat> implements St
         apis.entrySet().stream()
                 .sorted(Map.Entry.<String, Long>comparingByValue(Comparator.reverseOrder())
                         .thenComparing(Map.Entry.comparingByKey()))
-                .limit(50)
+                .limit(Math.max(top, 0))
                 .forEach(e -> {
                     Map<String, Object> m = new LinkedHashMap<>();
                     m.put("api", e.getKey());

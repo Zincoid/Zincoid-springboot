@@ -161,12 +161,14 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     }
 
     @Override
-    public PageVO<RepoCardVO> list(RepoType type, String keyword, int page, int size) {
+    public PageVO<RepoCardVO> list(RepoType type, String keyword, boolean tagged, int page, int size) {
+        boolean hasKeyword = keyword != null && !keyword.isBlank();
         Page<Repo> repoPage = lambdaQuery()
                 .eq(Repo::getStatus, Status.ACTIVE)
                 .ne(Repo::getVisibility, Visibility.PRIVATE)
                 .eq(type != null, Repo::getType, type)
-                .like(keyword != null && !keyword.isBlank(), Repo::getName, keyword)
+                .like(hasKeyword && !tagged, Repo::getName, keyword)
+                .like(hasKeyword && tagged, Repo::getTags, keyword)
                 .orderByDesc(Repo::getCreatedAt)
                 .page(Page.of(page, size));
         return PageVO.of(repoPage, this::buildCardVO);

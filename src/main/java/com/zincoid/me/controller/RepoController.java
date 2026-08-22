@@ -68,9 +68,10 @@ public class RepoController {
     @GetMapping("/public")
     public ApiResponse<PageVO<RepoCardVO>> listRepos(@RequestParam(defaultValue = "1") int page,
                                                      @RequestParam(defaultValue = "10") int size,
+                                                     @RequestParam(required = false, defaultValue = "false") boolean tagged,
                                                      @RequestParam(required = false) RepoType type,
                                                      @RequestParam(required = false) String keyword) {
-        return ApiResponse.success(repoService.list(type, keyword, page, size));
+        return ApiResponse.success(repoService.list(type, keyword, tagged, page, size));
     }
 
     @GetMapping("/public/user/{userId}")

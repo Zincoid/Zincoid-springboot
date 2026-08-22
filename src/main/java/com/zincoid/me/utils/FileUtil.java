@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,6 +25,30 @@ public final class FileUtil {
             "zip", "rar", "7z", "tar", "gz", "bz2", "sql", "sh", "bat", "c", "cpp", "h", "rs", "go");
 
     private FileUtil() {}
+
+    public static long totalSpace(String path) {
+        try {
+            return getFileStore(path).getTotalSpace();
+        } catch (IOException e) {
+            log.warn("Failed to get total space of: {}", path, e);
+            throw new BusinessException(500, "Failed to get storage space");
+        }
+    }
+
+    public static long usableSpace(String path) {
+        try {
+            return getFileStore(path).getUsableSpace();
+        } catch (IOException e) {
+            log.warn("Failed to get usable space of: {}", path, e);
+            throw new BusinessException(500, "Failed to get storage space");
+        }
+    }
+
+    private static FileStore getFileStore(String path) throws IOException {
+        Path dir = Paths.get(path);
+        if (!Files.exists(dir)) Files.createDirectories(dir);
+        return Files.getFileStore(dir);
+    }
 
     public static Set<String> list(String path) {
         Path dir = Paths.get(path);

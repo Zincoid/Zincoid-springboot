@@ -67,6 +67,8 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
         long available = Math.max(user.getCapacity() - totalSize(userId), 0L);
         if (file.getSize() > available)
             throw new BusinessException(400, "Insufficient personal storage space");
+        if (file.getSize() > FileUtil.usableSpace(uploadPath))
+            throw new BusinessException(500, "Insufficient server disk space");
         String filePath = FileUtil.save(file, uploadPath);
         String ext = FileUtil.getExt(file.getOriginalFilename());
         FileType fileType = FileUtil.getType(ext);

@@ -5,16 +5,12 @@ import com.zincoid.me.model.po.User;
 import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.StorageService;
 import com.zincoid.me.service.UserService;
+import com.zincoid.me.utils.FileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.nio.file.FileStore;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -31,20 +27,12 @@ public class StorageServiceImpl implements StorageService {
 
     @Override
     public Map<String, Long> storageSpace() {
+        long total = FileUtil.totalSpace(uploadPath);
+        long free = FileUtil.usableSpace(uploadPath);
         Map<String, Long> space = new LinkedHashMap<>();
-        try {
-            Path path = Paths.get(uploadPath);
-            if (!Files.exists(path)) Files.createDirectories(path);
-            FileStore store = Files.getFileStore(path);
-            long total = store.getTotalSpace();
-            long free = store.getUsableSpace();
-            space.put("total", total);
-            space.put("free", free);
-            space.put("used", total - free);
-        } catch (IOException e) {
-            log.warn("Failed to get storage space of: {}", uploadPath, e);
-            throw new BusinessException(500, "Failed to get storage space");
-        }
+        space.put("total", total);
+        space.put("free", free);
+        space.put("used", total - free);
         return space;
     }
 

@@ -28,7 +28,7 @@ public class ThumbnailServiceImpl implements ThumbnailService {
     @Value("${upload.path:./uploads}")
     private String uploadPath;
 
-    @Value("${upload.thumb-max-size:600}")
+    @Value("${upload.thumb-max-size:512}")
     private int maxSize;
 
     @Override
@@ -42,7 +42,11 @@ public class ThumbnailServiceImpl implements ThumbnailService {
         Path original = Paths.get(uploadPath, filename);
         if (!Files.isRegularFile(original)) return null;
         try {
-            Path cache = Paths.get(uploadPath, "thumb", FileUtil.toThumbName(filename));
+            Path cache = Paths.get(
+                    uploadPath,
+                    FileUtil.THUMBNAILS_FOLDER,
+                    FileUtil.toThumbName(filename)
+            );
             if (!Files.isRegularFile(cache)) {
                 if (isAnimatedGif(original)) {
                     log.debug("Thumbnail of gif, use original: {}", filename);

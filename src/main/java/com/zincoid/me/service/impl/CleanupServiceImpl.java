@@ -46,6 +46,10 @@ public class CleanupServiceImpl {
         return fileService.cleanup(isLogic);
     }
 
+    public int cleanupUnlinkedFiles(Long userId) {
+        return fileService.cleanupUnlinked(userId);
+    }
+
     // ── helpers ──
 
     private Set<Long> userIds() {

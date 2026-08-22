@@ -49,4 +49,9 @@ public class StorageController {
         AuthCtx.requireAdmin();
         return ApiResponse.success(cleanupService.cleanupFiles(isLogic));
     }
+
+    @DeleteMapping("/unlinked")
+    public ApiResponse<Integer> cleanupUnlinkedFiles() {
+        return ApiResponse.success(cleanupService.cleanupUnlinkedFiles(AuthCtx.getUserId()));
+    }
 }

@@ -212,6 +212,22 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     }
 
     @Override
+    @Transactional
+    public int cleanupUnlinked(Long userId) {
+        List<File> files = lambdaQuery()
+                .eq(File::getUserId, userId)
+                .and(w -> w.isNull(File::getRelatedType).or().isNull(File::getRelatedId))
+                .list();
+        for (File file : files) {
+            FileUtil.delete(file.getFilePath(), uploadPath);
+            removeById(file.getId());
+        }
+        if (!files.isEmpty())
+            log.info("File unlinked deleted: user={}, count={}", userId, files.size());
+        return files.size();
+    }
+
+    @Override
     public long totalSize(Long userId) {
         return lambdaQuery()
                 .select(File::getFileSize)

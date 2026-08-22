@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public final class FileUtil {
 
+    public static final String THUMBNAILS_FOLDER = "thumb";
+
     public static final Set<String> IMAGE_EXTS = Set.of("jpg", "jpeg", "png", "gif", "webp", "bmp");
     public static final Set<String> VIDEO_EXTS = Set.of("mp4", "webm", "ogg", "mov", "avi");
     public static final Set<String> AUDIO_EXTS = Set.of("mp3", "wav", "ogg", "aac", "flac");
@@ -87,7 +89,7 @@ public final class FileUtil {
         if (filename == null || filename.isBlank()) return;
         try {
             Files.deleteIfExists(Paths.get(path, filename));
-            Files.deleteIfExists(Paths.get(path, "thumb", toThumbName(filename)));
+            Files.deleteIfExists(Paths.get(path, THUMBNAILS_FOLDER, toThumbName(filename)));
             log.info("File deleted: {}", filename);
         } catch (IOException e) {
             log.warn("Failed to delete file: {}", filename, e);

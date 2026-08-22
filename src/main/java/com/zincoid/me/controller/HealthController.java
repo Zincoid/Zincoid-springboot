@@ -5,7 +5,9 @@ import com.zincoid.me.service.impl.CleanupServiceImpl;
 import com.zincoid.me.utils.AuthCtx;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -24,10 +26,23 @@ public class HealthController {
 
     private final CleanupServiceImpl cleanupService;
 
+    private final ObjectProvider<BuildProperties> buildPropertiesProvider;
+
     @Value("${upload.path:./uploads}")
     private String uploadPath;
 
     // ──── Public endpoints ────────────────
+
+    @GetMapping("/version")
+    public ApiResponse<Map<String, String>> version() {
+        BuildProperties build = buildPropertiesProvider.getIfAvailable();
+        Map<String, String> info = new LinkedHashMap<>();
+        info.put("name", build != null ? build.getName() : "unknown");
+        info.put("version", build != null ? build.getVersion() : "dev");
+        info.put("time", build != null && build.getTime() != null
+                ? build.getTime().toString() : null);
+        return ApiResponse.success(info);
+    }
 
     @GetMapping("/storage")
     public ApiResponse<Map<String, Long>> storageSpace() {

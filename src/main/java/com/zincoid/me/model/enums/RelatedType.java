@@ -12,7 +12,8 @@ public enum RelatedType {
     ARTICLE(1),
     AVATAR(2),
     CHAT(3),
-    REPO(4);
+    REPO(4),
+    MUSIC(5);
 
     @EnumValue
     private final Integer value;

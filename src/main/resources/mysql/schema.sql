@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS `moment` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Moment / Feed table';
 
 -- =============================================
--- 3. Unified Comment Table (for both moments and articles)
+-- 3. Unified Comment Table (for moments, articles and repos)
 -- =============================================
 CREATE TABLE IF NOT EXISTS `comment` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
@@ -118,7 +118,7 @@ CREATE TABLE IF NOT EXISTS `file` (
     `file_path`     VARCHAR(500)    NOT NULL                 COMMENT 'Server-side file path',
     `file_type`     TINYINT         NOT NULL DEFAULT 0       COMMENT 'File type: 0=IMAGE, 1=VIDEO, 2=AUDIO, 3=OTHER',
     `file_size`     BIGINT          NOT NULL DEFAULT 0       COMMENT 'File size in bytes',
-    `related_type`  TINYINT         DEFAULT NULL             COMMENT 'Related business type: 0=MOMENT, 1=ARTICLE, 2=AVATAR, 3=CHAT',
+    `related_type`  TINYINT         DEFAULT NULL             COMMENT 'Related business type: 0=MOMENT, 1=ARTICLE, 2=AVATAR, 3=CHAT, 4=REPO, 5=MUSIC',
     `related_id`    BIGINT          DEFAULT NULL             COMMENT 'Related business record ID',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Upload time',
     PRIMARY KEY (`id`),
@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS `file` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='File record table';
 
 -- =============================================
--- 6. Like Table (for both moments and articles)
+-- 6. Like Table (for moments, articles and repos)
 -- =============================================
 CREATE TABLE IF NOT EXISTS `likes` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',

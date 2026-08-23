@@ -73,6 +73,22 @@ public final class FileUtil {
         return Files.getFileStore(dir);
     }
 
+    // ──── Thumbnail operations ──────────────
+
+    public static String toThumbName(String filename) {
+        String base = filename.substring(0, filename.lastIndexOf('.'));
+        return base + "_thumb." + (isJpeg(getExt(filename)) ? "jpg" : "png");
+    }
+
+    public static String toThumbUrl(String urlOrPath) {
+        if (urlOrPath == null || !urlOrPath.startsWith("/uploads/")) return urlOrPath;
+        return "/thumbnails/" + urlOrPath.substring("/uploads/".length());
+    }
+
+    public static boolean isJpeg(String ext) {
+        return "jpg".equals(ext) || "jpeg".equals(ext);
+    }
+
     // ──── File operations ───────────────────
 
     public static Set<String> list(String path) {
@@ -117,20 +133,6 @@ public final class FileUtil {
         } catch (IOException e) {
             log.warn("Failed to delete file: {}", filename, e);
         }
-    }
-
-    public static String toThumbName(String filename) {
-        String base = filename.substring(0, filename.lastIndexOf('.'));
-        return base + "_thumb." + (isJpeg(getExt(filename)) ? "jpg" : "png");
-    }
-
-    public static String toThumbUrl(String urlOrPath) {
-        if (urlOrPath == null || !urlOrPath.startsWith("/uploads/")) return urlOrPath;
-        return "/thumbnails/" + urlOrPath.substring("/uploads/".length());
-    }
-
-    public static boolean isJpeg(String ext) {
-        return "jpg".equals(ext) || "jpeg".equals(ext);
     }
 
     public static String getExt(String filename) {

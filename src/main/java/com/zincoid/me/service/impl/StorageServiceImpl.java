@@ -30,7 +30,7 @@ public class StorageServiceImpl implements StorageService {
     public Map<String, Long> storageSpace() {
         long total = FileUtil.totalSpace(uploadPath);
         long free = FileUtil.usableSpace(uploadPath);
-        long cache = FileUtil.dirSize(Paths.get(uploadPath, FileUtil.THUMBNAILS_FOLDER).toString());
+        long cache = FileUtil.dirSize(Paths.get(uploadPath, FileUtil.CACHE_FOLDER).toString());
         long used = FileUtil.dirSize(uploadPath) - cache;
         Map<String, Long> space = new LinkedHashMap<>();
         space.put("total", total);

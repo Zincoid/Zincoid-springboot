@@ -44,7 +44,7 @@ public class ThumbnailServiceImpl implements ThumbnailService {
         try {
             Path cache = Paths.get(
                     uploadPath,
-                    FileUtil.THUMBNAILS_FOLDER,
+                    FileUtil.CACHE_FOLDER,
                     FileUtil.toThumbName(filename)
             );
             if (!Files.isRegularFile(cache)) {

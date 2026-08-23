@@ -28,6 +28,8 @@ public interface FileService extends IService<File> {
 
     int cleanupUnlinked(Long userId);
 
+    int cleanupCache();
+
     long totalSize(Long userId);
 
     Path logFile();

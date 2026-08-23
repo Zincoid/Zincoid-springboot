@@ -228,6 +228,13 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     }
 
     @Override
+    public int cleanupCache() {
+        int count = FileUtil.clear(Paths.get(uploadPath, FileUtil.CACHE_FOLDER).toString());
+        log.info("Cache cleared: {} files", count);
+        return count;
+    }
+
+    @Override
     public long totalSize(Long userId) {
         return lambdaQuery()
                 .select(File::getFileSize)

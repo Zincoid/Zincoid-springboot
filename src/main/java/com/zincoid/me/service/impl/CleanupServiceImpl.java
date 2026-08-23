@@ -14,7 +14,7 @@ import java.util.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CleanupServiceImpl {
+public class CleanupServiceImpl implements CleanupService {
 
     private final FileService fileService;
     private final UserService userService;
@@ -48,6 +48,10 @@ public class CleanupServiceImpl {
 
     public int cleanupUnlinkedFiles(Long userId) {
         return fileService.cleanupUnlinked(userId);
+    }
+
+    public int cleanupCacheFiles() {
+        return fileService.cleanupCache();
     }
 
     // ── helpers ──

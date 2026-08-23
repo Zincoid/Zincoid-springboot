@@ -1,7 +1,7 @@
 package com.zincoid.me.configuration;
 
+import com.zincoid.me.service.CleanupService;
 import com.zincoid.me.service.ConfigService;
-import com.zincoid.me.service.impl.CleanupServiceImpl;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +16,7 @@ public class Maintainer {
     private static final String CONFIG_KEY = "maintenance_enabled";
 
     private final ConfigService configService;
-    private final CleanupServiceImpl cleanupService;
+    private final CleanupService cleanupService;
 
     @Getter
     private volatile boolean active = false;

@@ -10,6 +10,7 @@ import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -133,6 +134,26 @@ public final class FileUtil {
         } catch (IOException e) {
             log.warn("Failed to delete file: {}", filename, e);
         }
+    }
+
+    public static int clear(String path) {
+        Path dir = Paths.get(path);
+        if (!Files.exists(dir)) return 0;
+        int count = 0;
+        try (var stream = Files.walk(dir)) {
+            for (Path p : stream.sorted(Comparator.reverseOrder()).toList()) {
+                if (p.equals(dir)) continue;
+                try {
+                    Files.deleteIfExists(p);
+                    count++;
+                } catch (IOException e) {
+                    log.warn("Failed to delete: {}", p, e);
+                }
+            }
+        } catch (IOException e) {
+            log.warn("Failed to clear directory: {}", path, e);
+        }
+        return count;
     }
 
     public static String getExt(String filename) {

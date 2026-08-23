@@ -1,8 +1,8 @@
 package com.zincoid.me.controller;
 
 import com.zincoid.me.model.ApiResponse;
+import com.zincoid.me.service.CleanupService;
 import com.zincoid.me.service.StorageService;
-import com.zincoid.me.service.impl.CleanupServiceImpl;
 import com.zincoid.me.utils.AuthCtx;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +15,7 @@ import java.util.Map;
 public class StorageController {
 
     private final StorageService storageService;
-    private final CleanupServiceImpl cleanupService;
+    private final CleanupService cleanupService;
 
     // ──── Private endpoints ───────────────
 
@@ -23,6 +23,12 @@ public class StorageController {
     public ApiResponse<Map<String, Long>> storageSpace() {
         AuthCtx.requireAdmin();
         return ApiResponse.success(storageService.storageSpace());
+    }
+
+    @DeleteMapping("/cache")
+    public ApiResponse<Integer> clearCache() {
+        AuthCtx.requireAdmin();
+        return ApiResponse.success(cleanupService.cleanupCacheFiles());
     }
 
     @GetMapping("/user")

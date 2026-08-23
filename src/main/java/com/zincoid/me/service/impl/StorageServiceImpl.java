@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -29,10 +30,14 @@ public class StorageServiceImpl implements StorageService {
     public Map<String, Long> storageSpace() {
         long total = FileUtil.totalSpace(uploadPath);
         long free = FileUtil.usableSpace(uploadPath);
+        long cache = FileUtil.dirSize(Paths.get(uploadPath, FileUtil.THUMBNAILS_FOLDER).toString());
+        long used = FileUtil.dirSize(uploadPath) - cache;
         Map<String, Long> space = new LinkedHashMap<>();
         space.put("total", total);
+        space.put("other", Math.max(total - free - used - cache, 0L));
+        space.put("used", used);
+        space.put("cache", cache);
         space.put("free", free);
-        space.put("used", total - free);
         return space;
     }
 

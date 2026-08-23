@@ -28,6 +28,8 @@ public final class FileUtil {
 
     private FileUtil() {}
 
+    // ──── Storage information ───────────────
+
     public static long totalSpace(String path) {
         try {
             return getFileStore(path).getTotalSpace();
@@ -46,11 +48,32 @@ public final class FileUtil {
         }
     }
 
+    public static long dirSize(String path) {
+        Path dir = Paths.get(path);
+        if (!Files.exists(dir)) return 0L;
+        try (var stream = Files.walk(dir)) {
+            return stream.filter(Files::isRegularFile)
+                    .mapToLong(p -> {
+                        try {
+                            return Files.size(p);
+                        } catch (IOException e) {
+                            return 0L;
+                        }
+                    })
+                    .sum();
+        } catch (IOException e) {
+            log.warn("Failed to measure directory: {}", path, e);
+            return 0L;
+        }
+    }
+
     private static FileStore getFileStore(String path) throws IOException {
         Path dir = Paths.get(path);
         if (!Files.exists(dir)) Files.createDirectories(dir);
         return Files.getFileStore(dir);
     }
+
+    // ──── File operations ───────────────────
 
     public static Set<String> list(String path) {
         Path dir = Paths.get(path);

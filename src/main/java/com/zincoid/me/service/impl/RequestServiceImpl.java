@@ -44,6 +44,8 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
     @Override
     @Transactional
     public RequestVO create(Long senderId, Long receiverId, RequestType type, String content) {
+        if (type == null)
+            throw new BusinessException(400, "Request type is invalid");
         if (ADMIN_ONLY.contains(type))
             receiverId = ADMIN_UNHANDLED;
         else if (senderId.equals(receiverId))

@@ -223,14 +223,14 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
             removeById(file.getId());
         }
         if (!files.isEmpty())
-            log.info("File unlinked deleted: user={}, count={}", userId, files.size());
+            log.info("File unlinked cleared: user={}, count={}", userId, files.size());
         return files.size();
     }
 
     @Override
     public int cleanupCache() {
         int count = FileUtil.clear(Paths.get(uploadPath, FileUtil.CACHE_FOLDER).toString());
-        log.info("Cache cleared: {} files", count);
+        log.info("Cache cleared: count={}", count);
         return count;
     }
 

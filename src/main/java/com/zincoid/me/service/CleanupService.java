@@ -11,4 +11,6 @@ public interface CleanupService {
     int cleanupUnlinkedFiles(Long userId);
 
     int cleanupCacheFiles();
+
+    int cleanupExpiredRequests(int retentionDays);
 }

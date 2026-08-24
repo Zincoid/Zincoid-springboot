@@ -55,6 +55,10 @@ public class CleanupServiceImpl implements CleanupService {
         return fileService.cleanupCache();
     }
 
+    public int cleanupExpiredRequests(int retentionDays) {
+        return requestService.cleanupExpired(retentionDays);
+    }
+
     // ── helpers ──
 
     private Set<Long> userIds() {

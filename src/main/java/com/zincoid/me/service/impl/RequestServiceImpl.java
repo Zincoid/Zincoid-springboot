@@ -9,6 +9,7 @@ import com.zincoid.me.mapper.RequestMapper;
 import com.zincoid.me.model.enums.Access;
 import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.RequestType;
+import com.zincoid.me.model.po.Notification;
 import com.zincoid.me.model.po.Request;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.vo.PageVO;
@@ -152,6 +153,24 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
         removeById(requestId);
         notificationService.deleteAll(NotificationType.REQUEST, requestId);
         log.info("Request deleted: id={}, by={}", requestId, userId);
+    }
+
+    @Override
+    @Transactional
+    public int cleanupExpired(int retentionDays) {
+        List<Long> ids = lambdaQuery()
+                .select(Request::getId)
+                .lt(Request::getCreatedAt, LocalDateTime.now().minusDays(retentionDays))
+                .list().stream().map(Request::getId).toList();
+        if (!ids.isEmpty()) {
+            notificationService.lambdaUpdate()
+                    .eq(Notification::getRelatedType, NotificationType.REQUEST)
+                    .in(Notification::getRelatedId, ids)
+                    .remove();
+            removeBatchByIds(ids);
+        }
+        log.info("Request expired cleared: count={}", ids.size());
+        return ids.size();
     }
 
     // ──────── Private tool ────────────────────────────────

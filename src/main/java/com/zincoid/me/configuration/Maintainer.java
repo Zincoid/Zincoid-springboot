@@ -2,6 +2,7 @@ package com.zincoid.me.configuration;
 
 import com.zincoid.me.service.CleanupService;
 import com.zincoid.me.service.ConfigService;
+import com.zincoid.me.service.RequestService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 public class Maintainer {
 
     private static final String CONFIG_KEY = "maintenance_enabled";
+    private static final int AUTO_CLEANUP_REQUEST_RETENTION_DAYS = 7;
 
     private final ConfigService configService;
     private final CleanupService cleanupService;
@@ -40,6 +42,8 @@ public class Maintainer {
         try {
             cleanupService.cleanupRecords();
             cleanupService.cleanupFiles(true);
+            cleanupService.cleanupExpiredRequests(
+                    AUTO_CLEANUP_REQUEST_RETENTION_DAYS);
             log.info("Maintenance cleanup done");
         } catch (Exception e) {
             log.error("Maintenance cleanup failed", e);

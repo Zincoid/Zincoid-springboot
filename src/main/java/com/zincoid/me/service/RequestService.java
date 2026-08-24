@@ -18,4 +18,6 @@ public interface RequestService extends IService<Request> {
     RequestVO handle(Long userId, Long requestId, Access access, boolean isAdmin);
 
     void delete(Long userId, Long requestId, boolean isAdmin);
+
+    int cleanupExpired(int retentionDays);
 }

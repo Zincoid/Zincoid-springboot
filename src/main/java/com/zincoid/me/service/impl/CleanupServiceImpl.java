@@ -164,6 +164,7 @@ public class CleanupServiceImpl implements CleanupService {
                         case LIKE -> likeService.getById(n.getRelatedId()) == null;
                         case ACCESS_REQUEST, ACCESS_APPROVED, ACCESS_REJECTED ->
                                 repoService.getById(n.getRelatedId()) == null;
+                        case REQUEST -> repoService.getById(n.getRelatedId()) == null;
                         default -> false;
                     };
                 })

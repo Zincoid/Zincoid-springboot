@@ -128,7 +128,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
         if (!request.getSenderId().equals(userId))
             notificationService.notifyReq(
                     userId, request.getSenderId(),
-                    access == Access.APPROVED ? "Your request was approved" : "Your request was rejected",
+                    access == Access.APPROVED ? "Approved" : "Rejected",
                     NotificationType.REQUEST,
                     requestId,
                     false

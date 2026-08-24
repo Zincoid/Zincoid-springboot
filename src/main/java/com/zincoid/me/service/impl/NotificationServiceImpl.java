@@ -127,7 +127,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                 snippet = n.getMessage();
             } else if (n.getRelatedType() == NotificationType.REQUEST) {
                 Request request = requestService.getById(n.getRelatedId());
-                snippet = "Request: type=%s, meta=%s\nResponse: %s"
+                snippet = "Info: type=%s, meta=%s\nStatus: %s"
                         .formatted(request.getType(), request.getMeta(), n.getMessage());
             } else if (n.getRelatedType() == NotificationType.REGISTER) {
                 snippet = "Email: " + sender.getEmail();

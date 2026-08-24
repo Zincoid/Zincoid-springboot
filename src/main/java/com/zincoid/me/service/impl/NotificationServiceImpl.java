@@ -36,6 +36,8 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
     private final MessageService messageService;
     private final LikeService likeService;
     private final CommentService commentService;
+    private final RequestService requestService;
+
 
     public NotificationServiceImpl(UserService userService,
                                    @Lazy MomentService momentService,
@@ -43,7 +45,8 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                                    @Lazy RepoService repoService,
                                    @Lazy MessageService messageService,
                                    @Lazy LikeService likeService,
-                                   @Lazy CommentService commentService) {
+                                   @Lazy CommentService commentService,
+                                   @Lazy RequestService requestService) {
         this.userService = userService;
         this.momentService = momentService;
         this.articleService = articleService;
@@ -51,6 +54,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
         this.messageService = messageService;
         this.likeService = likeService;
         this.commentService = commentService;
+        this.requestService = requestService;
     }
 
     @Override
@@ -122,7 +126,9 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
             } else if (n.getRelatedType() == NotificationType.SYSTEM) {
                 snippet = n.getMessage();
             } else if (n.getRelatedType() == NotificationType.REQUEST) {
-                snippet = n.getMessage();
+                Request request = requestService.getById(n.getRelatedId());
+                snippet = "Request: type=%s, meta=%s\nResponse: %s"
+                        .formatted(request.getType(), request.getMeta(), n.getMessage());
             } else if (n.getRelatedType() == NotificationType.REGISTER) {
                 snippet = "Email: " + sender.getEmail();
             } else if (n.getRelatedType() == NotificationType.ACCESS_REQUEST

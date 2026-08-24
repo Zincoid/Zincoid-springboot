@@ -46,8 +46,11 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
     public RequestVO create(Long senderId, Long receiverId, RequestType type, String content) {
         if (type == null)
             throw new BusinessException(400, "Request type is invalid");
-        if (ADMIN_ONLY.contains(type))
+        if (ADMIN_ONLY.contains(type)) {
             receiverId = ADMIN_UNHANDLED;
+            if (type == RequestType.STORAGE_EXTENSION && parseCapacity(content) == null)
+                throw new BusinessException(400, "Invalid capacity in request");
+        }
         else if (senderId.equals(receiverId))
             throw new BusinessException(400, "Sender and receiver cannot be the same");
         else if (userService.getById(receiverId) == null)
@@ -102,13 +105,13 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
     @Override
     @Transactional
     public RequestVO handle(Long userId, Long requestId, Access access, boolean isAdmin) {
-        if (access == Access.PENDING)
+        if (access == null || access == Access.PENDING)
             throw new BusinessException(400, "Invalid handle status");
         Request request = getById(requestId);
         if (request == null)
             throw new BusinessException(404, "Request not found");
-        if ((ADMIN_ONLY.contains(request.getType()) && !isAdmin) ||
-                !request.getReceiverId().equals(userId) && request.getReceiverId() != ADMIN_UNHANDLED)
+        if ((ADMIN_ONLY.contains(request.getType()) && !isAdmin)
+                || (!request.getReceiverId().equals(userId) && request.getReceiverId() != ADMIN_UNHANDLED))
             throw new BusinessException(403, "No permission to handle this request");
         boolean updated = lambdaUpdate()
                 .eq(Request::getId, requestId)

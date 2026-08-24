@@ -290,7 +290,7 @@ CREATE TABLE IF NOT EXISTS `request` (
     `sender_id`     BIGINT      NOT NULL                 COMMENT 'Sender user ID',
     `receiver_id`   BIGINT      NOT NULL                 COMMENT 'Receiver user ID; -1=unhandled for admin-handled requests, handler ID once processed',
     `type`          TINYINT     NOT NULL DEFAULT 0       COMMENT 'Request type: 0=STORAGE_EXTENSION',
-    `content`       JSON        DEFAULT NULL             COMMENT 'Request content',
+    `meta`          JSON        DEFAULT NULL             COMMENT 'Request meta content',
     `access`        TINYINT     NOT NULL DEFAULT 0       COMMENT 'Access: 0=PENDING, 1=APPROVED, 2=REJECTED',
     `handled_at`    DATETIME    DEFAULT NULL             COMMENT 'Handle time',
     `created_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Request time',

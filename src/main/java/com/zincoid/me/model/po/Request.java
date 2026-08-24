@@ -24,7 +24,7 @@ public class Request {
     private Long senderId;
     private Long receiverId;
     private RequestType type;
-    private String content;
+    private String meta;
     private Access access;
     private LocalDateTime handledAt;
     private LocalDateTime createdAt;

@@ -23,8 +23,8 @@ public class RequestController {
     @PostMapping("/{receiverId}")
     public ApiResponse<RequestVO> create(@PathVariable Long receiverId,
                                          @RequestParam RequestType type,
-                                         @RequestParam(required = false) String content) {
-        return ApiResponse.success(requestService.create(AuthCtx.getUserId(), receiverId, type, content));
+                                         @RequestParam(required = false) String meta) {
+        return ApiResponse.success(requestService.create(AuthCtx.getUserId(), receiverId, type, meta));
     }
 
     @GetMapping("/sent")

@@ -9,7 +9,7 @@ import com.zincoid.me.model.vo.RequestVO;
 
 public interface RequestService extends IService<Request> {
 
-    RequestVO create(Long senderId, Long receiverId, RequestType type, String content);
+    RequestVO create(Long senderId, Long receiverId, RequestType type, String meta);
 
     PageVO<RequestVO> sent(Long userId, int page, int size);
 

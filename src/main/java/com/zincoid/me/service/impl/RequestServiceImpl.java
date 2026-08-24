@@ -43,13 +43,13 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
 
     @Override
     @Transactional
-    public RequestVO create(Long senderId, Long receiverId, RequestType type, String content) {
+    public RequestVO create(Long senderId, Long receiverId, RequestType type, String meta) {
         if (type == null)
             throw new BusinessException(400, "Request type is invalid");
         if (ADMIN_ONLY.contains(type)) {
             receiverId = ADMIN_UNHANDLED;
-            if (type == RequestType.STORAGE_EXTENSION && parseCapacity(content) == null)
-                throw new BusinessException(400, "Invalid capacity in request");
+            if (type == RequestType.STORAGE_EXTENSION && parseCapacity(meta) == null)
+                throw new BusinessException(400, "Invalid capacity in request meta");
         }
         else if (senderId.equals(receiverId))
             throw new BusinessException(400, "Sender and receiver cannot be the same");
@@ -59,7 +59,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                 .senderId(senderId)
                 .receiverId(receiverId)
                 .type(type)
-                .content(content)
+                .meta(meta)
                 .access(Access.PENDING)
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -123,6 +123,14 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
         if (!updated)
             throw new BusinessException(400, "Request already handled");
         if (access == Access.APPROVED) apply(request);
+        if (!request.getSenderId().equals(userId))
+            notificationService.notifyReq(
+                    userId, request.getSenderId(),
+                    access == Access.APPROVED ? "Your request was approved" : "Your request was rejected",
+                    NotificationType.REQUEST,
+                    requestId,
+                    false
+            );
         log.info("Request handled: id={}, by={}, access={}", requestId, userId, access);
         request.setAccess(access);
         request.setHandledAt(LocalDateTime.now());
@@ -133,7 +141,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
 
     private void apply(Request request) {
         if (request.getType() == RequestType.STORAGE_EXTENSION) {
-            Long capacity = parseCapacity(request.getContent());
+            Long capacity = parseCapacity(request.getMeta());
             if (capacity == null || capacity < 0)
                 throw new BusinessException(400, "Invalid capacity in request");
             User user = userService.getById(request.getSenderId());
@@ -163,7 +171,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                 .senderName(sender != null ? sender.getUsername() : null)
                 .receiverId(request.getReceiverId())
                 .type(request.getType())
-                .content(request.getContent())
+                .meta(request.getMeta())
                 .access(request.getAccess())
                 .handledAt(request.getHandledAt())
                 .createdAt(request.getCreatedAt())

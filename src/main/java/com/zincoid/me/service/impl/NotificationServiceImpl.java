@@ -139,7 +139,8 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
     @Override
     @Transactional
     public void notify(Long senderId, Long receiverId, NotificationType type, Long relatedId) {
-        if (senderId.equals(receiverId)) return;
+        if (senderId.equals(receiverId))
+            throw new BusinessException(400, "Sender and receiver cannot be the same");
         if (userService.getById(receiverId) == null)
             throw new BusinessException("User not found");
         Notification notification = Notification.builder()
@@ -174,6 +175,8 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
     @Override
     @Transactional
     public void notifyReq(Long senderId, Long receiverId, String message, NotificationType type, Long relatedId, boolean isAdminOnly) {
+        if (senderId.equals(receiverId))
+            throw new BusinessException(400, "Sender and receiver cannot be the same");
         if (!isAdminOnly) {
             if (userService.getById(receiverId) == null)
                 throw new BusinessException("User not found");

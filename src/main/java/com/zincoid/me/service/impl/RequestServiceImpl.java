@@ -123,6 +123,14 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
         if (!updated)
             throw new BusinessException(400, "Request already handled");
         if (access == Access.APPROVED) apply(request);
+        if (!request.getSenderId().equals(userId))
+            notificationService.notifyReq(
+                    userId, request.getSenderId(),
+                    access == Access.APPROVED ? "Your request was approved" : "Your request was rejected",
+                    NotificationType.REQUEST,
+                    requestId,
+                    false
+            );
         log.info("Request handled: id={}, by={}, access={}", requestId, userId, access);
         request.setAccess(access);
         request.setHandledAt(LocalDateTime.now());

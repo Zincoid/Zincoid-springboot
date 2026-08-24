@@ -210,7 +210,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                     .build());
         }
         if (!batch.isEmpty()) saveBatch(batch);
-        log.info("Req notification created: sender={}, recipients={}", senderId, batch.size());
+        log.info("Req notification created (admin only): sender={}, recipients={}", senderId, batch.size());
     }
 
     @Override

@@ -51,7 +51,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
         if (ADMIN_ONLY.contains(type)) {
             receiverId = ADMIN_UNHANDLED;
             if (type == RequestType.STORAGE_EXTENSION && parseExpansion(meta) == null)
-                throw new BusinessException(400, "Invalid expansion in request meta");
+                throw new BusinessException(400, "Invalid expansion in request");
         }
         else if (senderId.equals(receiverId))
             throw new BusinessException(400, "Sender and receiver cannot be the same");

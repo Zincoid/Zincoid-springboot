@@ -18,7 +18,6 @@ import com.zincoid.me.service.MessageService;
 import com.zincoid.me.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,7 +49,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         if (msg.getFile() != null)
             fileService.link(List.of(msg.getFile()), RelatedType.CHAT, msg.getId());
         trim();
-        notificationService.notify(userId, msg.getContent(), NotificationType.CHAT_MENTION, msg.getId());
+        notificationService.notifyAt(userId, msg.getContent(), NotificationType.CHAT_MENTION, msg.getId());
         log.info("Message sent: user={}, id={}", userId, msg.getId());
         return buildVO(msg);
     }

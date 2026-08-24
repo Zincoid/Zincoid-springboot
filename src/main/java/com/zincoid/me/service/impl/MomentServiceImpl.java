@@ -57,7 +57,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
                 .visibility(request.getVisibility() != null ? request.getVisibility() : Visibility.PUBLIC)
                 .build();
         save(moment);
-        notificationService.notify(userId, request.getContent(), NotificationType.MOMENT_MENTION, moment.getId());
+        notificationService.notifyAt(userId, request.getContent(), NotificationType.MOMENT_MENTION, moment.getId());
         log.info("Moment created: user={}, id={}", userId, moment.getId());
         if (request.getUrls() != null && !request.getUrls().isEmpty())
             fileService.link(request.getUrls(), RelatedType.MOMENT, moment.getId());
@@ -76,7 +76,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
             moment.setContent(request.getContent());
             notificationService.deleteAll(NotificationType.MOMENT_MENTION, momentId);
             if (!request.getContent().isBlank())
-                notificationService.notify(userId, request.getContent(), NotificationType.MOMENT_MENTION, momentId);
+                notificationService.notifyAt(userId, request.getContent(), NotificationType.MOMENT_MENTION, momentId);
         }
         if (request.getUrls() != null) {
             List<String> oldImages = JsonUtil.parseImages(moment.getUrls());

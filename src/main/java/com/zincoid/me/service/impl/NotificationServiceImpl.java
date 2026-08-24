@@ -6,6 +6,7 @@ import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.NotificationMapper;
 import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.RelatedType;
+import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.po.*;
 import com.zincoid.me.model.vo.NotificationVO;
@@ -120,6 +121,8 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                     snippet = snippet.substring(0, 80) + "...";
             } else if (n.getRelatedType() == NotificationType.SYSTEM) {
                 snippet = n.getMessage();
+            } else if (n.getRelatedType() == NotificationType.REQUEST) {
+                snippet = n.getMessage();
             } else if (n.getRelatedType() == NotificationType.REGISTER) {
                 snippet = "Email: " + sender.getEmail();
             } else if (n.getRelatedType() == NotificationType.ACCESS_REQUEST
@@ -151,7 +154,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
 
     @Override
     @Transactional
-    public void notify(Long senderId, String content, NotificationType type, Long relatedId) {
+    public void notifyAt(Long senderId, String content, NotificationType type, Long relatedId) {
         if (content == null) return;
         Matcher m = Pattern.compile("@(\\w{3,50})").matcher(content);
         Set<String> seen = new HashSet<>();
@@ -164,6 +167,29 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
             if (mentioned != null && !mentioned.getId().equals(senderId))
                 notify(senderId, mentioned.getId(), type, relatedId);
         }
+    }
+
+    @Override
+    @Transactional
+    public void notifyAdmins(Long senderId, String content, NotificationType type, Long relatedId) {
+        List<User> admins = userService.lambdaQuery()
+                .eq(User::getRole, Role.ADMIN)
+                .eq(User::getStatus, Status.ACTIVE)
+                .list();
+        List<Notification> batch = new ArrayList<>();
+        for (User admin : admins) {
+            if (admin.getId().equals(senderId)) continue;
+            batch.add(Notification.builder()
+                    .senderId(senderId)
+                    .receiverId(admin.getId())
+                    .relatedType(type)
+                    .relatedId(relatedId)
+                    .message(content)
+                    .isRead(false)
+                    .build());
+        }
+        if (!batch.isEmpty()) saveBatch(batch);
+        log.info("Admin notification created: sender={}, recipients={}", senderId, batch.size());
     }
 
     @Override
@@ -188,7 +214,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
         if (!batch.isEmpty()) {
             saveBatch(batch);
         }
-        log.info("System broadcast sent by sender={}, recipients={}", senderId, batch.size());
+        log.info("Broadcast notification created: sender={}, recipients={}", senderId, batch.size());
     }
 
     @Override

@@ -130,7 +130,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 notificationService.notify(userId, authorId,
                         NotificationType.COMMENT, comment.getId());
         }
-        notificationService.notify(userId, content, NotificationType.COMMENT_MENTION, comment.getId());
+        notificationService.notifyAt(userId, content, NotificationType.COMMENT_MENTION, comment.getId());
         log.info("Comment added: user={}, target={}:{}, id={}", userId, targetType, targetId, comment.getId());
         return toCommentVO(comment, List.of(), 0);
     }

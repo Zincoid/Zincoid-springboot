@@ -8,5 +8,7 @@ public interface StorageService {
 
     Map<String, Long> userStorage(Long userId);
 
+    void expandCapacity(Long userId, Long capacity);
+
     void updateCapacity(String username, Long capacity);
 }

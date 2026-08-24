@@ -181,7 +181,7 @@ CREATE TABLE IF NOT EXISTS `notification` (
     `id`            BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
     `sender_id`     BIGINT      NOT NULL                 COMMENT 'User who triggered the notification',
     `receiver_id`   BIGINT      NOT NULL                 COMMENT 'User who receives the notification',
-    `related_type`  TINYINT     NOT NULL                 COMMENT 'Notification type: 0=COMMENT, 1=REPLY, 2=MOMENT_MENTION, 3=COMMENT_MENTION, 4=CHAT_MENTION, 5=SYSTEM',
+    `related_type`  TINYINT     NOT NULL                 COMMENT 'Notification type: 0=COMMENT, 1=REPLY, 2=MOMENT_MENTION, 3=COMMENT_MENTION, 4=CHAT_MENTION, 5=SYSTEM, 6=LIKE, 7=REGISTER, 8=ACCESS_REQUEST, 9=ACCESS_APPROVED, 10=ACCESS_REJECTED, 11=REQUEST',
     `related_id`    BIGINT      NOT NULL                 COMMENT 'Related target ID, -1 for SYSTEM type',
     `message`       TEXT        DEFAULT NULL             COMMENT 'Notification message (used by SYSTEM type)',
     `is_read`       BOOLEAN     NOT NULL DEFAULT FALSE   COMMENT 'Whether the notification has been read',
@@ -281,6 +281,24 @@ CREATE TABLE IF NOT EXISTS `stat` (
     UNIQUE KEY `uk_date_api` (`stat_date`, `api`),
     KEY `idx_stat_date` (`stat_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Daily API usage statistics';
+
+-- =============================================
+-- 15. Generic Request Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `request` (
+    `id`            BIGINT      NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
+    `sender_id`     BIGINT      NOT NULL                 COMMENT 'Sender user ID',
+    `receiver_id`   BIGINT      NOT NULL                 COMMENT 'Receiver user ID; -1=unhandled for admin-handled requests, handler ID once processed',
+    `type`          TINYINT     NOT NULL DEFAULT 0       COMMENT 'Request type: 0=STORAGE_EXTENSION',
+    `content`       JSON        DEFAULT NULL             COMMENT 'Request content',
+    `access`        TINYINT     NOT NULL DEFAULT 0       COMMENT 'Access: 0=PENDING, 1=APPROVED, 2=REJECTED',
+    `handled_at`    DATETIME    DEFAULT NULL             COMMENT 'Handle time',
+    `created_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Request time',
+    PRIMARY KEY (`id`),
+    KEY `idx_sender_id` (`sender_id`),
+    KEY `idx_receiver_id` (`receiver_id`),
+    KEY `idx_access` (`access`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Generic request table for user and admin-managed requests';
 
 -- =============================================
 -- Default admin user is auto-created by DataInitializer on first startup

@@ -12,7 +12,9 @@ public interface NotificationService extends IService<Notification> {
 
     void notify(Long senderId, Long receiverId, NotificationType type, Long relatedId);
 
-    void notify(Long senderId, String content, NotificationType type, Long relatedId);
+    void notifyAt(Long senderId, String content, NotificationType type, Long relatedId);
+
+    void notifyAdmins(Long senderId, String content, NotificationType type, Long relatedId);
 
     void deleteOne(Long notificationId, Long userId);
 

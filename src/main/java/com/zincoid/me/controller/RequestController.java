@@ -1,0 +1,41 @@
+package com.zincoid.me.controller;
+
+import com.zincoid.me.model.ApiResponse;
+import com.zincoid.me.model.enums.Access;
+import com.zincoid.me.model.enums.RequestType;
+import com.zincoid.me.model.enums.Role;
+import com.zincoid.me.model.vo.PageVO;
+import com.zincoid.me.model.vo.RequestVO;
+import com.zincoid.me.service.RequestService;
+import com.zincoid.me.utils.AuthCtx;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/requests")
+@RequiredArgsConstructor
+public class RequestController {
+
+    private final RequestService requestService;
+
+    // ──── Private endpoints ───────────────
+
+    @PostMapping("/{receiverId}")
+    public ApiResponse<RequestVO> create(@PathVariable Long receiverId,
+                                         @RequestParam RequestType type,
+                                         @RequestParam(required = false) String content) {
+        return ApiResponse.success(requestService.create(AuthCtx.getUserId(), receiverId, type, content));
+    }
+
+    @GetMapping
+    public ApiResponse<PageVO<RequestVO>> list(@RequestParam(defaultValue = "1") int page,
+                                               @RequestParam(defaultValue = "10") int size) {
+        return ApiResponse.success(requestService.list(page, size, AuthCtx.getRole() == Role.ADMIN));
+    }
+
+    @PutMapping("/{requestId}")
+    public ApiResponse<RequestVO> handle(@PathVariable Long requestId,
+                                         @RequestParam Access access) {
+        return ApiResponse.success(requestService.handle(requestId, AuthCtx.getUserId(), access));
+    }
+}

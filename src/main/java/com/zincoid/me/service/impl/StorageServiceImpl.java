@@ -56,6 +56,15 @@ public class StorageServiceImpl implements StorageService {
     }
 
     @Override
+    public void expandCapacity(Long userId, Long capacity) {
+        User user = userService.getById(userId);
+        if (user == null) throw new BusinessException(404, "User not found");
+        user.setCapacity(user.getCapacity() + capacity);
+        userService.updateById(user);
+        log.info("User capacity expanded: user={}, capacity={}", user.getId(), user.getCapacity());
+    }
+
+    @Override
     public void updateCapacity(String username, Long capacity) {
         if (capacity == null || capacity < 0)
             throw new BusinessException(400, "Capacity must be a non-negative number");
@@ -63,6 +72,6 @@ public class StorageServiceImpl implements StorageService {
         if (user == null) throw new BusinessException(404, "User not found");
         user.setCapacity(capacity);
         userService.updateById(user);
-        log.info("User capacity updated: id={}, username={}, capacity={}", user.getId(), user.getUsername(), capacity);
+        log.info("User capacity updated: user={}, capacity={}", user.getId(), capacity);
     }
 }

@@ -36,6 +36,13 @@ public class StorageController {
         return ApiResponse.success(storageService.userStorage(AuthCtx.getUserId()));
     }
 
+    @PostMapping("/capacity")
+    public ApiResponse<Void> expandCapacity(@RequestParam Long capacity) {
+        AuthCtx.requireAdmin();
+        storageService.expandCapacity(AuthCtx.getUserId(), capacity);
+        return ApiResponse.success();
+    }
+
     @PutMapping("/{username}/capacity")
     public ApiResponse<Void> updateCapacity(@PathVariable String username,
                                             @RequestParam Long capacity) {

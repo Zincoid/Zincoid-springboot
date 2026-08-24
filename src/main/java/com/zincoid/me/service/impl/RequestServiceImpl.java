@@ -68,7 +68,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
         save(request);
         notificationService.notifyReq(
                 senderId, receiverId,
-                "New request: " + type.name(),
+                "Pending",
                 NotificationType.REQUEST,
                 request.getId(),
                 ADMIN_ONLY.contains(type)

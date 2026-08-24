@@ -44,12 +44,12 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
     @Override
     @Transactional
     public RequestVO create(Long senderId, Long receiverId, RequestType type, String content) {
-        if (senderId.equals(receiverId))
-            throw new BusinessException(400, "Sender and receiver cannot be the same");
-        if (userService.getById(receiverId) == null)
-            throw new BusinessException(404, "User not found");
         if (ADMIN_ONLY.contains(type))
             receiverId = ADMIN_UNHANDLED;
+        else if (senderId.equals(receiverId))
+            throw new BusinessException(400, "Sender and receiver cannot be the same");
+        else if (userService.getById(receiverId) == null)
+            throw new BusinessException(404, "User not found");
         Request request = Request.builder()
                 .senderId(senderId)
                 .receiverId(receiverId)

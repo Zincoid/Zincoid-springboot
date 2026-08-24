@@ -259,7 +259,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
             case AVATAR -> userService.getById(id) != null;
             case CHAT -> messageService.getById(id) != null;
             case REPO -> repoService.getById(id) != null;
-            case MUSIC -> userService.getById(id) != null;
+            case MUSIC -> id == 0 || id == 1;
         };
     }
 }

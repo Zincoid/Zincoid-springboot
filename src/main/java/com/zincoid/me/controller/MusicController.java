@@ -31,7 +31,7 @@ public class MusicController {
         return ApiResponse.success();
     }
 
-    @GetMapping()
+    @GetMapping
     public ApiResponse<PageVO<FileVO>> listPub(@RequestParam(defaultValue = "1") int page,
                                                @RequestParam(defaultValue = "10") int size) {
         return ApiResponse.success(musicService.list(page, size));

@@ -73,7 +73,19 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
     }
 
     @Override
-    public PageVO<RequestVO> list(Long userId, int page, int size, boolean isAdmin) {
+    public PageVO<RequestVO> sent(Long userId, int page, int size) {
+        Page<Request> result = lambdaQuery()
+                .eq(Request::getSenderId, userId)
+                .orderByDesc(Request::getCreatedAt)
+                .page(Page.of(page, size));
+        List<RequestVO> vos = new ArrayList<>();
+        for (Request r : result.getRecords())
+            vos.add(toVO(r, userService.getById(r.getSenderId())));
+        return PageVO.of(result, vos);
+    }
+
+    @Override
+    public PageVO<RequestVO> received(Long userId, int page, int size, boolean isAdmin) {
         Page<Request> result = lambdaQuery()
                 .and(w -> {
                     w.eq(Request::getReceiverId, userId);

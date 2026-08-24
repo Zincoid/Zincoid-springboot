@@ -27,10 +27,16 @@ public class RequestController {
         return ApiResponse.success(requestService.create(AuthCtx.getUserId(), receiverId, type, content));
     }
 
-    @GetMapping
-    public ApiResponse<PageVO<RequestVO>> list(@RequestParam(defaultValue = "1") int page,
+    @GetMapping("/sent")
+    public ApiResponse<PageVO<RequestVO>> sent(@RequestParam(defaultValue = "1") int page,
                                                @RequestParam(defaultValue = "10") int size) {
-        return ApiResponse.success(requestService.list(AuthCtx.getUserId(), page, size, AuthCtx.getRole() == Role.ADMIN));
+        return ApiResponse.success(requestService.sent(AuthCtx.getUserId(), page, size));
+    }
+
+    @GetMapping("/received")
+    public ApiResponse<PageVO<RequestVO>> received(@RequestParam(defaultValue = "1") int page,
+                                                   @RequestParam(defaultValue = "10") int size) {
+        return ApiResponse.success(requestService.received(AuthCtx.getUserId(), page, size, AuthCtx.getRole() == Role.ADMIN));
     }
 
     @PutMapping("/{requestId}")

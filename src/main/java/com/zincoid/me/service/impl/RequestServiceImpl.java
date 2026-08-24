@@ -67,37 +67,37 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
     }
 
     @Override
-    public PageVO<RequestVO> list(int page, int size, boolean isAdmin) {
+    public PageVO<RequestVO> list(Long userId, int page, int size, boolean isAdmin) {
         Page<Request> result = lambdaQuery()
-                .eq(Request::getAccess, Access.PENDING)
-                .eq(Request::getReceiverId, ADMIN_UNHANDLED)
+                .and(w -> {
+                    w.eq(Request::getReceiverId, userId);
+                    if (isAdmin) w.or().in(Request::getType, ADMIN_ONLY);
+                })
                 .orderByDesc(Request::getCreatedAt)
                 .page(Page.of(page, size));
         List<RequestVO> vos = new ArrayList<>();
-        for (Request r : result.getRecords()) {
+        for (Request r : result.getRecords())
             vos.add(toVO(r, userService.getById(r.getSenderId())));
-        }
         return PageVO.of(result, vos);
     }
 
     @Override
     @Transactional
-    public RequestVO handle(Long requestId, Long adminId, Access status) {
-        if (status == Access.PENDING)
+    public RequestVO handle(Long userId, Long requestId, Access access, boolean isAdmin) {
+        if (access == Access.PENDING)
             throw new BusinessException(400, "Invalid handle status");
-        boolean updated = lambdaUpdate()
-                .eq(Request::getId, requestId)
-                .eq(Request::getAccess, Access.PENDING)
-                .eq(Request::getReceiverId, ADMIN_UNHANDLED)
-                .set(Request::getAccess, status)
-                .set(Request::getReceiverId, adminId)
-                .set(Request::getHandledAt, LocalDateTime.now())
-                .update();
-        if (!updated)
-            throw new BusinessException(400, "Request already handled by another admin");
         Request request = getById(requestId);
-        if (status == Access.APPROVED) apply(request);
-        log.info("Request handled: id={}, by={}, status={}", requestId, adminId, status);
+        if (request == null)
+            throw new BusinessException(404, "Request not found");
+        if (ADMIN_ONLY.contains(request.getType()) && !isAdmin)
+            throw new BusinessException(403, "No permission to handle this request");
+        if (request.getAccess() != Access.PENDING)
+            throw new BusinessException(400, "Request already handled");
+        request.setAccess(access);
+        request.setHandledAt(LocalDateTime.now());
+        updateById(request);
+        if (access == Access.APPROVED) apply(request);
+        log.info("Request handled: id={}, by={}, access={}", requestId, userId, access);
         return toVO(request, userService.getById(request.getSenderId()));
     }
 
@@ -107,7 +107,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
         if (request.getType() == RequestType.STORAGE_EXTENSION) {
             Long capacity = parseCapacity(request.getContent());
             if (capacity == null || capacity < 0)
-                throw new BusinessException(400, "Invalid capacity in request content");
+                throw new BusinessException(400, "Invalid capacity in request");
             User user = userService.getById(request.getSenderId());
             if (user == null) throw new BusinessException(404, "User not found");
             user.setCapacity(capacity);

@@ -30,12 +30,12 @@ public class RequestController {
     @GetMapping
     public ApiResponse<PageVO<RequestVO>> list(@RequestParam(defaultValue = "1") int page,
                                                @RequestParam(defaultValue = "10") int size) {
-        return ApiResponse.success(requestService.list(page, size, AuthCtx.getRole() == Role.ADMIN));
+        return ApiResponse.success(requestService.list(AuthCtx.getUserId(), page, size, AuthCtx.getRole() == Role.ADMIN));
     }
 
     @PutMapping("/{requestId}")
     public ApiResponse<RequestVO> handle(@PathVariable Long requestId,
                                          @RequestParam Access access) {
-        return ApiResponse.success(requestService.handle(requestId, AuthCtx.getUserId(), access));
+        return ApiResponse.success(requestService.handle(AuthCtx.getUserId(), requestId, access, AuthCtx.getRole() == Role.ADMIN));
     }
 }

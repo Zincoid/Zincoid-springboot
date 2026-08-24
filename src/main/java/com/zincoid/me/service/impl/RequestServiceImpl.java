@@ -96,15 +96,19 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
         if ((ADMIN_ONLY.contains(request.getType()) && !isAdmin) ||
                 !request.getReceiverId().equals(userId) && request.getReceiverId() != ADMIN_UNHANDLED)
             throw new BusinessException(403, "No permission to handle this request");
-        if (request.getAccess() != Access.PENDING)
+        boolean updated = lambdaUpdate()
+                .eq(Request::getId, requestId)
+                .eq(Request::getAccess, Access.PENDING)
+                .set(Request::getAccess, access)
+                .set(Request::getHandledAt, LocalDateTime.now())
+                .set(ADMIN_ONLY.contains(request.getType()), Request::getReceiverId, userId)
+                .update();
+        if (!updated)
             throw new BusinessException(400, "Request already handled");
-        request.setAccess(access);
-        if (ADMIN_ONLY.contains(request.getType()))
-            request.setReceiverId(userId);
-        request.setHandledAt(LocalDateTime.now());
-        updateById(request);
         if (access == Access.APPROVED) apply(request);
         log.info("Request handled: id={}, by={}, access={}", requestId, userId, access);
+        request.setAccess(access);
+        request.setHandledAt(LocalDateTime.now());
         return toVO(request, userService.getById(request.getSenderId()));
     }
 

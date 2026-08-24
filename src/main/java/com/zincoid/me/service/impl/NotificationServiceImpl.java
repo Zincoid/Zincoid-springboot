@@ -140,6 +140,8 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
     @Transactional
     public void notify(Long senderId, Long receiverId, NotificationType type, Long relatedId) {
         if (senderId.equals(receiverId)) return;
+        if (userService.getById(receiverId) == null)
+            throw new BusinessException("User not found");
         Notification notification = Notification.builder()
                 .senderId(senderId)
                 .receiverId(receiverId)
@@ -173,6 +175,8 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
     @Transactional
     public void notifyReq(Long senderId, Long receiverId, String message, NotificationType type, Long relatedId, boolean isAdminOnly) {
         if (!isAdminOnly) {
+            if (userService.getById(receiverId) == null)
+                throw new BusinessException("User not found");
             Notification notification = Notification.builder()
                     .senderId(senderId)
                     .receiverId(receiverId)

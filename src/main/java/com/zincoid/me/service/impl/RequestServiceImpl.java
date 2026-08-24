@@ -15,6 +15,7 @@ import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.RequestVO;
 import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.RequestService;
+import com.zincoid.me.service.StorageService;
 import com.zincoid.me.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
 
     private final UserService userService;
     private final NotificationService notificationService;
+    private final StorageService storageService;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -48,8 +50,8 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
             throw new BusinessException(400, "Request type is invalid");
         if (ADMIN_ONLY.contains(type)) {
             receiverId = ADMIN_UNHANDLED;
-            if (type == RequestType.STORAGE_EXTENSION && parseCapacity(meta) == null)
-                throw new BusinessException(400, "Invalid capacity in request meta");
+            if (type == RequestType.STORAGE_EXTENSION && parseExpansion(meta) == null)
+                throw new BusinessException(400, "Invalid expansion in request meta");
         }
         else if (senderId.equals(receiverId))
             throw new BusinessException(400, "Sender and receiver cannot be the same");
@@ -141,25 +143,22 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
 
     private void apply(Request request) {
         if (request.getType() == RequestType.STORAGE_EXTENSION) {
-            Long capacity = parseCapacity(request.getMeta());
-            if (capacity == null || capacity < 0)
-                throw new BusinessException(400, "Invalid capacity in request");
-            User user = userService.getById(request.getSenderId());
-            if (user == null) throw new BusinessException(404, "User not found");
-            user.setCapacity(capacity);
-            userService.updateById(user);
-            log.info("Storage capacity applied: user={}, capacity={}", user.getId(), capacity);
+            Long expansion = parseExpansion(request.getMeta());
+            if (expansion == null || expansion < 0)
+                throw new BusinessException(400, "Invalid expansion in request");
+            storageService.expandCapacity(request.getSenderId(), expansion);
+            log.info("Storage expansion applied: user={}, expansion={}", request.getSenderId(), expansion);
         }
     }
 
-    private Long parseCapacity(String content) {
-        if (content == null || content.isBlank()) return null;
+    private Long parseExpansion(String meta) {
+        if (meta == null || meta.isBlank()) return null;
         try {
-            JsonNode node = MAPPER.readTree(content);
-            JsonNode capacity = node.get("capacity");
-            return capacity != null && capacity.isNumber() ? capacity.asLong() : null;
+            JsonNode node = MAPPER.readTree(meta);
+            JsonNode expansion = node.get("expansion");
+            return expansion != null && expansion.isNumber() ? expansion.asLong() : null;
         } catch (Exception e) {
-            log.warn("Failed to parse request content: {}", content, e);
+            log.warn("Failed to parse request meta: {}", meta, e);
             return null;
         }
     }

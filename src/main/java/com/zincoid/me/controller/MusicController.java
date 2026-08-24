@@ -1,6 +1,7 @@
 package com.zincoid.me.controller;
 
 import com.zincoid.me.model.ApiResponse;
+import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.vo.FileVO;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.service.MusicService;
@@ -19,22 +20,27 @@ public class MusicController {
     // ──── Private endpoints ───────────────
 
     @PostMapping
-    public ApiResponse<FileVO> upload(@RequestParam("file") MultipartFile file) {
-        AuthCtx.requireAdmin();
-        return ApiResponse.success(musicService.upload(AuthCtx.getUserId(), file));
+    public ApiResponse<FileVO> upload(@RequestParam("file") MultipartFile file,
+                                      @RequestParam(defaultValue = "false") boolean isPublic) {
+        return ApiResponse.success(musicService.upload(AuthCtx.getUserId(), file, isPublic, AuthCtx.getRole() == Role.ADMIN));
     }
 
     @DeleteMapping("/{fileId}")
     public ApiResponse<Void> delete(@PathVariable Long fileId) {
-        AuthCtx.requireAdmin();
-        musicService.delete(fileId);
+        musicService.delete(AuthCtx.getUserId(), fileId);
         return ApiResponse.success();
     }
 
-    @GetMapping
+    @GetMapping()
     public ApiResponse<PageVO<FileVO>> list(@RequestParam(defaultValue = "1") int page,
                                             @RequestParam(defaultValue = "10") int size) {
-        AuthCtx.requireLogin();
         return ApiResponse.success(musicService.list(page, size));
+    }
+
+    @GetMapping("/user")
+    public ApiResponse<PageVO<FileVO>> list(@RequestParam(defaultValue = "1") int page,
+                                            @RequestParam(defaultValue = "10") int size,
+                                            @RequestParam(defaultValue = "false") boolean isPublic) {
+        return ApiResponse.success(musicService.list(AuthCtx.getUserId(), page, size, isPublic));
     }
 }

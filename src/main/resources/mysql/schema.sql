@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS `file` (
     `file_type`     TINYINT         NOT NULL DEFAULT 0       COMMENT 'File type: 0=IMAGE, 1=VIDEO, 2=AUDIO, 3=OTHER',
     `file_size`     BIGINT          NOT NULL DEFAULT 0       COMMENT 'File size in bytes',
     `related_type`  TINYINT         DEFAULT NULL             COMMENT 'Related business type: 0=MOMENT, 1=ARTICLE, 2=AVATAR, 3=CHAT, 4=REPO, 5=MUSIC',
-    `related_id`    BIGINT          DEFAULT NULL             COMMENT 'Related business record ID',
+    `related_id`    BIGINT          DEFAULT NULL             COMMENT 'Related business record ID; for MUSIC: 0=Private, 1=Public',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Upload time',
     PRIMARY KEY (`id`),
     KEY `idx_user_id` (`user_id`),

@@ -89,11 +89,14 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
         Request request = getById(requestId);
         if (request == null)
             throw new BusinessException(404, "Request not found");
-        if (ADMIN_ONLY.contains(request.getType()) && !isAdmin)
+        if ((ADMIN_ONLY.contains(request.getType()) && !isAdmin) ||
+                !request.getReceiverId().equals(userId) && request.getReceiverId() != ADMIN_UNHANDLED)
             throw new BusinessException(403, "No permission to handle this request");
         if (request.getAccess() != Access.PENDING)
             throw new BusinessException(400, "Request already handled");
         request.setAccess(access);
+        if (ADMIN_ONLY.contains(request.getType()))
+            request.setReceiverId(userId);
         request.setHandledAt(LocalDateTime.now());
         updateById(request);
         if (access == Access.APPROVED) apply(request);

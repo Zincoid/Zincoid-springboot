@@ -14,7 +14,7 @@ public interface NotificationService extends IService<Notification> {
 
     void notifyAt(Long senderId, String content, NotificationType type, Long relatedId);
 
-    void notifyAdmins(Long senderId, String content, NotificationType type, Long relatedId);
+    void notifyReq(Long senderId, Long receiverId, String message, NotificationType type, Long relatedId, boolean isAdminOnly);
 
     void deleteOne(Long notificationId, Long userId);
 
@@ -28,5 +28,5 @@ public interface NotificationService extends IService<Notification> {
 
     long countUnread(Long userId);
 
-    void broadcast(Long senderId, String content);
+    void broadcast(Long senderId, String message);
 }

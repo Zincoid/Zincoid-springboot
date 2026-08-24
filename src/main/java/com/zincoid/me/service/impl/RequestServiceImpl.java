@@ -55,8 +55,13 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                 .createdAt(LocalDateTime.now())
                 .build();
         save(request);
-        notificationService.notifyAdmins(senderId, "New request: " + type.name(),
-                NotificationType.REQUEST, request.getId());
+        notificationService.notifyReq(
+                senderId, receiverId,
+                "New request: " + type.name(),
+                NotificationType.REQUEST,
+                request.getId(),
+                ADMIN_ONLY.contains(type)
+        );
         log.info("Request created: id={}, sender={}, type={}", request.getId(), senderId, type);
         return toVO(request, userService.getById(senderId));
     }

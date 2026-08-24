@@ -171,7 +171,21 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
 
     @Override
     @Transactional
-    public void notifyAdmins(Long senderId, String content, NotificationType type, Long relatedId) {
+    public void notifyReq(Long senderId, Long receiverId, String message, NotificationType type, Long relatedId, boolean isAdminOnly) {
+        if (!isAdminOnly) {
+            Notification notification = Notification.builder()
+                    .senderId(senderId)
+                    .receiverId(receiverId)
+                    .relatedType(type)
+                    .relatedId(relatedId)
+                    .message(message)
+                    .isRead(false)
+                    .build();
+            save(notification);
+            log.info("Req notification created: sender={}, receiver={}, relation={}:{}, id={}",
+                    senderId, receiverId, type, relatedId, notification.getId());
+            return;
+        }
         List<User> admins = userService.lambdaQuery()
                 .eq(User::getRole, Role.ADMIN)
                 .eq(User::getStatus, Status.ACTIVE)
@@ -184,17 +198,17 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                     .receiverId(admin.getId())
                     .relatedType(type)
                     .relatedId(relatedId)
-                    .message(content)
+                    .message(message)
                     .isRead(false)
                     .build());
         }
         if (!batch.isEmpty()) saveBatch(batch);
-        log.info("Admin notification created: sender={}, recipients={}", senderId, batch.size());
+        log.info("Req notification created: sender={}, recipients={}", senderId, batch.size());
     }
 
     @Override
     @Transactional
-    public void broadcast(Long senderId, String content) {
+    public void broadcast(Long senderId, String message) {
         List<User> users = userService.lambdaQuery()
                 .eq(User::getStatus, Status.ACTIVE)
                 .list();
@@ -206,7 +220,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                     .receiverId(user.getId())
                     .relatedType(NotificationType.SYSTEM)
                     .relatedId(-1L)
-                    .message(content)
+                    .message(message)
                     .isRead(false)
                     .build();
             batch.add(notification);

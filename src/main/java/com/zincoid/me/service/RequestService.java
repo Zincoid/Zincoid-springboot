@@ -16,4 +16,6 @@ public interface RequestService extends IService<Request> {
     PageVO<RequestVO> received(Long userId, int page, int size, boolean isAdmin);
 
     RequestVO handle(Long userId, Long requestId, Access access, boolean isAdmin);
+
+    void delete(Long userId, Long requestId, boolean isAdmin);
 }

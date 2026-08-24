@@ -44,4 +44,10 @@ public class RequestController {
                                          @RequestParam Access access) {
         return ApiResponse.success(requestService.handle(AuthCtx.getUserId(), requestId, access, AuthCtx.getRole() == Role.ADMIN));
     }
+
+    @DeleteMapping("/{requestId}")
+    public ApiResponse<Void> delete(@PathVariable Long requestId) {
+        requestService.delete(AuthCtx.getUserId(), requestId, AuthCtx.getRole() == Role.ADMIN);
+        return ApiResponse.success();
+    }
 }

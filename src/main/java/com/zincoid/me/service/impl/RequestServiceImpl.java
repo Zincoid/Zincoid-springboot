@@ -139,6 +139,21 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
         return toVO(request, userService.getById(request.getSenderId()));
     }
 
+    @Override
+    public void delete(Long userId, Long requestId, boolean isAdmin) {
+        Request request = getById(requestId);
+        if (request == null)
+            throw new BusinessException(404, "Request not found");
+        boolean canDelete = request.getSenderId().equals(userId)
+                || request.getReceiverId().equals(userId)
+                || (isAdmin && ADMIN_ONLY.contains(request.getType()) && request.getReceiverId() == ADMIN_UNHANDLED);
+        if (!canDelete)
+            throw new BusinessException(403, "No permission to delete this request");
+        removeById(requestId);
+        notificationService.deleteAll(NotificationType.REQUEST, requestId);
+        log.info("Request deleted: id={}, by={}", requestId, userId);
+    }
+
     // ──────── Private tool ────────────────────────────────
 
     private void apply(Request request) {

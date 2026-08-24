@@ -26,6 +26,7 @@ public class CleanupServiceImpl implements CleanupService {
     private final LikeService likeService;
     private final CommentService commentService;
     private final NotificationService notificationService;
+    private final RequestService requestService;
 
     @Transactional
     public Map<String, Integer> cleanupRecords() {
@@ -164,7 +165,7 @@ public class CleanupServiceImpl implements CleanupService {
                         case LIKE -> likeService.getById(n.getRelatedId()) == null;
                         case ACCESS_REQUEST, ACCESS_APPROVED, ACCESS_REJECTED ->
                                 repoService.getById(n.getRelatedId()) == null;
-                        case REQUEST -> repoService.getById(n.getRelatedId()) == null;
+                        case REQUEST -> requestService.getById(n.getRelatedId()) == null;
                         default -> false;
                     };
                 })

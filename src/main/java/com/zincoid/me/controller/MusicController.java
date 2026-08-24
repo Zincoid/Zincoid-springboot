@@ -32,15 +32,14 @@ public class MusicController {
     }
 
     @GetMapping()
-    public ApiResponse<PageVO<FileVO>> list(@RequestParam(defaultValue = "1") int page,
-                                            @RequestParam(defaultValue = "10") int size) {
+    public ApiResponse<PageVO<FileVO>> listPub(@RequestParam(defaultValue = "1") int page,
+                                               @RequestParam(defaultValue = "10") int size) {
         return ApiResponse.success(musicService.list(page, size));
     }
 
     @GetMapping("/user")
-    public ApiResponse<PageVO<FileVO>> list(@RequestParam(defaultValue = "1") int page,
-                                            @RequestParam(defaultValue = "10") int size,
-                                            @RequestParam(defaultValue = "false") boolean isPublic) {
-        return ApiResponse.success(musicService.list(AuthCtx.getUserId(), page, size, isPublic));
+    public ApiResponse<PageVO<FileVO>> listPri(@RequestParam(defaultValue = "1") int page,
+                                               @RequestParam(defaultValue = "10") int size) {
+        return ApiResponse.success(musicService.list(AuthCtx.getUserId(), page, size));
     }
 }

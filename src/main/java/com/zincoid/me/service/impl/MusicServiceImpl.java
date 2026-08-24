@@ -61,11 +61,11 @@ public class MusicServiceImpl implements MusicService {
     }
 
     @Override
-    public PageVO<FileVO> list(Long userId, int page, int size, boolean isPublic) {
+    public PageVO<FileVO> list(Long userId, int page, int size) {
         Page<File> result = fileService.lambdaQuery()
                 .eq(File::getRelatedType, RelatedType.MUSIC)
                 .eq(File::getUserId, userId)
-                .eq(File::getRelatedId, isPublic ? 1L : 0L)
+                .eq(File::getRelatedId, 0L)  // Private
                 .orderByDesc(File::getCreatedAt)
                 .page(Page.of(page, size));
         return toMusicVO(result);

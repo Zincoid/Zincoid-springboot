@@ -12,5 +12,5 @@ public interface MusicService {
 
     PageVO<FileVO> list(int page, int size);
 
-    PageVO<FileVO> list(Long userId, int page, int size, boolean isPublic);
+    PageVO<FileVO> list(Long userId, int page, int size);
 }

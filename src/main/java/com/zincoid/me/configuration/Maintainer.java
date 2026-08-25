@@ -2,7 +2,6 @@ package com.zincoid.me.configuration;
 
 import com.zincoid.me.service.CleanupService;
 import com.zincoid.me.service.ConfigService;
-import com.zincoid.me.service.RequestService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

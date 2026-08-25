@@ -8,16 +8,20 @@ import com.zincoid.me.mapper.RepoAccessMapper;
 import com.zincoid.me.model.enums.Access;
 import com.zincoid.me.model.po.Repo;
 import com.zincoid.me.model.po.RepoAccess;
+import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.NotificationType;
+import com.zincoid.me.model.vo.RepoAccessVO;
 import com.zincoid.me.service.EmailService;
 import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.RepoAccessService;
 import com.zincoid.me.service.RepoService;
+import com.zincoid.me.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -27,13 +31,16 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
     private final RepoService repoService;
     private final NotificationService notificationService;
     private final EmailService emailService;
+    private final UserService userService;
 
     public RepoAccessServiceImpl(@Lazy RepoService repoService,
                                  NotificationService notificationService,
-                                 EmailService emailService) {
+                                 EmailService emailService,
+                                 UserService userService) {
         this.repoService = repoService;
         this.notificationService = notificationService;
         this.emailService = emailService;
+        this.userService = userService;
     }
 
     @Override
@@ -97,42 +104,62 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
     }
 
     @Override
-    public PageVO<RepoAccess> sentPending(Long userId, int page, int size) {
+    public PageVO<RepoAccessVO> sentPending(Long userId, int page, int size) {
         Page<RepoAccess> p = lambdaQuery().eq(RepoAccess::getUserId, userId)
                 .eq(RepoAccess::getAccess, Access.PENDING).orderByDesc(RepoAccess::getCreatedAt)
                 .page(Page.of(page, size));
-        return PageVO.of(p);
+        return toVO(p);
     }
 
     @Override
-    public PageVO<RepoAccess> sentResolved(Long userId, int page, int size) {
+    public PageVO<RepoAccessVO> sentResolved(Long userId, int page, int size) {
         Page<RepoAccess> p = lambdaQuery().eq(RepoAccess::getUserId, userId)
                 .ne(RepoAccess::getAccess, Access.PENDING).orderByDesc(RepoAccess::getUpdatedAt)
                 .page(Page.of(page, size));
-        return PageVO.of(p);
+        return toVO(p);
     }
 
     @Override
-    public PageVO<RepoAccess> receivedPending(Long ownerId, int page, int size) {
+    public PageVO<RepoAccessVO> receivedPending(Long ownerId, int page, int size) {
         List<Long> ids = repoService.lambdaQuery().eq(Repo::getUserId, ownerId).select(Repo::getId).list()
                 .stream().map(Repo::getId).toList();
         Page<RepoAccess> p = ids.isEmpty() ? Page.of(page, size) : lambdaQuery()
                 .in(RepoAccess::getRepoId, ids).eq(RepoAccess::getAccess, Access.PENDING)
                 .orderByDesc(RepoAccess::getCreatedAt).page(Page.of(page, size));
-        return PageVO.of(p);
+        return toVO(p);
     }
 
     @Override
-    public PageVO<RepoAccess> receivedResolved(Long ownerId, int page, int size) {
+    public PageVO<RepoAccessVO> receivedResolved(Long ownerId, int page, int size) {
         List<Long> ids = repoService.lambdaQuery().eq(Repo::getUserId, ownerId).select(Repo::getId).list()
                 .stream().map(Repo::getId).toList();
         Page<RepoAccess> p = ids.isEmpty() ? Page.of(page, size) : lambdaQuery()
                 .in(RepoAccess::getRepoId, ids).ne(RepoAccess::getAccess, Access.PENDING)
                 .orderByDesc(RepoAccess::getUpdatedAt).page(Page.of(page, size));
-        return PageVO.of(p);
+        return toVO(p);
     }
 
     // ──────── Private tool ────────────────────────────────
+
+    private PageVO<RepoAccessVO> toVO(Page<RepoAccess> page) {
+        List<RepoAccessVO> vos = new ArrayList<>();
+        for (RepoAccess a : page.getRecords()) {
+            Repo repo = repoService.getById(a.getRepoId());
+            User user = userService.getById(a.getUserId());
+            vos.add(RepoAccessVO.builder()
+                    .id(a.getId())
+                    .repoId(a.getRepoId())
+                    .repoName(repo != null ? repo.getName() : null)
+                    .userId(a.getUserId())
+                    .userNickname(user != null ? user.getNickname() : null)
+                    .userAvatar(user != null ? user.getAvatar() : null)
+                    .access(a.getAccess())
+                    .createdAt(a.getCreatedAt())
+                    .updatedAt(a.getUpdatedAt())
+                    .build());
+        }
+        return PageVO.of(page, vos);
+    }
 
     private RepoAccess getOrThrow(Long id) {
         RepoAccess a = getById(id);

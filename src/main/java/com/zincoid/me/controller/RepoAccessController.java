@@ -1,8 +1,8 @@
 package com.zincoid.me.controller;
 
 import com.zincoid.me.model.ApiResponse;
-import com.zincoid.me.model.po.RepoAccess;
 import com.zincoid.me.model.vo.PageVO;
+import com.zincoid.me.model.vo.RepoAccessVO;
 import com.zincoid.me.service.RepoAccessService;
 import com.zincoid.me.utils.AuthCtx;
 import lombok.RequiredArgsConstructor;
@@ -42,26 +42,26 @@ public class RepoAccessController {
     }
 
     @GetMapping("/access/sent/pending")
-    public ApiResponse<PageVO<RepoAccess>> sentPending(@RequestParam(defaultValue = "1") int page,
-                                                       @RequestParam(defaultValue = "10") int size) {
+    public ApiResponse<PageVO<RepoAccessVO>> sentPending(@RequestParam(defaultValue = "1") int page,
+                                                         @RequestParam(defaultValue = "10") int size) {
         return ApiResponse.success(repoAccessService.sentPending(AuthCtx.getUserId(), page, size));
     }
 
     @GetMapping("/access/sent/resolved")
-    public ApiResponse<PageVO<RepoAccess>> sentResolved(@RequestParam(defaultValue = "1") int page,
-                                                        @RequestParam(defaultValue = "10") int size) {
+    public ApiResponse<PageVO<RepoAccessVO>> sentResolved(@RequestParam(defaultValue = "1") int page,
+                                                          @RequestParam(defaultValue = "10") int size) {
         return ApiResponse.success(repoAccessService.sentResolved(AuthCtx.getUserId(), page, size));
     }
 
     @GetMapping("/access/received/pending")
-    public ApiResponse<PageVO<RepoAccess>> receivedPending(@RequestParam(defaultValue = "1") int page,
-                                                           @RequestParam(defaultValue = "10") int size) {
+    public ApiResponse<PageVO<RepoAccessVO>> receivedPending(@RequestParam(defaultValue = "1") int page,
+                                                             @RequestParam(defaultValue = "10") int size) {
         return ApiResponse.success(repoAccessService.receivedPending(AuthCtx.getUserId(), page, size));
     }
 
     @GetMapping("/access/received/resolved")
-    public ApiResponse<PageVO<RepoAccess>> receivedResolved(@RequestParam(defaultValue = "1") int page,
-                                                            @RequestParam(defaultValue = "10") int size) {
+    public ApiResponse<PageVO<RepoAccessVO>> receivedResolved(@RequestParam(defaultValue = "1") int page,
+                                                              @RequestParam(defaultValue = "10") int size) {
         return ApiResponse.success(repoAccessService.receivedResolved(AuthCtx.getUserId(), page, size));
     }
 }

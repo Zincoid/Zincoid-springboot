@@ -3,6 +3,7 @@ package com.zincoid.me.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zincoid.me.model.po.RepoAccess;
 import com.zincoid.me.model.vo.PageVO;
+import com.zincoid.me.model.vo.RepoAccessVO;
 
 public interface RepoAccessService extends IService<RepoAccess> {
 
@@ -16,11 +17,11 @@ public interface RepoAccessService extends IService<RepoAccess> {
 
     boolean authorize(Long userId, Long repoId);
 
-    PageVO<RepoAccess> sentPending(Long userId, int page, int size);
+    PageVO<RepoAccessVO> sentPending(Long userId, int page, int size);
 
-    PageVO<RepoAccess> sentResolved(Long userId, int page, int size);
+    PageVO<RepoAccessVO> sentResolved(Long userId, int page, int size);
 
-    PageVO<RepoAccess> receivedPending(Long ownerId, int page, int size);
+    PageVO<RepoAccessVO> receivedPending(Long ownerId, int page, int size);
 
-    PageVO<RepoAccess> receivedResolved(Long ownerId, int page, int size);
+    PageVO<RepoAccessVO> receivedResolved(Long ownerId, int page, int size);
 }

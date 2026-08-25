@@ -8,7 +8,8 @@ import lombok.Getter;
 @Getter
 public enum RequestType {
 
-    STORAGE_EXTENSION(0);
+    STORAGE_EXTENSION(0),
+    REPORT(1);
 
     @EnumValue
     private final Integer value;

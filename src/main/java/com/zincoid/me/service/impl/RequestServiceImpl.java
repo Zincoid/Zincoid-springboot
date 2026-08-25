@@ -35,7 +35,8 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
 
     private static final long ADMIN_UNHANDLED = -1L;
     private static final Set<RequestType> ADMIN_ONLY = Set.of(
-            RequestType.STORAGE_EXTENSION
+            RequestType.STORAGE_EXTENSION,
+            RequestType.REPORT
     );
 
     private final UserService userService;
@@ -52,7 +53,9 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
         if (ADMIN_ONLY.contains(type)) {
             receiverId = ADMIN_UNHANDLED;
             if (type == RequestType.STORAGE_EXTENSION && parseExpansion(meta) == null)
-                throw new BusinessException(400, "Invalid expansion in request");
+                throw new BusinessException(400, "Invalid request meta");
+            if (type == RequestType.REPORT && parseContent(meta) == null)
+                throw new BusinessException(400, "Invalid request meta");
         }
         else if (senderId.equals(receiverId))
             throw new BusinessException(400, "Sender and receiver cannot be the same");
@@ -183,7 +186,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
         if (request.getType() == RequestType.STORAGE_EXTENSION) {
             Long expansion = parseExpansion(request.getMeta());
             if (expansion == null || expansion < 0)
-                throw new BusinessException(400, "Invalid expansion in request");
+                throw new BusinessException(400, "Invalid request meta");
             storageService.expandCapacity(request.getSenderId(), expansion);
             log.info("Storage expansion applied: user={}, expansion={}", request.getSenderId(), expansion);
         }
@@ -195,6 +198,19 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
             JsonNode node = MAPPER.readTree(meta);
             JsonNode expansion = node.get("expansion");
             return expansion != null && expansion.isNumber() ? expansion.asLong() : null;
+        } catch (Exception e) {
+            log.warn("Failed to parse request meta: {}", meta, e);
+            return null;
+        }
+    }
+
+    private String parseContent(String meta) {
+        if (meta == null || meta.isBlank()) return null;
+        try {
+            JsonNode node = MAPPER.readTree(meta);
+            JsonNode content = node.get("content");
+            String text = content != null ? content.asText() : null;
+            return text == null || text.isBlank() ? null : text;
         } catch (Exception e) {
             log.warn("Failed to parse request meta: {}", meta, e);
             return null;

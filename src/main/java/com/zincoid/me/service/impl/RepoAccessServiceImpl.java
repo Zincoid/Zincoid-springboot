@@ -16,6 +16,7 @@ import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.RepoAccessService;
 import com.zincoid.me.service.RepoService;
 import com.zincoid.me.service.UserService;
+import com.zincoid.me.utils.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -152,7 +153,7 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
                     .repoName(repo != null ? repo.getName() : null)
                     .userId(a.getUserId())
                     .userNickname(user != null ? user.getNickname() : null)
-                    .userAvatar(user != null ? user.getAvatar() : null)
+                    .userAvatar(user != null ? FileUtil.toThumbUrl(user.getAvatar()) : null)
                     .access(a.getAccess())
                     .createdAt(a.getCreatedAt())
                     .updatedAt(a.getUpdatedAt())

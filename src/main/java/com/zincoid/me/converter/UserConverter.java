@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.vo.UserCardVO;
 import com.zincoid.me.model.vo.UserDetailVO;
+import com.zincoid.me.utils.FileUtil;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -18,10 +19,17 @@ public interface UserConverter {
     UserConverter INSTANCE = Mappers.getMapper(UserConverter.class);
     ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
+    @Mapping(target = "avatar", source = "avatar", qualifiedByName = "thumbUrl")
     UserCardVO toCardVO(User user);
 
     @Mapping(target = "skills", source = "skills", qualifiedByName = "parseSkills")
+    @Mapping(target = "avatar", source = "avatar", qualifiedByName = "thumbUrl")
     UserDetailVO toDetailVO(User user);
+
+    @Named("thumbUrl")
+    default String thumbUrl(String url) {
+        return FileUtil.toThumbUrl(url);
+    }
 
     @Named("parseSkills")
     default List<String> parseSkills(String skillsJson) {

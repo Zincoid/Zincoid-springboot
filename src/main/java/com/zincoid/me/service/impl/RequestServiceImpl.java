@@ -18,6 +18,7 @@ import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.RequestService;
 import com.zincoid.me.service.StorageService;
 import com.zincoid.me.service.UserService;
+import com.zincoid.me.utils.FileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -223,10 +224,10 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                 .id(request.getId())
                 .senderId(request.getSenderId())
                 .senderName(sender != null ? sender.getNickname() : null)
-                .senderAvatar(sender != null ? sender.getAvatar() : null)
+                .senderAvatar(sender != null ? FileUtil.toThumbUrl(sender.getAvatar()) : null)
                 .receiverId(request.getReceiverId())
                 .receiverName(receiver != null ? receiver.getNickname() : null)
-                .receiverAvatar(receiver != null ? receiver.getAvatar() : null)
+                .receiverAvatar(receiver != null ? FileUtil.toThumbUrl(receiver.getAvatar()) : null)
                 .type(request.getType())
                 .meta(request.getMeta())
                 .access(request.getAccess())

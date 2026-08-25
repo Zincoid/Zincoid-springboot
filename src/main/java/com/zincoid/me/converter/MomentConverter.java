@@ -25,7 +25,7 @@ public interface MomentConverter {
     @Mapping(target = "id", source = "moment.id")
     @Mapping(target = "createdAt", source = "moment.createdAt")
     @Mapping(target = "userNickname", source = "user.nickname")
-    @Mapping(target = "userAvatar", source = "user.avatar")
+    @Mapping(target = "userAvatar", source = "user.avatar", qualifiedByName = "thumbUrl")
     @Mapping(target = "urls", source = "moment.urls", qualifiedByName = "parseUrls")
     @Mapping(target = "thumbs", source = "moment.urls", qualifiedByName = "parseThumbs")
     MomentCardVO toCardVO(Moment moment, User user, boolean isLiked, long likeCount, int commentCount);
@@ -33,7 +33,7 @@ public interface MomentConverter {
     @Mapping(target = "id", source = "moment.id")
     @Mapping(target = "createdAt", source = "moment.createdAt")
     @Mapping(target = "userNickname", source = "user.nickname")
-    @Mapping(target = "userAvatar", source = "user.avatar")
+    @Mapping(target = "userAvatar", source = "user.avatar", qualifiedByName = "thumbUrl")
     @Mapping(target = "urls", source = "moment.urls", qualifiedByName = "parseUrls")
     @Mapping(target = "thumbs", source = "moment.urls", qualifiedByName = "parseThumbs")
     MomentDetailVO toDetailVO(Moment moment, User user, boolean isLiked, long likeCount,
@@ -48,6 +48,11 @@ public interface MomentConverter {
         } catch (Exception e) {
             return List.of();
         }
+    }
+
+    @Named("thumbUrl")
+    default String thumbUrl(String url) {
+        return FileUtil.toThumbUrl(url);
     }
 
     @Named("parseThumbs")

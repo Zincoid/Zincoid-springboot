@@ -22,7 +22,7 @@ public interface ArticleConverter {
     @Mapping(target = "title", source = "article.title")
     @Mapping(target = "createdAt", source = "article.createdAt")
     @Mapping(target = "userNickname", source = "user.nickname")
-    @Mapping(target = "userAvatar", source = "user.avatar")
+    @Mapping(target = "userAvatar", source = "user.avatar", qualifiedByName = "thumbUrl")
     @Mapping(target = "coverThumb", source = "article.coverImage", qualifiedByName = "thumbUrl")
     ArticleCardVO toCardVO(Article article, User user, boolean isLiked, long likeCount, int commentCount);
 
@@ -31,7 +31,7 @@ public interface ArticleConverter {
     @Mapping(target = "createdAt", source = "article.createdAt")
     @Mapping(target = "updatedAt", source = "article.updatedAt")
     @Mapping(target = "userNickname", source = "user.nickname")
-    @Mapping(target = "userAvatar", source = "user.avatar")
+    @Mapping(target = "userAvatar", source = "user.avatar", qualifiedByName = "thumbUrl")
     ArticleDetailVO toDetailVO(Article article, User user, boolean isLiked, long likeCount,
                                List<LikerVO> recentLikers);
 

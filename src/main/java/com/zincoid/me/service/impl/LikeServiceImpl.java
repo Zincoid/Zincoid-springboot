@@ -17,6 +17,7 @@ import com.zincoid.me.service.MomentService;
 import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.RepoService;
 import com.zincoid.me.service.UserService;
+import com.zincoid.me.utils.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -133,7 +134,7 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
             return LikerVO.builder()
                     .userId(user.getId())
                     .nickname(user.getNickname())
-                    .avatar(user.getAvatar())
+                    .avatar(FileUtil.toThumbUrl(user.getAvatar()))
                     .build();
         }).filter(Objects::nonNull).toList();
     }

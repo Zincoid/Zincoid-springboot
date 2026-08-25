@@ -4,16 +4,20 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.RequestMapper;
 import com.zincoid.me.model.enums.Access;
 import com.zincoid.me.model.enums.NotificationType;
+import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.RequestType;
+import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.po.Notification;
 import com.zincoid.me.model.po.Request;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.RequestVO;
+import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.RequestService;
 import com.zincoid.me.service.StorageService;
@@ -28,6 +32,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
 @Service
@@ -43,6 +48,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
     private final UserService userService;
     private final NotificationService notificationService;
     private final StorageService storageService;
+    private final FileService fileService;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -53,21 +59,23 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
             throw new BusinessException(400, "Request type is invalid");
         if (ADMIN_ONLY.contains(type)) {
             receiverId = ADMIN_UNHANDLED;
-            JsonNode node = parseMeta(meta);
-            switch (type) {
-                case STORAGE_EXTENSION -> {
-                    if (fieldLong(node, "expansion") == null)
-                        throw new BusinessException(400, "Invalid request meta");
-                }
-                case REPORT -> {
-                    if (fieldText(node, "title") == null || fieldText(node, "content") == null)
-                        throw new BusinessException(400, "Invalid request meta");
-                }
-            }
-        } else if (senderId.equals(receiverId))
+        } else if (senderId.equals(receiverId)) {
             throw new BusinessException(400, "Sender and receiver cannot be the same");
-        else if (userService.getById(receiverId) == null)
+        } else if (userService.getById(receiverId) == null) {
             throw new BusinessException(404, "User not found");
+        }
+        JsonNode node = parseMeta(meta);
+        switch (type) {
+            case STORAGE_EXTENSION -> {
+                if (fieldLong(node, "expansion") == null)
+                    throw new BusinessException(400, "Invalid request meta");
+            }
+            case REPORT -> {
+                if (fieldText(node, "title") == null
+                        || fieldText(node, "content") == null)
+                    throw new BusinessException(400, "Invalid request meta");
+            }
+        }
         Request request = Request.builder()
                 .senderId(senderId)
                 .receiverId(receiverId)
@@ -190,12 +198,36 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
     // ──────── Private tool ────────────────────────────────
 
     private void apply(Request request) {
-        if (request.getType() == RequestType.STORAGE_EXTENSION) {
-            Long expansion = fieldLong(parseMeta(request.getMeta()), "expansion");
-            if (expansion == null || expansion < 0)
-                throw new BusinessException(400, "Invalid request meta");
-            storageService.expandCapacity(request.getSenderId(), expansion);
-            log.info("Storage expansion applied: user={}, expansion={}", request.getSenderId(), expansion);
+        switch (request.getType()) {
+            case STORAGE_EXTENSION -> {
+                Long expansion = fieldLong(parseMeta(request.getMeta()), "expansion");
+                if (expansion == null || expansion < 0)
+                    throw new BusinessException(400, "Invalid request meta");
+                storageService.expandCapacity(request.getSenderId(), expansion);
+                log.info("Storage expansion applied: user={}, expansion={}", request.getSenderId(), expansion);
+            }
+            case MUSIC_REQUEST -> {
+                List<File> musics = fileService.lambdaQuery()
+                        .eq(File::getRelatedType, RelatedType.MUSIC)
+                        .eq(File::getUserId, request.getReceiverId())
+                        .eq(File::getRelatedId, 0L)
+                        .list();
+                File original = musics.isEmpty()
+                        ? null
+                        : musics.get(ThreadLocalRandom.current().nextInt(musics.size()));
+                try {
+                    ObjectNode node = request.getMeta() == null || request.getMeta().isBlank()
+                            ? MAPPER.createObjectNode()
+                            : (ObjectNode) MAPPER.readTree(request.getMeta());
+                    node.put("url", original != null ? "/uploads/" + original.getFilePath() : "");
+                    request.setMeta(MAPPER.writeValueAsString(node));
+                    updateById(request);
+                } catch (Exception e) {
+                    throw new BusinessException(400, "Invalid request meta");
+                }
+                log.info("Music share granted: user={}, music={}", request.getSenderId(),
+                        original != null ? original.getId() : "none");
+            }
         }
     }
 

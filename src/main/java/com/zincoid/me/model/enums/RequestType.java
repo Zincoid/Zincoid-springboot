@@ -9,7 +9,8 @@ import lombok.Getter;
 public enum RequestType {
 
     STORAGE_EXTENSION(0),
-    REPORT(1);
+    REPORT(1),
+    MUSIC_REQUEST(2);
 
     @EnumValue
     private final Integer value;

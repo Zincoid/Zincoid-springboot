@@ -137,8 +137,9 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
         String path = filePathOrUrl.startsWith("/uploads/")
                 ? filePathOrUrl.substring("/uploads/".length())
                 : filePathOrUrl;
-        FileUtil.delete(path, uploadPath);
         lambdaUpdate().eq(File::getFilePath, path).remove();
+        if (lambdaQuery().eq(File::getFilePath, path).count() == 0)
+            FileUtil.delete(path, uploadPath);
         log.info("File deleted: path={}", path);
     }
 
@@ -150,8 +151,9 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
                 .eq(File::getRelatedId, relatedId)
                 .list();
         for (File file : files) {
-            FileUtil.delete(file.getFilePath(), uploadPath);
             removeById(file.getId());
+            if (lambdaQuery().eq(File::getFilePath, file.getFilePath()).count() == 0)
+                FileUtil.delete(file.getFilePath(), uploadPath);
         }
         if (!files.isEmpty())
             log.info("File deleted: count={}, relation={}:{}", files.size(), relatedType, relatedId);

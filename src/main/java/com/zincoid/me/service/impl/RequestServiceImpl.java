@@ -221,8 +221,12 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                             : (ObjectNode) MAPPER.readTree(request.getMeta());
                     node.put("name", original != null ? original.getFileName() : "");
                     node.put("url", original != null ? "/uploads/" + original.getFilePath() : "");
-                    request.setMeta(MAPPER.writeValueAsString(node));
-                    updateById(request);
+                    String meta = MAPPER.writeValueAsString(node);
+                    lambdaUpdate()
+                            .eq(Request::getId, request.getId())
+                            .set(Request::getMeta, meta)
+                            .update();
+                    request.setMeta(meta);
                 } catch (Exception e) {
                     throw new BusinessException(400, "Invalid request meta");
                 }

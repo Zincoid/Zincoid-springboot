@@ -52,12 +52,18 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
             throw new BusinessException(400, "Request type is invalid");
         if (ADMIN_ONLY.contains(type)) {
             receiverId = ADMIN_UNHANDLED;
-            if (type == RequestType.STORAGE_EXTENSION && parseExpansion(meta) == null)
-                throw new BusinessException(400, "Invalid request meta");
-            if (type == RequestType.REPORT && parseContent(meta) == null)
-                throw new BusinessException(400, "Invalid request meta");
-        }
-        else if (senderId.equals(receiverId))
+            JsonNode node = parseMeta(meta);
+            switch (type) {
+                case STORAGE_EXTENSION -> {
+                    if (fieldLong(node, "expansion") == null)
+                        throw new BusinessException(400, "Invalid request meta");
+                }
+                case REPORT -> {
+                    if (fieldText(node, "title") == null || fieldText(node, "content") == null)
+                        throw new BusinessException(400, "Invalid request meta");
+                }
+            }
+        } else if (senderId.equals(receiverId))
             throw new BusinessException(400, "Sender and receiver cannot be the same");
         else if (userService.getById(receiverId) == null)
             throw new BusinessException(404, "User not found");
@@ -184,7 +190,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
 
     private void apply(Request request) {
         if (request.getType() == RequestType.STORAGE_EXTENSION) {
-            Long expansion = parseExpansion(request.getMeta());
+            Long expansion = fieldLong(parseMeta(request.getMeta()), "expansion");
             if (expansion == null || expansion < 0)
                 throw new BusinessException(400, "Invalid request meta");
             storageService.expandCapacity(request.getSenderId(), expansion);
@@ -192,29 +198,24 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
         }
     }
 
-    private Long parseExpansion(String meta) {
+    private JsonNode parseMeta(String meta) {
         if (meta == null || meta.isBlank()) return null;
         try {
-            JsonNode node = MAPPER.readTree(meta);
-            JsonNode expansion = node.get("expansion");
-            return expansion != null && expansion.isNumber() ? expansion.asLong() : null;
+            return MAPPER.readTree(meta);
         } catch (Exception e) {
             log.warn("Failed to parse request meta: {}", meta, e);
             return null;
         }
     }
 
-    private String parseContent(String meta) {
-        if (meta == null || meta.isBlank()) return null;
-        try {
-            JsonNode node = MAPPER.readTree(meta);
-            JsonNode content = node.get("content");
-            String text = content != null ? content.asText() : null;
-            return text == null || text.isBlank() ? null : text;
-        } catch (Exception e) {
-            log.warn("Failed to parse request meta: {}", meta, e);
-            return null;
-        }
+    private Long fieldLong(JsonNode node, String field) {
+        JsonNode value = node != null ? node.get(field) : null;
+        return value != null && value.isNumber() ? value.asLong() : null;
+    }
+
+    private String fieldText(JsonNode node, String field) {
+        JsonNode value = node != null ? node.get(field) : null;
+        return value != null && !value.asText().isBlank() ? value.asText() : null;
     }
 
     private RequestVO toVO(Request request, User sender, User receiver) {

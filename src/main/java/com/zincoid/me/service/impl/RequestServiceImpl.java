@@ -158,9 +158,13 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
     @Override
     @Transactional
     public int cleanupExpired(int retentionDays) {
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(retentionDays);
         List<Long> ids = lambdaQuery()
                 .select(Request::getId)
-                .lt(Request::getCreatedAt, LocalDateTime.now().minusDays(retentionDays))
+                .and(w -> w
+                        .and(q -> q.isNotNull(Request::getHandledAt).lt(Request::getHandledAt, cutoff))
+                        .or()
+                        .and(q -> q.isNull(Request::getHandledAt).lt(Request::getCreatedAt, cutoff)))
                 .list().stream().map(Request::getId).toList();
         if (!ids.isEmpty()) {
             notificationService.lambdaUpdate()

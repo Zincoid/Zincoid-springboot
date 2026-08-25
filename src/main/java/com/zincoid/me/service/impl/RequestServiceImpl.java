@@ -220,6 +220,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                             ? MAPPER.createObjectNode()
                             : (ObjectNode) MAPPER.readTree(request.getMeta());
                     node.put("url", original != null ? "/uploads/" + original.getFilePath() : "");
+                    node.put("name", original != null ? original.getFileName() : "");
                     request.setMeta(MAPPER.writeValueAsString(node));
                     updateById(request);
                 } catch (Exception e) {

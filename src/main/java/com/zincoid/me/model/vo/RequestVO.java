@@ -14,7 +14,10 @@ public class RequestVO {
     private Long id;
     private Long senderId;
     private String senderName;
+    private String senderAvatar;
     private Long receiverId;
+    private String receiverName;
+    private String receiverAvatar;
     private RequestType type;
     private String meta;
     private Access access;

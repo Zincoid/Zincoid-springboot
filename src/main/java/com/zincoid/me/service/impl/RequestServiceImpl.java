@@ -75,7 +75,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                 ADMIN_ONLY.contains(type)
         );
         log.info("Request created: id={}, sender={}, type={}", request.getId(), senderId, type);
-        return toVO(request, userService.getById(senderId));
+        return toVO(request, userService.getById(senderId), userService.getById(receiverId));
     }
 
     @Override
@@ -86,7 +86,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                 .page(Page.of(page, size));
         List<RequestVO> vos = new ArrayList<>();
         for (Request r : result.getRecords())
-            vos.add(toVO(r, userService.getById(r.getSenderId())));
+            vos.add(toVO(r, userService.getById(r.getSenderId()), userService.getById(r.getReceiverId())));
         return PageVO.of(result, vos);
     }
 
@@ -101,7 +101,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                 .page(Page.of(page, size));
         List<RequestVO> vos = new ArrayList<>();
         for (Request r : result.getRecords())
-            vos.add(toVO(r, userService.getById(r.getSenderId())));
+            vos.add(toVO(r, userService.getById(r.getSenderId()), userService.getById(r.getReceiverId())));
         return PageVO.of(result, vos);
     }
 
@@ -137,7 +137,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
         log.info("Request handled: id={}, by={}, access={}", requestId, userId, access);
         request.setAccess(access);
         request.setHandledAt(LocalDateTime.now());
-        return toVO(request, userService.getById(request.getSenderId()));
+        return toVO(request, userService.getById(request.getSenderId()), userService.getById(request.getReceiverId()));
     }
 
     @Override
@@ -197,12 +197,15 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
         }
     }
 
-    private RequestVO toVO(Request request, User sender) {
+    private RequestVO toVO(Request request, User sender, User receiver) {
         return RequestVO.builder()
                 .id(request.getId())
                 .senderId(request.getSenderId())
-                .senderName(sender != null ? sender.getUsername() : null)
+                .senderName(sender != null ? sender.getNickname() : null)
+                .senderAvatar(sender != null ? sender.getAvatar() : null)
                 .receiverId(request.getReceiverId())
+                .receiverName(receiver != null ? receiver.getNickname() : null)
+                .receiverAvatar(receiver != null ? receiver.getAvatar() : null)
                 .type(request.getType())
                 .meta(request.getMeta())
                 .access(request.getAccess())

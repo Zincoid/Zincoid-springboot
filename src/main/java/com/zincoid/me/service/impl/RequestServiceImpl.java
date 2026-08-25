@@ -219,8 +219,10 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                     ObjectNode node = request.getMeta() == null || request.getMeta().isBlank()
                             ? MAPPER.createObjectNode()
                             : (ObjectNode) MAPPER.readTree(request.getMeta());
-                    node.put("name", original != null ? original.getFileName() : "");
-                    node.put("url", original != null ? "/uploads/" + original.getFilePath() : "");
+                    if (original != null) {
+                        node.put("name",  original.getFileName());
+                        node.put("url", "/uploads/" + original.getFilePath());
+                    }
                     String meta = MAPPER.writeValueAsString(node);
                     lambdaUpdate()
                             .eq(Request::getId, request.getId())

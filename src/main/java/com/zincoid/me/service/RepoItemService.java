@@ -7,6 +7,8 @@ import com.zincoid.me.model.vo.RepoItemVO;
 
 public interface RepoItemService extends IService<RepoItem> {
 
+    long count(Long repoId);
+
     PageVO<RepoItemVO> list(Long repoId, int page, int size);
 
     RepoItemVO add(Long repoId, Long fileId, String name);

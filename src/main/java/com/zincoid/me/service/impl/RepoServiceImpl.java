@@ -261,8 +261,10 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 && !isAdmin
                 && (viewerId == null || !viewerId.equals(repo.getUserId()))
                 && !repoAccessService.authorize(viewerId, repo.getId());
+        long itemCount = repo.getType() == RepoType.CODE ? 0L
+                : repoItemService.count(repo.getId());
         return RepoConverter.INSTANCE.toCardVO(
-                repo, user, isLiked, likeCount, (int) commentCount,
+                repo, user, isLiked, likeCount, commentCount, itemCount,
                 isRestricted, coverOrDefault(repo)
         );
     }

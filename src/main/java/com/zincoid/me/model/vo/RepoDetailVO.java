@@ -25,7 +25,7 @@ public class RepoDetailVO {
     private String coverImage;
     private Boolean isDefaultCover;
     private Long viewCount;
-    private Integer likeCount;
+    private Long likeCount;
     private Boolean isLiked;
     private List<LikerVO> recentLikers;
     private Boolean restricted;

@@ -24,8 +24,9 @@ public class RepoCardVO {
     private List<String> tags;
     private String coverThumb;
     private Long viewCount;
-    private Integer likeCount;
-    private Integer commentCount;
+    private Long likeCount;
+    private Long commentCount;
+    private Long itemCount;
     private Boolean isLiked;
     private Boolean restricted;
     private LocalDateTime createdAt;

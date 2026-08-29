@@ -29,6 +29,13 @@ public class RepoItemServiceImpl extends ServiceImpl<RepoItemMapper, RepoItem> i
     private final FileService fileService;
 
     @Override
+    public long count(Long repoId) {
+        return lambdaQuery()
+                .eq(RepoItem::getRepoId, repoId)
+                .count();
+    }
+
+    @Override
     public PageVO<RepoItemVO> list(Long repoId, int page, int size) {
         return PageVO.of(
                 lambdaQuery()

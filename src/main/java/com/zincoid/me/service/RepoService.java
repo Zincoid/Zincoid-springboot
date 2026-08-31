@@ -19,6 +19,8 @@ public interface RepoService extends IService<Repo> {
 
     void delete(Long userId, Long repoId, boolean isAdmin);
 
+    void transfer(Long userId, Long repoId, Long toId);
+
     RepoItemVO addItem(Long userId, Long repoId, RepoItemAddRequest request);
 
     void deleteItem(Long userId, Long repoId, Long itemId);

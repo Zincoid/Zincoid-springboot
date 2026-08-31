@@ -25,9 +25,9 @@ public interface RepoService extends IService<Repo> {
 
     void swapItems(Long userId, Long repoId, Long itemIdA, Long itemIdB);
 
-    PageVO<RepoCardVO> list(RepoType type, String keyword, boolean tagged, int page, int size);
+    PageVO<RepoCardVO> list(RepoType type, String keyword, boolean tagged, boolean updated, int page, int size);
 
-    PageVO<RepoCardVO> list(Long userId, RepoType type, int page, int size);
+    PageVO<RepoCardVO> list(RepoType type, Long userId, boolean updated, int page, int size);
 
     RepoDetailVO get(Long repoId);
 

@@ -68,18 +68,20 @@ public class RepoController {
     @GetMapping("/public")
     public ApiResponse<PageVO<RepoCardVO>> listRepos(@RequestParam(defaultValue = "1") int page,
                                                      @RequestParam(defaultValue = "10") int size,
-                                                     @RequestParam(required = false, defaultValue = "false") boolean tagged,
                                                      @RequestParam(required = false) RepoType type,
-                                                     @RequestParam(required = false) String keyword) {
-        return ApiResponse.success(repoService.list(type, keyword, tagged, page, size));
+                                                     @RequestParam(required = false) String keyword,
+                                                     @RequestParam(required = false, defaultValue = "false") boolean tagged,
+                                                     @RequestParam(required = false, defaultValue = "false") boolean updated) {
+        return ApiResponse.success(repoService.list(type, keyword, tagged, updated, page, size));
     }
 
     @GetMapping("/public/user/{userId}")
     public ApiResponse<PageVO<RepoCardVO>> userRepos(@PathVariable Long userId,
                                                      @RequestParam(defaultValue = "1") int page,
                                                      @RequestParam(defaultValue = "10") int size,
-                                                     @RequestParam(required = false) RepoType type) {
-        return ApiResponse.success(repoService.list(userId, type, page, size));
+                                                     @RequestParam(required = false) RepoType type,
+                                                     @RequestParam(required = false, defaultValue = "false") boolean updated) {
+        return ApiResponse.success(repoService.list(type, userId, updated, page, size));
     }
 
     @GetMapping("/public/{repoId}")

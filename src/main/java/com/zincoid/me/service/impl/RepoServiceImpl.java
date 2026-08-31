@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -131,6 +132,8 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
             throw new BusinessException(404, "Repo not found");
         if (!repo.getUserId().equals(userId))
             throw new BusinessException(403, "You can only edit your own repos");
+        repo.setUpdatedAt(LocalDateTime.now());
+        updateById(repo);
         return repoItemService.add(repoId, request.getFileId(), request.getName());
     }
 
@@ -161,7 +164,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     }
 
     @Override
-    public PageVO<RepoCardVO> list(RepoType type, String keyword, boolean tagged, int page, int size) {
+    public PageVO<RepoCardVO> list(RepoType type, String keyword, boolean tagged, boolean updated, int page, int size) {
         boolean hasKeyword = keyword != null && !keyword.isBlank();
         Page<Repo> repoPage = lambdaQuery()
                 .eq(Repo::getStatus, Status.ACTIVE)
@@ -169,13 +172,14 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 .eq(type != null, Repo::getType, type)
                 .like(hasKeyword && !tagged, Repo::getName, keyword)
                 .like(hasKeyword && tagged, Repo::getTags, keyword)
-                .orderByDesc(Repo::getCreatedAt)
+                .orderByDesc(updated, Repo::getUpdatedAt)
+                .orderByDesc(!updated, Repo::getCreatedAt)
                 .page(Page.of(page, size));
         return PageVO.of(repoPage, this::buildCardVO);
     }
 
     @Override
-    public PageVO<RepoCardVO> list(Long userId, RepoType type, int page, int size) {
+    public PageVO<RepoCardVO> list(RepoType type, Long userId, boolean updated, int page, int size) {
         Long viewerId = AuthCtx.getUserId();
         boolean isOwner = viewerId != null && viewerId.equals(userId);
         boolean isAdmin = viewerId != null && AuthCtx.getRole() == Role.ADMIN;
@@ -184,7 +188,8 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 .eq(Repo::getUserId, userId)
                 .eq(type != null, Repo::getType, type)
                 .ne(!isOwner && !isAdmin, Repo::getVisibility, Visibility.PRIVATE)
-                .orderByDesc(Repo::getCreatedAt);
+                .orderByDesc(updated, Repo::getUpdatedAt)
+                .orderByDesc(!updated, Repo::getCreatedAt);
         Page<Repo> repoPage = wrapper.page(Page.of(page, size));
         return PageVO.of(repoPage, this::buildCardVO);
     }

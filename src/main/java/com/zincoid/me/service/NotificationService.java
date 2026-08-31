@@ -14,7 +14,7 @@ public interface NotificationService extends IService<Notification> {
 
     void notifyAt(Long senderId, String content, NotificationType type, Long relatedId);
 
-    void notifyReq(Long senderId, Long receiverId, String message, NotificationType type, Long relatedId, boolean isAdminOnly);
+    void notifyReq(Long senderId, Long receiverId, String message, Long requestId, boolean isAdminOnly);
 
     void deleteOne(Long notificationId, Long userId);
 

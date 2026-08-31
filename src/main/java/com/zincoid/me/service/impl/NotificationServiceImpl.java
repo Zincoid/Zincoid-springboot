@@ -180,7 +180,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
 
     @Override
     @Transactional
-    public void notifyReq(Long senderId, Long receiverId, String message, NotificationType type, Long relatedId, boolean isAdminOnly) {
+    public void notifyReq(Long senderId, Long receiverId, String message, Long requestId, boolean isAdminOnly) {
         if (senderId.equals(receiverId))
             throw new BusinessException(400, "Sender and receiver cannot be the same");
         if (!isAdminOnly) {
@@ -189,14 +189,14 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
             Notification notification = Notification.builder()
                     .senderId(senderId)
                     .receiverId(receiverId)
-                    .relatedType(type)
-                    .relatedId(relatedId)
+                    .relatedType(NotificationType.REQUEST)
+                    .relatedId(requestId)
                     .message(message)
                     .isRead(false)
                     .build();
             save(notification);
             log.info("Req notification created: sender={}, receiver={}, relation={}:{}, id={}",
-                    senderId, receiverId, type, relatedId, notification.getId());
+                    senderId, receiverId, NotificationType.REQUEST, requestId, notification.getId());
             return;
         }
         List<User> admins = userService.lambdaQuery()
@@ -209,8 +209,8 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
             batch.add(Notification.builder()
                     .senderId(senderId)
                     .receiverId(admin.getId())
-                    .relatedType(type)
-                    .relatedId(relatedId)
+                    .relatedType(NotificationType.REQUEST)
+                    .relatedId(requestId)
                     .message(message)
                     .isRead(false)
                     .build());

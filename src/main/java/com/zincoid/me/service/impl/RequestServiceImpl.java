@@ -13,12 +13,14 @@ import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.RequestType;
 import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.po.Notification;
+import com.zincoid.me.model.po.Repo;
 import com.zincoid.me.model.po.Request;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.RequestVO;
 import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.NotificationService;
+import com.zincoid.me.service.RepoService;
 import com.zincoid.me.service.RequestService;
 import com.zincoid.me.service.StorageService;
 import com.zincoid.me.service.UserService;
@@ -49,6 +51,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
     private final NotificationService notificationService;
     private final StorageService storageService;
     private final FileService fileService;
+    private final RepoService repoService;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -75,6 +78,12 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                         || fieldText(node, "content") == null)
                     throw new BusinessException(400, "Invalid request meta");
             }
+            case REPO_TRANSFER -> {
+                Long repoId = fieldLong(node, "repo");
+                Repo repo = repoId == null ? null : repoService.getById(repoId);
+                if (repo == null || !repo.getUserId().equals(senderId))
+                    throw new BusinessException(400, "Invalid request meta");
+            }
         }
         Request request = Request.builder()
                 .senderId(senderId)
@@ -88,7 +97,6 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
         notificationService.notifyReq(
                 senderId, receiverId,
                 "Pending",
-                NotificationType.REQUEST,
                 request.getId(),
                 ADMIN_ONLY.contains(type)
         );
@@ -148,7 +156,6 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
             notificationService.notifyReq(
                     userId, request.getSenderId(),
                     access == Access.APPROVED ? "Approved" : "Rejected",
-                    NotificationType.REQUEST,
                     requestId,
                     false
             );
@@ -234,6 +241,16 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                 }
                 log.info("Music share granted: user={}, music={}", request.getSenderId(),
                         original != null ? original.getId() : "none");
+            }
+            case REPO_TRANSFER -> {
+                Long repoId = fieldLong(parseMeta(request.getMeta()), "repo");
+                Repo repo = repoId == null ? null : repoService.getById(repoId);
+                if (repo == null || !repo.getUserId().equals(request.getSenderId()))
+                    throw new BusinessException(400, "Repo is no longer transferable");
+                repo.setUserId(request.getReceiverId());
+                repo.setUpdatedAt(LocalDateTime.now());
+                repoService.updateById(repo);
+                log.info("Repo transferred via request: id={}, to={}", repoId, request.getReceiverId());
             }
         }
     }

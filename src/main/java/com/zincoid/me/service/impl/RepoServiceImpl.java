@@ -126,28 +126,6 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
 
     @Override
     @Transactional
-    public void transfer(Long userId, Long repoId, Long toId) {
-        Repo repo = getById(repoId);
-        if (repo == null)
-            throw new BusinessException(404, "Repo not found");
-        if (!repo.getUserId().equals(userId))
-            throw new BusinessException(403, "No permission to transfer this repo");
-        if (toId == null || toId.equals(repo.getUserId()))
-            throw new BusinessException(400, "Cannot transfer to yourself");
-        User to = userService.getById(toId);
-        if (to == null || to.getStatus() == Status.DISABLED)
-            throw new BusinessException(404, "User not found");
-        repo.setUserId(toId);
-        repo.setUpdatedAt(LocalDateTime.now());
-        updateById(repo);
-        notificationService.notifyReq(userId, toId,
-                "Repo transferred to you: " + repo.getName(),
-                NotificationType.SYSTEM, repoId, false);
-        log.info("Repo transferred: id={}, from={}, to={}", repoId, userId, toId);
-    }
-
-    @Override
-    @Transactional
     public RepoItemVO addItem(Long userId, Long repoId, RepoItemAddRequest request) {
         Repo repo = getById(repoId);
         if (repo == null)

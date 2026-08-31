@@ -10,7 +10,8 @@ public enum RequestType {
 
     STORAGE_EXTENSION(0),
     REPORT(1),
-    MUSIC_REQUEST(2);
+    MUSIC_REQUEST(2),
+    REPO_TRANSFER(3);
 
     @EnumValue
     private final Integer value;

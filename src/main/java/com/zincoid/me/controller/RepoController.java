@@ -42,13 +42,6 @@ public class RepoController {
         return ApiResponse.success();
     }
 
-    @PutMapping("/{repoId}/transfer")
-    public ApiResponse<Void> transferRepo(@PathVariable Long repoId,
-                                          @RequestParam Long toId) {
-        repoService.transfer(AuthCtx.getUserId(), repoId, toId);
-        return ApiResponse.success();
-    }
-
     @PostMapping("/{repoId}/items")
     public ApiResponse<RepoItemVO> addRepoItem(@PathVariable Long repoId,
                                                @Valid @RequestBody RepoItemAddRequest request) {

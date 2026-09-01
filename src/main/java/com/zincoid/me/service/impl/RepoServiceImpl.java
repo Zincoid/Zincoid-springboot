@@ -99,6 +99,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 repoAccessService.lambdaUpdate().eq(RepoAccess::getRepoId, repoId).remove();
             repo.setVisibility(request.getVisibility());
         }
+        repo.setUpdatedAt(LocalDateTime.now());
         updateById(repo);
         if (repo.getCoverImage() != null && !repo.getCoverImage().isBlank())
             fileService.link(List.of(repo.getCoverImage()), RelatedType.REPO, repo.getId());

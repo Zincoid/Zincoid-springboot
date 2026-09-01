@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -60,6 +61,7 @@ public class StorageServiceImpl implements StorageService {
         User user = userService.getById(userId);
         if (user == null) throw new BusinessException(404, "User not found");
         user.setCapacity(user.getCapacity() + capacity);
+        user.setUpdatedAt(LocalDateTime.now());
         userService.updateById(user);
         log.info("User capacity expanded: user={}, capacity={}", user.getId(), user.getCapacity());
     }
@@ -71,6 +73,7 @@ public class StorageServiceImpl implements StorageService {
         User user = userService.lambdaQuery().eq(User::getUsername, username).one();
         if (user == null) throw new BusinessException(404, "User not found");
         user.setCapacity(capacity);
+        user.setUpdatedAt(LocalDateTime.now());
         userService.updateById(user);
         log.info("User capacity updated: user={}, capacity={}", user.getId(), capacity);
     }

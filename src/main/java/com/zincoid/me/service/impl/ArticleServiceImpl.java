@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -98,6 +99,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
                 fileService.delete(oldCover);
         }
         if (request.getVisibility() != null) article.setVisibility(request.getVisibility());
+        article.setUpdatedAt(LocalDateTime.now());
         updateById(article);
         List<String> urls = new ArrayList<>();
         if (article.getCoverImage() != null && !article.getCoverImage().isBlank())

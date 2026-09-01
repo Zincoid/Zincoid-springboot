@@ -250,6 +250,11 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                 repo.setUserId(request.getReceiverId());
                 repo.setUpdatedAt(LocalDateTime.now());
                 repoService.updateById(repo);
+                fileService.lambdaUpdate()
+                        .eq(File::getRelatedType, RelatedType.REPO)
+                        .eq(File::getRelatedId, repoId)
+                        .set(File::getUserId, request.getReceiverId())
+                        .update();
                 log.info("Repo transferred via request: id={}, to={}", repoId, request.getReceiverId());
             }
         }

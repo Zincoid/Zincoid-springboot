@@ -42,6 +42,7 @@ public interface RepoConverter {
     @Mapping(target = "isLiked", source = "isLiked")
     @Mapping(target = "restricted", source = "isRestricted")
     @Mapping(target = "createdAt", source = "repo.createdAt")
+    @Mapping(target = "updatedAt", source = "repo.updatedAt")
     RepoCardVO toCardVO(Repo repo, User user, boolean isLiked,
                         long likeCount, long commentCount, long itemCount,
                         boolean isRestricted, String cover);

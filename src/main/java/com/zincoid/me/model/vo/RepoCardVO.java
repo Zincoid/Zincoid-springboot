@@ -30,4 +30,5 @@ public class RepoCardVO {
     private Boolean isLiked;
     private Boolean restricted;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

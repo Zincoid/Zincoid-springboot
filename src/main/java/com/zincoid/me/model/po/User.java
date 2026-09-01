@@ -39,6 +39,7 @@ public class User {
     private Role role;
     private Status status;
     private LocalDateTime createdAt;
+    @TableField(update = "NOW()")
     private LocalDateTime updatedAt;
     private LocalDateTime activeAt;
 }

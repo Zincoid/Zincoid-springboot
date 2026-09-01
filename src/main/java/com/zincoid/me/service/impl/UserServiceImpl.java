@@ -164,7 +164,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (status == Status.DISABLED && user.getRole() == Role.ADMIN)
             throw new BusinessException(403, "Cannot disable an admin account");
         user.setStatus(status);
-        user.setUpdatedAt(LocalDateTime.now());
         updateById(user);
         momentService.lambdaUpdate()
                 .eq(Moment::getUserId, userId)
@@ -229,7 +228,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             String contacts = request.getContacts().trim();
             user.setContacts(contacts.isEmpty() ? null : contacts);
         }
-        user.setUpdatedAt(LocalDateTime.now());
         updateById(user);
         log.info("User profile updated: id={}, username={}", userId, user.getUsername());
         return UserConverter.INSTANCE.toDetailVO(user);
@@ -242,7 +240,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (user.getAvatar() != null && !user.getAvatar().equals(avatar))
             fileService.delete(user.getAvatar());
         user.setAvatar(avatar);
-        user.setUpdatedAt(LocalDateTime.now());
         updateById(user);
         log.info("User avatar updated: id={}, username={}, avatar={}", userId, user.getUsername(), avatar);
         return UserConverter.INSTANCE.toDetailVO(user);
@@ -283,7 +280,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (user.getEmail() != null && !user.getEmail().isBlank())
             emailService.removeCode(user.getEmail(), CodeType.CHANGE_EMAIL_OLD);
         user.setEmail(email);
-        user.setUpdatedAt(LocalDateTime.now());
         updateById(user);
         log.info("User email changed: id={}, username={}, newEmail={}", userId, user.getUsername(), email);
     }
@@ -295,7 +291,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (!passwordEncoder.matches(oldPassword, user.getPassword()))
             throw new BusinessException("Old password is incorrect");
         user.setPassword(passwordEncoder.encode(newPassword));
-        user.setUpdatedAt(LocalDateTime.now());
         updateById(user);
         log.info("User password changed: id={}, username={}", userId, user.getUsername());
     }
@@ -306,7 +301,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (user == null)
             throw new BusinessException(404, "User not found");
         user.setPassword(passwordEncoder.encode(newPassword));
-        user.setUpdatedAt(LocalDateTime.now());
         updateById(user);
         log.info("Force password reset: id={}, username={}", user.getId(), username);
     }
@@ -319,7 +313,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (user == null)
             throw new BusinessException(404, "Email not registered");
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        user.setUpdatedAt(LocalDateTime.now());
         updateById(user);
         log.info("Password reset via email: id={}, username={}", user.getId(), user.getUsername());
     }

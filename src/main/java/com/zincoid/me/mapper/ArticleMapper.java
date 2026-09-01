@@ -8,6 +8,6 @@ import org.apache.ibatis.annotations.Update;
 @Mapper
 public interface ArticleMapper extends BaseMapper<Article> {
 
-    @Update("UPDATE article SET view_count = view_count + 1, updated_at = updated_at WHERE id = #{id}")
+    @Update("UPDATE article SET view_count = view_count + 1 WHERE id = #{id}")
     int addViewCount(Long id);
 }

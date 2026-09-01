@@ -248,7 +248,6 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                 if (repo == null || !repo.getUserId().equals(request.getSenderId()))
                     throw new BusinessException(400, "Repo is no longer transferable");
                 repo.setUserId(request.getReceiverId());
-                repo.setUpdatedAt(LocalDateTime.now());
                 repoService.updateById(repo);
                 fileService.lambdaUpdate()
                         .eq(File::getRelatedType, RelatedType.REPO)

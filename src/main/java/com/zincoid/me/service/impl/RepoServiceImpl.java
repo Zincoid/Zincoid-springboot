@@ -133,7 +133,6 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
             throw new BusinessException(404, "Repo not found");
         if (!repo.getUserId().equals(userId))
             throw new BusinessException(403, "You can only edit your own repos");
-        repo.setUpdatedAt(LocalDateTime.now());
         updateById(repo);
         return repoItemService.add(repoId, request.getFileId(), request.getName());
     }

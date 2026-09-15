@@ -188,8 +188,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                 .select(Request::getId)
                 .and(w -> w
                         .and(q -> q.isNotNull(Request::getHandledAt).lt(Request::getHandledAt, cutoff))
-                        .or()
-                        .and(q -> q.isNull(Request::getHandledAt).lt(Request::getCreatedAt, cutoff)))
+                        .or(q -> q.isNull(Request::getHandledAt).lt(Request::getCreatedAt, cutoff)))
                 .list().stream().map(Request::getId).toList();
         if (!ids.isEmpty()) {
             notificationService.lambdaUpdate()

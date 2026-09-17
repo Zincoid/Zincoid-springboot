@@ -53,6 +53,12 @@ jwt:
   secret: ${zincoid.jwt.secret}
   expiration: ${zincoid.jwt.expiration}
 
+# Cookie
+cookie:
+  secure: ${zincoid.cookie.secure}
+  same-site: ${zincoid.cookie.same-site}
+  max-age: ${zincoid.cookie.max-age}
+
 # File
 upload:
   path: ${zincoid.upload.path}

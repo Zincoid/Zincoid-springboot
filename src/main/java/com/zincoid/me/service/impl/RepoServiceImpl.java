@@ -218,6 +218,8 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
             vo.setRestricted(true);
             vo.setUrl(null);
             vo.setGithub(null);
+            vo.setCoverImage(null);
+            vo.setIsDefaultCover(true);
         }
         return vo;
     }
@@ -270,7 +272,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 : repoItemService.count(repo.getId());
         return RepoConverter.INSTANCE.toCardVO(
                 repo, user, isLiked, likeCount, commentCount, itemCount,
-                isRestricted, coverOrDefault(repo)
+                isRestricted, isRestricted ? null : coverOrDefault(repo)
         );
     }
 

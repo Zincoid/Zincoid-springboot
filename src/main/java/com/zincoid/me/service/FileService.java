@@ -1,6 +1,7 @@
 package com.zincoid.me.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.vo.FileVO;
@@ -11,6 +12,12 @@ import java.util.List;
 import java.util.Map;
 
 public interface FileService extends IService<File> {
+
+    File get(String path);
+
+    boolean accessible(File file, Long userId, Role role);
+
+    boolean cacheable(File file);
 
     FileVO upload(Long userId, MultipartFile file, RelatedType relatedType, Long relatedId);
 

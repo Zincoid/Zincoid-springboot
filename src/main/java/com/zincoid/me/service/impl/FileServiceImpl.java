@@ -6,12 +6,19 @@ import com.zincoid.me.mapper.FileMapper;
 import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.enums.FileType;
 import com.zincoid.me.model.enums.RelatedType;
+import com.zincoid.me.model.enums.Role;
+import com.zincoid.me.model.enums.Status;
+import com.zincoid.me.model.enums.Visibility;
+import com.zincoid.me.model.po.Article;
+import com.zincoid.me.model.po.Moment;
+import com.zincoid.me.model.po.Repo;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.vo.FileVO;
 import com.zincoid.me.service.ArticleService;
 import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.MessageService;
 import com.zincoid.me.service.MomentService;
+import com.zincoid.me.service.RepoAccessService;
 import com.zincoid.me.service.RepoService;
 import com.zincoid.me.service.UserService;
 import com.zincoid.me.utils.FileUtil;
@@ -45,18 +52,83 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     private final MomentService momentService;
     private final ArticleService articleService;
     private final RepoService repoService;
+    private final RepoAccessService repoAccessService;
     private final MessageService messageService;
 
     public FileServiceImpl(UserService userService,
                            @Lazy MomentService momentService,
                            @Lazy ArticleService articleService,
                            @Lazy RepoService repoService,
+                           @Lazy RepoAccessService repoAccessService,
                            @Lazy MessageService messageService) {
         this.userService = userService;
         this.momentService = momentService;
         this.articleService = articleService;
         this.repoService = repoService;
+        this.repoAccessService = repoAccessService;
         this.messageService = messageService;
+    }
+
+    @Override
+    public File get(String path) {
+        if (path == null || path.isBlank()) return null;
+        List<File> files = lambdaQuery().eq(File::getFilePath, path).list();
+        return files.isEmpty() ? null : files.getFirst();
+    }
+
+    @Override
+    public boolean accessible(File file, Long userId, Role role) {
+        if (file == null) return false;
+        if (file.getRelatedType() == null)
+            return userId != null && userId.equals(file.getUserId());
+        boolean isAdmin = role == Role.ADMIN;
+        return switch (file.getRelatedType()) {
+            case AVATAR, MUSIC, CHAT -> true;
+            case MOMENT -> {
+                Moment moment = momentService.getById(file.getRelatedId());
+                if (moment == null || moment.getStatus() == Status.DISABLED) yield false;
+                boolean isOwner = userId != null && userId.equals(moment.getUserId());
+                yield moment.getVisibility() != Visibility.PRIVATE || isOwner || isAdmin;
+            }
+            case ARTICLE -> {
+                Article article = articleService.getById(file.getRelatedId());
+                if (article == null || article.getStatus() == Status.DISABLED) yield false;
+                boolean isOwner = userId != null && userId.equals(article.getUserId());
+                yield article.getVisibility() != Visibility.PRIVATE || isOwner || isAdmin;
+            }
+            case REPO -> {
+                Repo repo = repoService.getById(file.getRelatedId());
+                if (repo == null || repo.getStatus() == Status.DISABLED) yield false;
+                boolean isOwner = userId != null && userId.equals(repo.getUserId());
+                if (repo.getVisibility() == Visibility.PUBLIC || isOwner || isAdmin) yield true;
+                if (repo.getVisibility() == Visibility.RESTRICTED)
+                    yield userId != null && repoAccessService.authorize(userId, repo.getId());
+                yield false;
+            }
+        };
+    }
+
+    @Override
+    public boolean cacheable(File file) {
+        if (file == null || file.getRelatedType() == null) return false;
+        return switch (file.getRelatedType()) {
+            case AVATAR, MUSIC, CHAT -> true;
+            case MOMENT -> {
+                Moment moment = momentService.getById(file.getRelatedId());
+                yield moment != null && moment.getStatus() != Status.DISABLED
+                        && moment.getVisibility() == Visibility.PUBLIC;
+            }
+            case ARTICLE -> {
+                Article article = articleService.getById(file.getRelatedId());
+                yield article != null && article.getStatus() != Status.DISABLED
+                        && article.getVisibility() == Visibility.PUBLIC;
+            }
+            case REPO -> {
+                Repo repo = repoService.getById(file.getRelatedId());
+                if (repo == null || repo.getStatus() == Status.DISABLED) yield false;
+                yield repo.getVisibility() == Visibility.PUBLIC;
+            }
+        };
     }
 
     @Override

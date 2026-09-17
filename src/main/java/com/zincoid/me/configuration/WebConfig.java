@@ -1,6 +1,7 @@
 package com.zincoid.me.configuration;
 
-import com.zincoid.me.interceptor.JwtInterceptor;
+import com.zincoid.me.interceptor.FileAccessInterceptor;
+import com.zincoid.me.interceptor.AuthInterceptor;
 import com.zincoid.me.interceptor.MaintenanceInterceptor;
 import com.zincoid.me.interceptor.StatInterceptor;
 import com.zincoid.me.model.enums.Access;
@@ -23,9 +24,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
-    private final JwtInterceptor jwtInterceptor;
+    private final AuthInterceptor authInterceptor;
     private final MaintenanceInterceptor maintenanceInterceptor;
     private final StatInterceptor statInterceptor;
+    private final FileAccessInterceptor fileAccessInterceptor;
 
     @Value("${upload.path:./uploads}")
     private String uploadPath;
@@ -64,8 +66,10 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/api/**");
         registry.addInterceptor(statInterceptor)
                 .addPathPatterns("/api/**");
-        registry.addInterceptor(jwtInterceptor)
-                .addPathPatterns("/api/**");
+        registry.addInterceptor(authInterceptor)
+                .addPathPatterns("/api/**", "/uploads/**", "/thumbnails/**");
+        registry.addInterceptor(fileAccessInterceptor)
+                .addPathPatterns("/uploads/**", "/thumbnails/**");
     }
 
     @Override

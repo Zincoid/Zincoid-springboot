@@ -1,5 +1,6 @@
 package com.zincoid.me.interceptor;
 
+import com.zincoid.me.controller.AuthController;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.exception.UnauthorizedException;
 import com.zincoid.me.model.enums.Status;
@@ -7,6 +8,7 @@ import com.zincoid.me.model.po.User;
 import com.zincoid.me.service.UserService;
 import com.zincoid.me.utils.JwtTool;
 import com.zincoid.me.utils.AuthCtx;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
@@ -18,7 +20,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class JwtInterceptor implements HandlerInterceptor {
+public class AuthInterceptor implements HandlerInterceptor {
 
     private final JwtTool jwtUtils;
     private final UserService userService;
@@ -33,7 +35,9 @@ public class JwtInterceptor implements HandlerInterceptor {
             "/api/chats/public",
             "/api/comments/public",
             "/api/likes/public",
-            "/api/configs/public"
+            "/api/configs/public",
+            "/uploads/",
+            "/thumbnails/"
     );
 
     @Override
@@ -48,11 +52,10 @@ public class JwtInterceptor implements HandlerInterceptor {
         String path = request.getRequestURI();
         boolean isPublic = PUBLIC_PATHS.stream().anyMatch(path::startsWith);
 
-        // Populate from token if present
-        String authHeader = request.getHeader("Authorization");
-        boolean hasToken = authHeader != null && authHeader.startsWith("Bearer ");
+        // Resolve token from header or cookie
+        String token = resolveToken(request);
+        boolean hasToken = token != null && !token.isBlank();
         if (hasToken) {
-            String token = authHeader.substring(7);
             boolean valid = jwtUtils.validate(token);
             boolean revoked = valid && userService.isTokenRevoked(token);
             if (!isPublic && !valid)
@@ -85,6 +88,17 @@ public class JwtInterceptor implements HandlerInterceptor {
         userService.updateActiveAt(user.getId());
 
         return true;
+    }
+
+    private String resolveToken(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer "))
+            return authHeader.substring(7);
+        if (request.getCookies() != null)
+            for (Cookie cookie : request.getCookies())
+                if (AuthController.COOKIE_NAME.equals(cookie.getName()))
+                    return cookie.getValue();
+        return null;
     }
 
     @Override

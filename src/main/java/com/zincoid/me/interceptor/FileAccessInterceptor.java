@@ -27,7 +27,7 @@ public class FileAccessInterceptor implements HandlerInterceptor {
                              @NonNull Object handler) {
         String path = extractPath(request.getRequestURI());
         if (path == null)
-            throw new BusinessException(404, "Invalid file path");
+            throw new BusinessException(404, "Path is invalid");
 
         Long userId = AuthCtx.getUserId();
         Role role = AuthCtx.isAuthed() ? AuthCtx.getRole() : null;

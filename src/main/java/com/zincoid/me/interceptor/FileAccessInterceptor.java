@@ -1,7 +1,6 @@
 package com.zincoid.me.interceptor;
 
 import com.zincoid.me.exception.BusinessException;
-import com.zincoid.me.exception.UnauthorizedException;
 import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.po.File;
 import com.zincoid.me.service.FileService;
@@ -35,14 +34,12 @@ public class FileAccessInterceptor implements HandlerInterceptor {
         File file = fileService.get(path);
         if (file == null)
             throw new BusinessException(404, "File not found");
-        if (!fileService.accessible(file, userId, role)) {
-            if (userId == null)
-                throw new UnauthorizedException("Authentication required");
+        if (!fileService.accessible(file, userId, role))
             throw new BusinessException(403, "Permission denied");
-        }
 
+        boolean cacheable = fileService.cacheable(file);
         response.setHeader("Cache-Control",
-                fileService.cacheable(file) ? CACHE_PUBLIC : CACHE_PRIVATE);
+                cacheable ? CACHE_PUBLIC : CACHE_PRIVATE);
         return true;
     }
 

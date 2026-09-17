@@ -127,15 +127,17 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                 snippet = n.getMessage();
             } else if (n.getRelatedType() == NotificationType.REQUEST) {
                 Request request = requestService.getById(n.getRelatedId());
-                snippet = "Info: type=%s, meta=%s\nStatus: %s"
-                        .formatted(request.getType(), request.getMeta(), n.getMessage());
+                snippet = """
+                        Detail: type=%s, meta=%s
+                        Status: %s""".formatted(request.getType(),
+                        request.getMeta(), n.getMessage());
             } else if (n.getRelatedType() == NotificationType.REGISTER) {
-                snippet = "Email: " + sender.getEmail();
+                snippet = sender.getEmail();
             } else if (n.getRelatedType() == NotificationType.ACCESS_REQUEST
                     || n.getRelatedType() == NotificationType.ACCESS_REJECTED
                     || n.getRelatedType() == NotificationType.ACCESS_APPROVED) {
                 Repo repo = repoService.getById(n.getRelatedId());
-                snippet = "Repo: " + repo.getName();
+                snippet = repo.getName();
             }
             vos.add(NotificationConverter.INSTANCE.toVO(n, sender, targetType, targetId, snippet));
         }

@@ -2,9 +2,8 @@ package com.zincoid.me.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.zincoid.me.model.enums.CodeType;
-import com.zincoid.me.model.enums.Role;
-import com.zincoid.me.model.enums.NotificationType;
+import com.zincoid.me.model.enums.*;
+import com.zincoid.me.model.po.*;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.UserMapper;
@@ -13,13 +12,6 @@ import com.zincoid.me.model.dto.ForgotPasswordRequest;
 import com.zincoid.me.model.dto.LoginRequest;
 import com.zincoid.me.model.dto.RegisterRequest;
 import com.zincoid.me.model.dto.UserUpdateRequest;
-import com.zincoid.me.model.po.Comment;
-import com.zincoid.me.model.po.Moment;
-import com.zincoid.me.model.po.Article;
-import com.zincoid.me.model.po.Message;
-import com.zincoid.me.model.po.Repo;
-import com.zincoid.me.model.po.User;
-import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.vo.LoginVO;
 import com.zincoid.me.model.vo.UserCardVO;
 import com.zincoid.me.model.vo.UserDetailVO;
@@ -259,7 +251,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         for (Message m : messages) messageService.delete(null, m.getId(), true);
         List<Comment> comments = commentService.lambdaQuery().eq(Comment::getUserId, userId).list();
         for (Comment c : comments) commentService.delete(null, c.getId(), true);
-        if (user.getAvatar() != null) fileService.delete(user.getAvatar());
+        List<File> tracks = fileService.lambdaQuery().eq(File::getUserId, userId).eq(File::getRelatedType, RelatedType.MUSIC).list();
+        for (File f : tracks) fileService.delete(f.getId());
+        List<File> avatars = fileService.lambdaQuery().eq(File::getUserId, userId).eq(File::getRelatedType, RelatedType.AVATAR).list();
+        for (File f : avatars) fileService.delete(f.getId());
         // Notifications, likes and user config are deleted through cascade
         removeById(userId);
         log.info("User account deleted: id={}, username={}", userId, user.getUsername());

@@ -242,7 +242,6 @@ CREATE TABLE IF NOT EXISTS `repo_item` (
     `sort_order`    INT             NOT NULL DEFAULT 0       COMMENT 'Sort order',
     `file_id`       BIGINT          DEFAULT NULL             COMMENT 'File record ID',
     `name`          VARCHAR(255)    NOT NULL                 COMMENT 'Display name',
-    `status`        TINYINT         NOT NULL DEFAULT 1        COMMENT 'Status: 0=DISABLED, 1=ACTIVE',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
     PRIMARY KEY (`id`),
     KEY `idx_repo_id` (`repo_id`),

@@ -7,7 +7,6 @@ import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.RepoItemMapper;
 import com.zincoid.me.model.enums.FileType;
 import com.zincoid.me.model.enums.RelatedType;
-import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.po.RepoItem;
 import com.zincoid.me.model.vo.PageVO;
@@ -40,7 +39,6 @@ public class RepoItemServiceImpl extends ServiceImpl<RepoItemMapper, RepoItem> i
         return PageVO.of(
                 lambdaQuery()
                         .eq(RepoItem::getRepoId, repoId)
-                        .eq(RepoItem::getStatus, Status.ACTIVE)
                         .orderByAsc(RepoItem::getSortOrder)
                         .page(Page.of(page, size)),
                 this::buildItemVO
@@ -55,7 +53,6 @@ public class RepoItemServiceImpl extends ServiceImpl<RepoItemMapper, RepoItem> i
                 .fileId(fileId)
                 .name(name)
                 .sortOrder(getMaxSortOrder(repoId) + 1)
-                .status(Status.ACTIVE)
                 .build();
         save(item);
         fileService._link(List.of(fileId), RelatedType.REPO, repoId);
@@ -105,7 +102,6 @@ public class RepoItemServiceImpl extends ServiceImpl<RepoItemMapper, RepoItem> i
     public String firstImageUrl(Long repoId) {
         return lambdaQuery()
                 .eq(RepoItem::getRepoId, repoId)
-                .eq(RepoItem::getStatus, Status.ACTIVE)
                 .orderByAsc(RepoItem::getSortOrder)
                 .list().stream()
                 .filter(i -> {

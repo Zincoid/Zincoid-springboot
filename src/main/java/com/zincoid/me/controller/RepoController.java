@@ -2,7 +2,6 @@ package com.zincoid.me.controller;
 
 import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.model.dto.RepoCreateRequest;
-import com.zincoid.me.model.dto.RepoItemAddRequest;
 import com.zincoid.me.model.dto.RepoUpdateRequest;
 import com.zincoid.me.model.enums.RepoType;
 import com.zincoid.me.model.enums.Role;
@@ -44,8 +43,8 @@ public class RepoController {
 
     @PostMapping("/{repoId}/items")
     public ApiResponse<RepoItemVO> addRepoItem(@PathVariable Long repoId,
-                                               @Valid @RequestBody RepoItemAddRequest request) {
-        return ApiResponse.success(repoService.addItem(AuthCtx.getUserId(), repoId, request));
+                                               @RequestParam Long fileId) {
+        return ApiResponse.success(repoService.addItem(AuthCtx.getUserId(), repoId, fileId));
     }
 
     @DeleteMapping("/{repoId}/items/{itemId}")

@@ -3,7 +3,6 @@ package com.zincoid.me.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zincoid.me.model.dto.RepoCreateRequest;
 import com.zincoid.me.model.dto.RepoUpdateRequest;
-import com.zincoid.me.model.dto.RepoItemAddRequest;
 import com.zincoid.me.model.enums.RepoType;
 import com.zincoid.me.model.po.Repo;
 import com.zincoid.me.model.vo.PageVO;
@@ -19,7 +18,7 @@ public interface RepoService extends IService<Repo> {
 
     void delete(Long userId, Long repoId, boolean isAdmin);
 
-    RepoItemVO addItem(Long userId, Long repoId, RepoItemAddRequest request);
+    RepoItemVO addItem(Long userId, Long repoId, Long fileId);
 
     void deleteItem(Long userId, Long repoId, Long itemId);
 

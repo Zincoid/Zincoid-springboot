@@ -20,8 +20,7 @@ public class RepoItem {
     @TableId(type = IdType.AUTO)
     private Long id;
     private Long repoId;
-    private Integer sortOrder;
     private Long fileId;
-    private String name;
+    private Integer sortOrder;
     private LocalDateTime createdAt;
 }

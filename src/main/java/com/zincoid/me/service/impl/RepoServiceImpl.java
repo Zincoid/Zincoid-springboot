@@ -6,7 +6,6 @@ import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.RepoMapper;
 import com.zincoid.me.converter.RepoConverter;
 import com.zincoid.me.model.dto.RepoCreateRequest;
-import com.zincoid.me.model.dto.RepoItemAddRequest;
 import com.zincoid.me.model.dto.RepoUpdateRequest;
 import com.zincoid.me.model.enums.*;
 import com.zincoid.me.model.po.Repo;
@@ -127,14 +126,14 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
 
     @Override
     @Transactional
-    public RepoItemVO addItem(Long userId, Long repoId, RepoItemAddRequest request) {
+    public RepoItemVO addItem(Long userId, Long repoId, Long fileId) {
         Repo repo = getById(repoId);
         if (repo == null)
             throw new BusinessException(404, "Repo not found");
         if (!repo.getUserId().equals(userId))
             throw new BusinessException(403, "You can only edit your own repos");
         updateById(repo);
-        return repoItemService.add(repoId, request.getFileId());
+        return repoItemService.add(repoId, fileId);
     }
 
     @Override

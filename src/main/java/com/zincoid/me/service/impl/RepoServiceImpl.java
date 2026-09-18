@@ -134,7 +134,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         if (!repo.getUserId().equals(userId))
             throw new BusinessException(403, "You can only edit your own repos");
         updateById(repo);
-        return repoItemService.add(repoId, request.getFileId(), request.getName());
+        return repoItemService.add(repoId, request.getFileId());
     }
 
     @Override

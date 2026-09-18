@@ -74,7 +74,7 @@ public interface RepoConverter {
     @Mapping(target = "id", source = "item.id")
     @Mapping(target = "sortOrder", source = "item.sortOrder")
     @Mapping(target = "fileId", source = "item.fileId")
-    @Mapping(target = "name", source = "item.name")
+    @Mapping(target = "name", source = "file.fileName")
     @Mapping(target = "url", source = "file", qualifiedByName = "urlOfFile")
     @Mapping(target = "thumb", source = "file", qualifiedByName = "thumbOfFile")
     @Mapping(target = "fileSize", source = "file", qualifiedByName = "sizeOfFile")

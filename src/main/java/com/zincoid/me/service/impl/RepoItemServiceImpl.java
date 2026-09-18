@@ -47,11 +47,10 @@ public class RepoItemServiceImpl extends ServiceImpl<RepoItemMapper, RepoItem> i
 
     @Override
     @Transactional
-    public RepoItemVO add(Long repoId, Long fileId, String name) {
+    public RepoItemVO add(Long repoId, Long fileId) {
         RepoItem item = RepoItem.builder()
                 .repoId(repoId)
                 .fileId(fileId)
-                .name(name)
                 .sortOrder(getMaxSortOrder(repoId) + 1)
                 .build();
         save(item);

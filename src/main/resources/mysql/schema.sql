@@ -239,9 +239,8 @@ CREATE TABLE IF NOT EXISTS `repo` (
 CREATE TABLE IF NOT EXISTS `repo_item` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
     `repo_id`       BIGINT          NOT NULL                 COMMENT 'Repo ID',
-    `sort_order`    INT             NOT NULL DEFAULT 0       COMMENT 'Sort order',
     `file_id`       BIGINT          DEFAULT NULL             COMMENT 'File record ID',
-    `name`          VARCHAR(255)    NOT NULL                 COMMENT 'Display name',
+    `sort_order`    INT             NOT NULL DEFAULT 0       COMMENT 'Sort order',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
     PRIMARY KEY (`id`),
     KEY `idx_repo_id` (`repo_id`),

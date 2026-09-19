@@ -161,6 +161,12 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
         RepoAccess access = getOrThrow(accessId);
         verifyOwner(userId, access);
         removeById(accessId);
+        if (access.getRole() == AccessRole.VIEWER)
+            lambdaUpdate()
+                    .eq(RepoAccess::getRepoId, access.getRepoId())
+                    .eq(RepoAccess::getUserId, access.getUserId())
+                    .eq(RepoAccess::getRole, AccessRole.CONTRIBUTOR)
+                    .remove();
         log.info("Access removed: id={}, user={}, repo={}, role={}", accessId, access.getUserId(), access.getRepoId(), access.getRole());
     }
 

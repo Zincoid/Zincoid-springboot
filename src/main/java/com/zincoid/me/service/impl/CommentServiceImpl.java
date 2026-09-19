@@ -12,6 +12,7 @@ import com.zincoid.me.model.po.Repo;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.RelatedType;
+import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.converter.CommentConverter;
 import com.zincoid.me.model.vo.CommentVO;
 import com.zincoid.me.model.vo.PageVO;
@@ -95,6 +96,19 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     @Override
     @Transactional
     public CommentVO add(Long userId, RelatedType targetType, Long targetId, String content, Long parentId) {
+        if (targetType == RelatedType.MOMENT) {
+            Moment m = momentService.lambdaQuery().select(Moment::getStatus).eq(Moment::getId, targetId).one();
+            if (m == null || m.getStatus() == Status.DISABLED)
+                throw new BusinessException(404, "Moment not found");
+        } else if (targetType == RelatedType.ARTICLE) {
+            Article a = articleService.lambdaQuery().select(Article::getStatus).eq(Article::getId, targetId).one();
+            if (a == null || a.getStatus() == Status.DISABLED)
+                throw new BusinessException(404, "Article not found");
+        } else if (targetType == RelatedType.REPO) {
+            Repo r = repoService.lambdaQuery().select(Repo::getStatus).eq(Repo::getId, targetId).one();
+            if (r == null || r.getStatus() == Status.DISABLED)
+                throw new BusinessException(404, "Repo not found");
+        } else throw new IllegalArgumentException("Invalid target type");
         Comment comment = Comment.builder()
                 .targetType(targetType)
                 .targetId(targetId)

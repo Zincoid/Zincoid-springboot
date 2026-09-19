@@ -7,6 +7,8 @@ import com.zincoid.me.model.po.Like;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.NotificationType;
+import com.zincoid.me.model.enums.Status;
+import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.Moment;
 import com.zincoid.me.model.po.Repo;
@@ -78,16 +80,22 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
                 .targetId(targetId)
                 .build();
         save(like);
-        Long authorId = null;
+        Long authorId;
         if (targetType == RelatedType.MOMENT) {
-            Moment m = momentService.lambdaQuery().select(Moment::getUserId).eq(Moment::getId, targetId).one();
-            if (m != null) authorId = m.getUserId();
+            Moment m = momentService.lambdaQuery().select(Moment::getUserId, Moment::getStatus).eq(Moment::getId, targetId).one();
+            if (m == null || m.getStatus() == Status.DISABLED)
+                throw new BusinessException(404, "Moment not found");
+            authorId = m.getUserId();
         } else if (targetType == RelatedType.ARTICLE) {
-            Article a = articleService.lambdaQuery().select(Article::getUserId).eq(Article::getId, targetId).one();
-            if (a != null) authorId = a.getUserId();
+            Article a = articleService.lambdaQuery().select(Article::getUserId, Article::getStatus).eq(Article::getId, targetId).one();
+            if (a == null || a.getStatus() == Status.DISABLED)
+                throw new BusinessException(404, "Article not found");
+            authorId = a.getUserId();
         } else if (targetType == RelatedType.REPO) {
-            Repo r = repoService.lambdaQuery().select(Repo::getUserId).eq(Repo::getId, targetId).one();
-            if (r != null) authorId = r.getUserId();
+            Repo r = repoService.lambdaQuery().select(Repo::getUserId, Repo::getStatus).eq(Repo::getId, targetId).one();
+            if (r == null || r.getStatus() == Status.DISABLED)
+                throw new BusinessException(404, "Repo not found");
+            authorId = r.getUserId();
         } else throw new IllegalArgumentException("Invalid target type");
         if (authorId != null && !authorId.equals(userId))
             notificationService.notify(userId, authorId, NotificationType.LIKE, like.getId());

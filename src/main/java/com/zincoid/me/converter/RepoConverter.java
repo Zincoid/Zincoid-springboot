@@ -64,12 +64,14 @@ public interface RepoConverter {
     @Mapping(target = "isLiked", source = "isLiked")
     @Mapping(target = "recentLikers", source = "recentLikers")
     @Mapping(target = "github", source = "github")
-    @Mapping(target = "restricted", ignore = true)
+    @Mapping(target = "restricted", source = "restricted")
+    @Mapping(target = "contributed", source = "contributed")
     @Mapping(target = "createdAt", source = "repo.createdAt")
     @Mapping(target = "updatedAt", source = "repo.updatedAt")
     RepoDetailVO toDetailVO(Repo repo, User user, boolean isLiked, long likeCount,
                             List<LikerVO> recentLikers, GitHubRepoVO github,
-                            boolean isDefaultCover, String cover);
+                            boolean isDefaultCover, String cover,
+                            boolean restricted, boolean contributed);
 
     @Mapping(target = "id", source = "item.id")
     @Mapping(target = "sortOrder", source = "item.sortOrder")

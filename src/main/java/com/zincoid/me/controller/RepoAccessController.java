@@ -1,6 +1,7 @@
 package com.zincoid.me.controller;
 
 import com.zincoid.me.model.ApiResponse;
+import com.zincoid.me.model.enums.AccessRole;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.RepoAccessVO;
 import com.zincoid.me.service.RepoAccessService;
@@ -9,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/repos")
+@RequestMapping("/api/repos/access")
 @RequiredArgsConstructor
 public class RepoAccessController {
 
@@ -17,51 +18,67 @@ public class RepoAccessController {
 
     // ──── Private endpoints ───────────────
 
-    @PostMapping("/{repoId}/access")
-    public ApiResponse<Void> requestAccess(@PathVariable Long repoId) {
-        repoAccessService.request(AuthCtx.getUserId(), repoId);
+    @PostMapping("/{repoId}/viewers")
+    public ApiResponse<Void> requestViewer(@PathVariable Long repoId) {
+        repoAccessService.view(AuthCtx.getUserId(), repoId);
         return ApiResponse.success();
     }
 
-    @PutMapping("/access/{accessId}/approve")
+    @PostMapping("/{repoId}/contributors")
+    public ApiResponse<Void> requestContributor(@PathVariable Long repoId) {
+        repoAccessService.contribute(AuthCtx.getUserId(), repoId);
+        return ApiResponse.success();
+    }
+
+    @DeleteMapping("/{repoId}/contributors")
+    public ApiResponse<Void> leaveContributor(@PathVariable Long repoId) {
+        repoAccessService.leave(AuthCtx.getUserId(), repoId);
+        return ApiResponse.success();
+    }
+
+    @PutMapping("/{accessId}/approve")
     public ApiResponse<Void> approveAccess(@PathVariable Long accessId) {
         repoAccessService.approve(AuthCtx.getUserId(), accessId);
         return ApiResponse.success();
     }
 
-    @PutMapping("/access/{accessId}/reject")
+    @PutMapping("/{accessId}/reject")
     public ApiResponse<Void> rejectAccess(@PathVariable Long accessId) {
         repoAccessService.reject(AuthCtx.getUserId(), accessId);
         return ApiResponse.success();
     }
 
-    @DeleteMapping("/access/{accessId}")
+    @DeleteMapping("/{accessId}")
     public ApiResponse<Void> removeAccess(@PathVariable Long accessId) {
         repoAccessService.remove(AuthCtx.getUserId(), accessId);
         return ApiResponse.success();
     }
 
-    @GetMapping("/access/sent/pending")
+    @GetMapping("/sent/pending")
     public ApiResponse<PageVO<RepoAccessVO>> sentPending(@RequestParam(defaultValue = "1") int page,
-                                                         @RequestParam(defaultValue = "10") int size) {
-        return ApiResponse.success(repoAccessService.sentPending(AuthCtx.getUserId(), page, size));
+                                                         @RequestParam(defaultValue = "10") int size,
+                                                         @RequestParam(required = false) AccessRole role) {
+        return ApiResponse.success(repoAccessService.sentPending(AuthCtx.getUserId(), role, page, size));
     }
 
-    @GetMapping("/access/sent/resolved")
+    @GetMapping("/sent/resolved")
     public ApiResponse<PageVO<RepoAccessVO>> sentResolved(@RequestParam(defaultValue = "1") int page,
-                                                          @RequestParam(defaultValue = "10") int size) {
-        return ApiResponse.success(repoAccessService.sentResolved(AuthCtx.getUserId(), page, size));
+                                                          @RequestParam(defaultValue = "10") int size,
+                                                          @RequestParam(required = false) AccessRole role) {
+        return ApiResponse.success(repoAccessService.sentResolved(AuthCtx.getUserId(), role, page, size));
     }
 
-    @GetMapping("/access/received/pending")
+    @GetMapping("/received/pending")
     public ApiResponse<PageVO<RepoAccessVO>> receivedPending(@RequestParam(defaultValue = "1") int page,
-                                                             @RequestParam(defaultValue = "10") int size) {
-        return ApiResponse.success(repoAccessService.receivedPending(AuthCtx.getUserId(), page, size));
+                                                             @RequestParam(defaultValue = "10") int size,
+                                                             @RequestParam(required = false) AccessRole role) {
+        return ApiResponse.success(repoAccessService.receivedPending(AuthCtx.getUserId(), role, page, size));
     }
 
-    @GetMapping("/access/received/resolved")
+    @GetMapping("/received/resolved")
     public ApiResponse<PageVO<RepoAccessVO>> receivedResolved(@RequestParam(defaultValue = "1") int page,
-                                                              @RequestParam(defaultValue = "10") int size) {
-        return ApiResponse.success(repoAccessService.receivedResolved(AuthCtx.getUserId(), page, size));
+                                                              @RequestParam(defaultValue = "10") int size,
+                                                              @RequestParam(required = false) AccessRole role) {
+        return ApiResponse.success(repoAccessService.receivedResolved(AuthCtx.getUserId(), role, page, size));
     }
 }

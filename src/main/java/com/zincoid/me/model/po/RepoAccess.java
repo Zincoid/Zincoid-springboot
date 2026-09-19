@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.zincoid.me.model.enums.Access;
+import com.zincoid.me.model.enums.AccessRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,6 +24,7 @@ public class RepoAccess {
     private Long id;
     private Long repoId;
     private Long userId;
+    private AccessRole role;
     private Access access;
     private LocalDateTime createdAt;
     @TableField(update = "NOW()")

@@ -130,8 +130,8 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         Repo repo = getById(repoId);
         if (repo == null)
             throw new BusinessException(404, "Repo not found");
-        if (!repo.getUserId().equals(userId))
-            throw new BusinessException(403, "You can only edit your own repos");
+        if (!repo.getUserId().equals(userId) && !isContributed(repo, userId))
+            throw new BusinessException(403, "No permission to add item");
         updateById(repo);
         return repoItemService.add(repoId, fileId);
     }
@@ -142,8 +142,8 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         Repo repo = getById(repoId);
         if (repo == null)
             throw new BusinessException(404, "Repo not found");
-        if (!repo.getUserId().equals(userId))
-            throw new BusinessException(403, "You can only edit your own repos");
+        if (!repo.getUserId().equals(userId) && !isContributed(repo, userId))
+            throw new BusinessException(403, "No permission to delete item");
         RepoItem item = repoItemService.getById(itemId);
         if (item == null || !item.getRepoId().equals(repoId))
             throw new BusinessException(404, "Item not found");
@@ -157,8 +157,8 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         Repo repo = getById(repoId);
         if (repo == null)
             throw new BusinessException(404, "Repo not found");
-        if (!repo.getUserId().equals(userId))
-            throw new BusinessException(403, "You can only edit your own repos");
+        if (!repo.getUserId().equals(userId) && !isContributed(repo, userId))
+            throw new BusinessException(403, "No permission to swap item");
         repoItemService.swap(repoId, itemIdA, itemIdB);
     }
 
@@ -203,22 +203,16 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         if (repo.getVisibility() == Visibility.PRIVATE
                 && !isAdmin
                 && (viewerId == null || !viewerId.equals(repo.getUserId())))
-            throw new BusinessException(404, "Repo is private");
-        boolean isDenied = repo.getVisibility() == Visibility.RESTRICTED
-                && !isAdmin
-                && (viewerId == null || !viewerId.equals(repo.getUserId()))
-                && !repoAccessService.authorize(viewerId, repoId);
-        if (!isDenied) {
-            baseMapper.addViewCount(repoId);
-            repo.setViewCount(repo.getViewCount() != null ? repo.getViewCount() + 1 : 1L);
-        }
+            throw new BusinessException(403, "Repo is private");
         RepoDetailVO vo = buildDetailVO(repo);
-        if (isDenied) {
-            vo.setRestricted(true);
+        if (vo.getRestricted()) {
             vo.setUrl(null);
             vo.setGithub(null);
             vo.setCoverImage(null);
             vo.setIsDefaultCover(true);
+        } else {
+            baseMapper.addViewCount(repoId);
+            vo.setViewCount(repo.getViewCount() != null ? repo.getViewCount() + 1 : 1L);
         }
         return vo;
     }
@@ -233,15 +227,11 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         if (repo.getVisibility() == Visibility.PRIVATE
                 && !isAdmin
                 && (viewerId == null || !viewerId.equals(repo.getUserId())))
-            throw new BusinessException(404, "Repo is private");
-        boolean isDenied = repo.getVisibility() == Visibility.RESTRICTED
-                && !isAdmin
-                && (viewerId == null || !viewerId.equals(repo.getUserId()))
-                && !repoAccessService.authorize(viewerId, repoId);
-        if (isDenied || repo.getType() == RepoType.CODE)
-            return PageVO.<RepoItemVO>builder()
-                    .records(List.of()).total(0).page(page).size(size).pages(0)
-                    .build();
+            throw new BusinessException(403, "Repo is private");
+        if (isRestricted(repo, viewerId))
+            throw new BusinessException(403, "Repo is restricted");
+        if (repo.getType() == RepoType.CODE)
+            throw new BusinessException(403, "Repo is code type");
         return repoItemService.list(repoId, page, size);
     }
 
@@ -256,34 +246,46 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         return repoItemService.firstImageUrl(repo.getId());
     }
 
+    private boolean isRestricted(Repo repo, Long viewerId) {
+        boolean isAdmin = viewerId != null && AuthCtx.getRole() == Role.ADMIN;
+        return repo.getVisibility() == Visibility.RESTRICTED
+                && !isAdmin
+                && (viewerId == null || !viewerId.equals(repo.getUserId()))
+                && !repoAccessService.authorize(viewerId, repo.getId(), AccessRole.VIEWER);
+    }
+
+    private boolean isContributed(Repo repo, Long viewerId) {
+        return repoAccessService.authorize(viewerId, repo.getId(), AccessRole.CONTRIBUTOR);
+    }
+
     private RepoCardVO buildCardVO(Repo repo) {
+        Long viewerId = AuthCtx.getUserId();
         User user = userService.getById(repo.getUserId());
         long likeCount = likeService.count(RelatedType.REPO, repo.getId());
         long commentCount = commentService.count(RelatedType.REPO, repo.getId());
-        boolean isLiked = likeService.liked(AuthCtx.getUserId(), RelatedType.REPO, repo.getId());
-        Long viewerId = AuthCtx.getUserId();
-        boolean isAdmin = viewerId != null && AuthCtx.getRole() == Role.ADMIN;
-        boolean isRestricted = repo.getVisibility() == Visibility.RESTRICTED
-                && !isAdmin
-                && (viewerId == null || !viewerId.equals(repo.getUserId()))
-                && !repoAccessService.authorize(viewerId, repo.getId());
+        boolean isLiked = likeService.liked(viewerId, RelatedType.REPO, repo.getId());
+        boolean restricted = isRestricted(repo, viewerId);
         long itemCount = repo.getType() == RepoType.CODE ? 0L
                 : repoItemService.count(repo.getId());
         return RepoConverter.INSTANCE.toCardVO(
                 repo, user, isLiked, likeCount, commentCount, itemCount,
-                isRestricted, isRestricted ? null : coverOrDefault(repo)
+                restricted, restricted ? null : coverOrDefault(repo)
         );
     }
 
     private RepoDetailVO buildDetailVO(Repo repo) {
+        Long viewerId = AuthCtx.getUserId();
         User user = userService.getById(repo.getUserId());
         long likeCount = likeService.count(RelatedType.REPO, repo.getId());
-        boolean isLiked = likeService.liked(AuthCtx.getUserId(), RelatedType.REPO, repo.getId());
+        boolean isLiked = likeService.liked(viewerId, RelatedType.REPO, repo.getId());
         List<LikerVO> recentLikers = likeService.getLikers(RelatedType.REPO, repo.getId(), 5);
+        boolean restricted = isRestricted(repo, viewerId);
+        boolean contributed = isContributed(repo, viewerId);
         return RepoConverter.INSTANCE.toDetailVO(
                 repo, user, isLiked, likeCount, recentLikers,
                 repo.getType() == RepoType.CODE ? gitHubService.fetch(repo.getUrl()) : null,
-                isDefaultCover(repo), coverOrDefault(repo)
+                isDefaultCover(repo), coverOrDefault(repo),
+                restricted, contributed
         );
     }
 }

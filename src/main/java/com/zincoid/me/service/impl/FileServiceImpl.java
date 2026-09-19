@@ -3,12 +3,8 @@ package com.zincoid.me.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.FileMapper;
+import com.zincoid.me.model.enums.*;
 import com.zincoid.me.model.po.File;
-import com.zincoid.me.model.enums.FileType;
-import com.zincoid.me.model.enums.RelatedType;
-import com.zincoid.me.model.enums.Role;
-import com.zincoid.me.model.enums.Status;
-import com.zincoid.me.model.enums.Visibility;
 import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.Moment;
 import com.zincoid.me.model.po.Repo;
@@ -102,7 +98,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
                 boolean isOwner = userId != null && userId.equals(repo.getUserId());
                 if (repo.getVisibility() == Visibility.PUBLIC || isOwner || isAdmin) yield true;
                 if (repo.getVisibility() == Visibility.RESTRICTED)
-                    yield userId != null && repoAccessService.authorize(userId, repo.getId());
+                    yield userId != null && repoAccessService.authorize(userId, repo.getId(), AccessRole.VIEWER);
                 yield false;
             }
         };

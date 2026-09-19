@@ -5,6 +5,7 @@ import com.zincoid.me.interceptor.AuthInterceptor;
 import com.zincoid.me.interceptor.MaintenanceInterceptor;
 import com.zincoid.me.interceptor.StatInterceptor;
 import com.zincoid.me.model.enums.Access;
+import com.zincoid.me.model.enums.AccessRole;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.RepoType;
 import com.zincoid.me.model.enums.RequestType;
@@ -46,6 +47,8 @@ public class WebConfig implements WebMvcConfigurer {
                 s -> RepoType.fromValue(Integer.parseInt(s)));
         registry.addConverter(String.class, Access.class,
                 s -> Access.fromValue(Integer.parseInt(s)));
+        registry.addConverter(String.class, AccessRole.class,
+                s -> AccessRole.fromValue(Integer.parseInt(s)));
         registry.addConverter(String.class, RequestType.class,
                 s -> RequestType.fromValue(Integer.parseInt(s)));
     }

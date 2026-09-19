@@ -6,6 +6,8 @@ import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.mapper.RepoAccessMapper;
 import com.zincoid.me.model.enums.Access;
+import com.zincoid.me.model.enums.AccessRole;
+import com.zincoid.me.model.enums.Visibility;
 import com.zincoid.me.model.po.Repo;
 import com.zincoid.me.model.po.RepoAccess;
 import com.zincoid.me.model.po.User;
@@ -46,96 +48,162 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
 
     @Override
     @Transactional
-    public void request(Long userId, Long repoId) {
+    public void view(Long userId, Long repoId) {
         Repo repo = repoService.getById(repoId);
-        if (repo == null) throw new BusinessException(404, "Repo not found");
-        RepoAccess existing = lambdaQuery().eq(RepoAccess::getRepoId, repoId).eq(RepoAccess::getUserId, userId).one();
+        if (repo == null)
+            throw new BusinessException(404, "Repo not found");
+        if (repo.getVisibility() != Visibility.RESTRICTED)
+            throw new BusinessException(403, "Repo is not restricted");
+        RepoAccess existing = lambdaQuery()
+                .eq(RepoAccess::getRepoId, repoId)
+                .eq(RepoAccess::getUserId, userId)
+                .eq(RepoAccess::getRole, AccessRole.VIEWER)
+                .one();
         if (existing != null && existing.getAccess() == Access.PENDING)
             throw new BusinessException(400, "Access already requested");
         if (existing != null && existing.getAccess() == Access.APPROVED)
             throw new BusinessException(400, "Access already approved");
         if (existing != null && existing.getAccess() == Access.REJECTED)
             throw new BusinessException(400, "Access already rejected");
-        RepoAccess access = RepoAccess.builder().repoId(repoId).userId(userId).access(Access.PENDING).build();
+        RepoAccess access = RepoAccess.builder()
+                .repoId(repoId)
+                .userId(userId)
+                .role(AccessRole.VIEWER)
+                .access(Access.PENDING)
+                .build();
         save(access);
         notificationService.notify(userId, repo.getUserId(), NotificationType.ACCESS_REQUEST, repoId);
-        log.info("Access requested: id={}, user={}, repo={}", access.getId(), userId, repoId);
+        log.info("Viewer requested: id={}, user={}, repo={}", access.getId(), userId, repoId);
     }
 
     @Override
     @Transactional
-    public void approve(Long ownerId, Long accessId) {
+    public void contribute(Long userId, Long repoId) {
+        Repo repo = repoService.getById(repoId);
+        if (repo == null)
+            throw new BusinessException(404, "Repo not found");
+        if (repo.getUserId().equals(userId))
+            throw new BusinessException(400, "You are the owner");
+        if (repo.getVisibility() == Visibility.PRIVATE)
+            throw new BusinessException(403, "Repo is private");
+        if (repo.getVisibility() == Visibility.RESTRICTED && !authorize(userId, repoId, AccessRole.VIEWER))
+            throw new BusinessException(403, "Repo is restricted and you need viewer access first");
+        RepoAccess existing = lambdaQuery()
+                .eq(RepoAccess::getRepoId, repoId)
+                .eq(RepoAccess::getUserId, userId)
+                .eq(RepoAccess::getRole, AccessRole.CONTRIBUTOR)
+                .one();
+        if (existing != null && existing.getAccess() == Access.PENDING)
+            throw new BusinessException(400, "Access already requested");
+        if (existing != null && existing.getAccess() == Access.APPROVED)
+            throw new BusinessException(400, "Access already approved");
+        if (existing != null && existing.getAccess() == Access.REJECTED)
+            throw new BusinessException(400, "Access already rejected");
+        RepoAccess access = RepoAccess.builder()
+                .repoId(repoId)
+                .userId(userId)
+                .role(AccessRole.CONTRIBUTOR)
+                .access(Access.PENDING)
+                .build();
+        save(access);
+        log.info("Contributor requested: id={}, user={}, repo={}", access.getId(), userId, repoId);
+    }
+
+    @Override
+    @Transactional
+    public void leave(Long userId, Long repoId) {
+        RepoAccess existing = lambdaQuery()
+                .eq(RepoAccess::getRepoId, repoId)
+                .eq(RepoAccess::getUserId, userId)
+                .eq(RepoAccess::getRole, AccessRole.CONTRIBUTOR)
+                .one();
+        if (existing == null || existing.getAccess() != Access.APPROVED)
+            throw new BusinessException(404, "You are not a contributor");
+        removeById(existing.getId());
+        log.info("Contributor left: user={}, repo={}", userId, repoId);
+    }
+
+    @Override
+    @Transactional
+    public void approve(Long userId, Long accessId) {
         RepoAccess access = getOrThrow(accessId);
-        Repo repo = verifyOwner(ownerId, access);
+        Repo repo = verifyOwner(userId, access);
         access.setAccess(Access.APPROVED);
         updateById(access);
-        notificationService.notify(ownerId, access.getUserId(), NotificationType.ACCESS_APPROVED, access.getRepoId());
+        notificationService.notify(userId, access.getUserId(), NotificationType.ACCESS_APPROVED, access.getRepoId());
         emailService.sendAccessApproved(access.getUserId(), repo.getName());
-        log.info("Access approved: id={}, user={}, repo={}", accessId, access.getUserId(), access.getRepoId());
+        log.info("Access approved: id={}, user={}, repo={}, role={}", accessId, access.getUserId(), access.getRepoId(), access.getRole());
     }
 
     @Override
     @Transactional
-    public void reject(Long ownerId, Long accessId) {
+    public void reject(Long userId, Long accessId) {
         RepoAccess access = getOrThrow(accessId);
-        verifyOwner(ownerId, access);
+        verifyOwner(userId, access);
         access.setAccess(Access.REJECTED);
         updateById(access);
-        notificationService.notify(ownerId, access.getUserId(), NotificationType.ACCESS_REJECTED, access.getRepoId());
-        log.info("Access rejected: id={}, user={}, repo={}", accessId, access.getUserId(), access.getRepoId());
+        notificationService.notify(userId, access.getUserId(), NotificationType.ACCESS_REJECTED, access.getRepoId());
+        log.info("Access rejected: id={}, user={}, repo={}, role={}", accessId, access.getUserId(), access.getRepoId(), access.getRole());
     }
 
     @Override
     @Transactional
-    public void remove(Long ownerId, Long accessId) {
+    public void remove(Long userId, Long accessId) {
         RepoAccess access = getOrThrow(accessId);
-        verifyOwner(ownerId, access);
+        verifyOwner(userId, access);
         removeById(accessId);
-        log.info("Access removed: id={}, user={}, repo={}", accessId, access.getUserId(), access.getRepoId());
+        log.info("Access removed: id={}, user={}, repo={}, role={}", accessId, access.getUserId(), access.getRepoId(), access.getRole());
     }
 
     @Override
-    public boolean authorize(Long userId, Long repoId) {
+    public boolean authorize(Long userId, Long repoId, AccessRole role) {
         if (userId == null) return false;
         return lambdaQuery()
                 .eq(RepoAccess::getRepoId, repoId)
                 .eq(RepoAccess::getUserId, userId)
+                .eq(RepoAccess::getRole, role)
                 .eq(RepoAccess::getAccess, Access.APPROVED)
                 .exists();
     }
 
     @Override
-    public PageVO<RepoAccessVO> sentPending(Long userId, int page, int size) {
+    public PageVO<RepoAccessVO> sentPending(Long userId, AccessRole role, int page, int size) {
         Page<RepoAccess> p = lambdaQuery().eq(RepoAccess::getUserId, userId)
-                .eq(RepoAccess::getAccess, Access.PENDING).orderByDesc(RepoAccess::getCreatedAt)
+                .eq(RepoAccess::getAccess, Access.PENDING)
+                .eq(role != null, RepoAccess::getRole, role)
+                .orderByDesc(RepoAccess::getCreatedAt)
                 .page(Page.of(page, size));
         return toVO(p);
     }
 
     @Override
-    public PageVO<RepoAccessVO> sentResolved(Long userId, int page, int size) {
+    public PageVO<RepoAccessVO> sentResolved(Long userId, AccessRole role, int page, int size) {
         Page<RepoAccess> p = lambdaQuery().eq(RepoAccess::getUserId, userId)
-                .ne(RepoAccess::getAccess, Access.PENDING).orderByDesc(RepoAccess::getUpdatedAt)
+                .ne(RepoAccess::getAccess, Access.PENDING)
+                .eq(role != null, RepoAccess::getRole, role)
+                .orderByDesc(RepoAccess::getUpdatedAt)
                 .page(Page.of(page, size));
         return toVO(p);
     }
 
     @Override
-    public PageVO<RepoAccessVO> receivedPending(Long ownerId, int page, int size) {
-        List<Long> ids = repoService.lambdaQuery().eq(Repo::getUserId, ownerId).select(Repo::getId).list()
+    public PageVO<RepoAccessVO> receivedPending(Long userId, AccessRole role, int page, int size) {
+        List<Long> ids = repoService.lambdaQuery().eq(Repo::getUserId, userId).select(Repo::getId).list()
                 .stream().map(Repo::getId).toList();
         Page<RepoAccess> p = ids.isEmpty() ? Page.of(page, size) : lambdaQuery()
                 .in(RepoAccess::getRepoId, ids).eq(RepoAccess::getAccess, Access.PENDING)
+                .eq(role != null, RepoAccess::getRole, role)
                 .orderByDesc(RepoAccess::getCreatedAt).page(Page.of(page, size));
         return toVO(p);
     }
 
     @Override
-    public PageVO<RepoAccessVO> receivedResolved(Long ownerId, int page, int size) {
-        List<Long> ids = repoService.lambdaQuery().eq(Repo::getUserId, ownerId).select(Repo::getId).list()
+    public PageVO<RepoAccessVO> receivedResolved(Long userId, AccessRole role, int page, int size) {
+        List<Long> ids = repoService.lambdaQuery().eq(Repo::getUserId, userId).select(Repo::getId).list()
                 .stream().map(Repo::getId).toList();
         Page<RepoAccess> p = ids.isEmpty() ? Page.of(page, size) : lambdaQuery()
                 .in(RepoAccess::getRepoId, ids).ne(RepoAccess::getAccess, Access.PENDING)
+                .eq(role != null, RepoAccess::getRole, role)
                 .orderByDesc(RepoAccess::getUpdatedAt).page(Page.of(page, size));
         return toVO(p);
     }
@@ -154,6 +222,7 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
                     .userId(a.getUserId())
                     .userNickname(user != null ? user.getNickname() : null)
                     .userAvatar(user != null ? FileUtil.toThumbUrl(user.getAvatar()) : null)
+                    .role(a.getRole())
                     .access(a.getAccess())
                     .createdAt(a.getCreatedAt())
                     .updatedAt(a.getUpdatedAt())

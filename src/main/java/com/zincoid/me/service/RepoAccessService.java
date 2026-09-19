@@ -1,27 +1,32 @@
 package com.zincoid.me.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.zincoid.me.model.enums.AccessRole;
 import com.zincoid.me.model.po.RepoAccess;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.RepoAccessVO;
 
 public interface RepoAccessService extends IService<RepoAccess> {
 
-    void request(Long userId, Long repoId);
+    void view(Long userId, Long repoId);
 
-    void approve(Long ownerId, Long accessId);
+    void contribute(Long userId, Long repoId);
 
-    void reject(Long ownerId, Long accessId);
+    void leave(Long userId, Long repoId);
 
-    void remove(Long ownerId, Long accessId);
+    void approve(Long userId, Long accessId);
 
-    boolean authorize(Long userId, Long repoId);
+    void reject(Long userId, Long accessId);
 
-    PageVO<RepoAccessVO> sentPending(Long userId, int page, int size);
+    void remove(Long userId, Long accessId);
 
-    PageVO<RepoAccessVO> sentResolved(Long userId, int page, int size);
+    boolean authorize(Long userId, Long repoId, AccessRole role);
 
-    PageVO<RepoAccessVO> receivedPending(Long ownerId, int page, int size);
+    PageVO<RepoAccessVO> sentPending(Long userId, AccessRole role, int page, int size);
 
-    PageVO<RepoAccessVO> receivedResolved(Long ownerId, int page, int size);
+    PageVO<RepoAccessVO> sentResolved(Long userId, AccessRole role, int page, int size);
+
+    PageVO<RepoAccessVO> receivedPending(Long userId, AccessRole role, int page, int size);
+
+    PageVO<RepoAccessVO> receivedResolved(Long userId, AccessRole role, int page, int size);
 }

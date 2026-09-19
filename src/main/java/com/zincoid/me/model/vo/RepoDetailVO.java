@@ -29,6 +29,7 @@ public class RepoDetailVO {
     private Boolean isLiked;
     private List<LikerVO> recentLikers;
     private Boolean restricted;
+    private Boolean contributed;
     private GitHubRepoVO github;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

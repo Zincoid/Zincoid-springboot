@@ -7,6 +7,7 @@ import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.mapper.RepoAccessMapper;
 import com.zincoid.me.model.enums.Access;
 import com.zincoid.me.model.enums.AccessRole;
+import com.zincoid.me.model.enums.RepoType;
 import com.zincoid.me.model.enums.Visibility;
 import com.zincoid.me.model.po.Repo;
 import com.zincoid.me.model.po.RepoAccess;
@@ -84,6 +85,8 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
         Repo repo = repoService.getById(repoId);
         if (repo == null)
             throw new BusinessException(404, "Repo not found");
+        if (repo.getType() == RepoType.CODE)
+            throw new BusinessException(403, "Repo is code type");
         if (repo.getUserId().equals(userId))
             throw new BusinessException(400, "You are the owner");
         if (repo.getVisibility() == Visibility.PRIVATE)

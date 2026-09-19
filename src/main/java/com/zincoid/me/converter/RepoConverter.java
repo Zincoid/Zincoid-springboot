@@ -5,6 +5,7 @@ import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.po.Repo;
 import com.zincoid.me.model.po.RepoItem;
 import com.zincoid.me.model.po.User;
+import com.zincoid.me.model.vo.ContributorVO;
 import com.zincoid.me.model.vo.GitHubRepoVO;
 import com.zincoid.me.model.vo.LikerVO;
 import com.zincoid.me.model.vo.RepoCardVO;
@@ -63,13 +64,16 @@ public interface RepoConverter {
     @Mapping(target = "likeCount", source = "likeCount")
     @Mapping(target = "isLiked", source = "isLiked")
     @Mapping(target = "recentLikers", source = "recentLikers")
+    @Mapping(target = "recentContributors", source = "recentContributors")
+    @Mapping(target = "contributorCount", source = "contributorCount")
     @Mapping(target = "github", source = "github")
     @Mapping(target = "restricted", source = "restricted")
     @Mapping(target = "contributed", source = "contributed")
     @Mapping(target = "createdAt", source = "repo.createdAt")
     @Mapping(target = "updatedAt", source = "repo.updatedAt")
-    RepoDetailVO toDetailVO(Repo repo, User user, boolean isLiked, long likeCount,
-                            List<LikerVO> recentLikers, GitHubRepoVO github,
+    RepoDetailVO toDetailVO(Repo repo, User user, GitHubRepoVO github,
+                            boolean isLiked, long likeCount, List<LikerVO> recentLikers,
+                            long contributorCount, List<ContributorVO> recentContributors,
                             boolean isDefaultCover, String cover,
                             boolean restricted, boolean contributed);
 

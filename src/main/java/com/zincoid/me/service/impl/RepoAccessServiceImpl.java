@@ -8,17 +8,21 @@ import com.zincoid.me.mapper.RepoAccessMapper;
 import com.zincoid.me.model.enums.Access;
 import com.zincoid.me.model.enums.AccessRole;
 import com.zincoid.me.model.enums.RepoType;
+import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.enums.Visibility;
 import com.zincoid.me.model.po.Repo;
 import com.zincoid.me.model.po.RepoAccess;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.NotificationType;
+import com.zincoid.me.model.enums.Role;
+import com.zincoid.me.model.vo.ContributorVO;
 import com.zincoid.me.model.vo.RepoAccessVO;
 import com.zincoid.me.service.EmailService;
 import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.RepoAccessService;
 import com.zincoid.me.service.RepoService;
 import com.zincoid.me.service.UserService;
+import com.zincoid.me.utils.AuthCtx;
 import com.zincoid.me.utils.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -27,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -224,6 +229,43 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
                 .eq(role != null, RepoAccess::getRole, role)
                 .orderByDesc(RepoAccess::getUpdatedAt).page(Page.of(page, size));
         return toVO(p);
+    }
+
+    @Override
+    public long countContributors(Long repoId) {
+        return lambdaQuery()
+                .eq(RepoAccess::getRepoId, repoId)
+                .eq(RepoAccess::getRole, AccessRole.CONTRIBUTOR)
+                .eq(RepoAccess::getAccess, Access.APPROVED)
+                .count();
+    }
+
+    @Override
+    public List<ContributorVO> recentContributors(Long repoId, int limit) {
+        Repo repo = repoService.getById(repoId);
+        if (repo == null || repo.getStatus() == Status.DISABLED)
+            throw new BusinessException(404, "Repo not found");
+        Long viewerId = AuthCtx.getUserId();
+        boolean isAdmin = viewerId != null && AuthCtx.getRole() == Role.ADMIN;
+        if (repo.getVisibility() == Visibility.PRIVATE && !isAdmin
+                && (viewerId == null || !viewerId.equals(repo.getUserId())))
+            throw new BusinessException(403, "Repo is private");
+        return lambdaQuery()
+                .eq(RepoAccess::getRepoId, repoId)
+                .eq(RepoAccess::getRole, AccessRole.CONTRIBUTOR)
+                .eq(RepoAccess::getAccess, Access.APPROVED)
+                .orderByDesc(RepoAccess::getUpdatedAt)
+                .page(Page.of(1, limit))
+                .getRecords()
+                .stream().map(a -> {
+                    User user = userService.getById(a.getUserId());
+                    if (user == null) return null;
+                    return ContributorVO.builder()
+                            .userId(user.getId())
+                            .nickname(user.getNickname())
+                            .avatar(FileUtil.toThumbUrl(user.getAvatar()))
+                            .build();
+                }).filter(Objects::nonNull).toList();
     }
 
     // ──────── Private tool ────────────────────────────────

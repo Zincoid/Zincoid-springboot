@@ -26,8 +26,10 @@ public class RepoDetailVO {
     private Boolean isDefaultCover;
     private Long viewCount;
     private Long likeCount;
+    private Long contributorCount;
     private Boolean isLiked;
     private List<LikerVO> recentLikers;
+    private List<ContributorVO> recentContributors;
     private Boolean restricted;
     private Boolean contributed;
     private GitHubRepoVO github;

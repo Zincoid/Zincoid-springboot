@@ -12,11 +12,7 @@ import com.zincoid.me.model.po.Repo;
 import com.zincoid.me.model.po.RepoAccess;
 import com.zincoid.me.model.po.RepoItem;
 import com.zincoid.me.model.po.User;
-import com.zincoid.me.model.vo.PageVO;
-import com.zincoid.me.model.vo.RepoCardVO;
-import com.zincoid.me.model.vo.RepoDetailVO;
-import com.zincoid.me.model.vo.RepoItemVO;
-import com.zincoid.me.model.vo.LikerVO;
+import com.zincoid.me.model.vo.*;
 import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.GitHubService;
 import com.zincoid.me.service.LikeService;
@@ -290,14 +286,18 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     private RepoDetailVO buildDetailVO(Repo repo) {
         Long viewerId = AuthCtx.getUserId();
         User user = userService.getById(repo.getUserId());
-        long likeCount = likeService.count(RelatedType.REPO, repo.getId());
+        GitHubRepoVO github = repo.getType() == RepoType.CODE ? gitHubService.fetch(repo.getUrl()) : null;
         boolean isLiked = likeService.liked(viewerId, RelatedType.REPO, repo.getId());
+        long likeCount = likeService.count(RelatedType.REPO, repo.getId());
         List<LikerVO> recentLikers = likeService.getLikers(RelatedType.REPO, repo.getId(), 5);
+        long contributorCount = repoAccessService.countContributors(repo.getId());
+        List<ContributorVO> recentContributors = repoAccessService.recentContributors(repo.getId(), 5);
         boolean restricted = isRestricted(repo, viewerId);
         boolean contributed = isContributed(repo, viewerId);
         return RepoConverter.INSTANCE.toDetailVO(
-                repo, user, isLiked, likeCount, recentLikers,
-                repo.getType() == RepoType.CODE ? gitHubService.fetch(repo.getUrl()) : null,
+                repo, user, github,
+                isLiked, likeCount, recentLikers,
+                contributorCount, recentContributors,
                 isDefaultCover(repo), coverOrDefault(repo),
                 restricted, contributed
         );

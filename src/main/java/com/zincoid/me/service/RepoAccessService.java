@@ -3,8 +3,11 @@ package com.zincoid.me.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zincoid.me.model.enums.AccessRole;
 import com.zincoid.me.model.po.RepoAccess;
+import com.zincoid.me.model.vo.ContributorVO;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.RepoAccessVO;
+
+import java.util.List;
 
 public interface RepoAccessService extends IService<RepoAccess> {
 
@@ -29,4 +32,8 @@ public interface RepoAccessService extends IService<RepoAccess> {
     PageVO<RepoAccessVO> receivedPending(Long userId, AccessRole role, int page, int size);
 
     PageVO<RepoAccessVO> receivedResolved(Long userId, AccessRole role, int page, int size);
+
+    long countContributors(Long repoId);
+
+    List<ContributorVO> recentContributors(Long repoId, int limit);
 }

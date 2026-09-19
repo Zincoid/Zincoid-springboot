@@ -1,6 +1,7 @@
 package com.zincoid.me.service.impl;
 
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.model.enums.AccessRole;
 import com.zincoid.me.model.enums.CodeType;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.Status;
@@ -137,16 +138,17 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendAccessApproved(Long userId, String repoName) {
+    public void sendAccessApproved(Long userId, String repoName, AccessRole role) {
         User user = userService.getById(userId);
         if (user == null || user.getEmail() == null || user.getEmail().isBlank()) return;
         UserConfigVO config = userConfigService.get(userId);
         if (!(config.getReceiveEmail() && config.getReceiveEmailRepoAccess())) return;
-        String subject = "Zincoid's - Access request approved";
+        String subject = "Zincoid's - Repo Access Approved";
         String text = """
-                Your access request to repo "%s" has been approved.
+                Your access to repo "%s" has been approved.
+                Your access type is %s.
 
-                --- %s (%s) ---""".formatted(repoName, siteName, siteUrl);
+                ══════ %s (%s) ══════""".formatted(repoName, role, siteName, siteUrl);
         sendEmail(user.getEmail(), subject, text);
     }
 
@@ -173,7 +175,9 @@ public class EmailServiceImpl implements EmailService {
                 Your verification code is: %s
 
                 Use this code to %s.
-                This code expires in 5 minutes.""".formatted(code, purpose);
+                This code expires in 5 minutes.
+                
+                ══════ %s (%s) ══════""".formatted(code, purpose, siteName, siteUrl);
         sendEmail(email, subject, text);
     }
 }

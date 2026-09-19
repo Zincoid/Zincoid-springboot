@@ -137,7 +137,7 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
         updateById(access);
         notificationService.notify(userId, access.getUserId(), access.getRole() == AccessRole.CONTRIBUTOR
                 ? NotificationType.REPO_CONTRIBUTOR_ACCESS_APPROVED : NotificationType.REPO_VIEWER_ACCESS_APPROVED, access.getRepoId());
-        emailService.sendAccessApproved(access.getUserId(), repo.getName());
+        emailService.sendAccessApproved(access.getUserId(), repo.getName(), access.getRole());
         log.info("Access approved: id={}, user={}, repo={}, role={}", accessId, access.getUserId(), access.getRepoId(), access.getRole());
     }
 

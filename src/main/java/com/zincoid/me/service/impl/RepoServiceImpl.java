@@ -155,6 +155,8 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         RepoItem item = repoItemService.getById(itemId);
         if (item == null || !item.getRepoId().equals(repoId))
             throw new BusinessException(404, "Item not found");
+        if (!repo.getUserId().equals(userId) && !fileService.getById(item.getFileId()).getUserId().equals(userId))
+            throw new BusinessException(403, "You can only delete your own items");
         repoItemService.delete(itemId);
         log.info("Repo item deleted: repo={}, item={}", repoId, itemId);
     }

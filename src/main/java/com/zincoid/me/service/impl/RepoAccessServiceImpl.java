@@ -108,6 +108,7 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
                 .access(Access.PENDING)
                 .build();
         save(access);
+        notificationService.notify(userId, repo.getUserId(), NotificationType.REPO_CONTRIBUTOR_ACCESS_PENDING, repoId);
         log.info("Contributor requested: id={}, user={}, repo={}", access.getId(), userId, repoId);
     }
 
@@ -134,7 +135,8 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
         Repo repo = verifyOwner(userId, access);
         access.setAccess(Access.APPROVED);
         updateById(access);
-        notificationService.notify(userId, access.getUserId(), NotificationType.REPO_VIEWER_ACCESS_APPROVED, access.getRepoId());
+        notificationService.notify(userId, access.getUserId(), access.getRole() == AccessRole.CONTRIBUTOR
+                ? NotificationType.REPO_CONTRIBUTOR_ACCESS_APPROVED : NotificationType.REPO_VIEWER_ACCESS_APPROVED, access.getRepoId());
         emailService.sendAccessApproved(access.getUserId(), repo.getName());
         log.info("Access approved: id={}, user={}, repo={}, role={}", accessId, access.getUserId(), access.getRepoId(), access.getRole());
     }
@@ -148,7 +150,8 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
         verifyOwner(userId, access);
         access.setAccess(Access.REJECTED);
         updateById(access);
-        notificationService.notify(userId, access.getUserId(), NotificationType.REPO_VIEWER_ACCESS_REJECTED, access.getRepoId());
+        notificationService.notify(userId, access.getUserId(), access.getRole() == AccessRole.CONTRIBUTOR
+                ? NotificationType.REPO_CONTRIBUTOR_ACCESS_REJECTED : NotificationType.REPO_VIEWER_ACCESS_REJECTED, access.getRepoId());
         log.info("Access rejected: id={}, user={}, repo={}, role={}", accessId, access.getUserId(), access.getRepoId(), access.getRole());
     }
 

@@ -93,9 +93,14 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
             if (oldCover != null && !oldCover.equals(newCover))
                 fileService.delete(oldCover);
         }
-        if (request.getVisibility() != null) {
-            if (repo.getVisibility() == Visibility.RESTRICTED && request.getVisibility() != Visibility.RESTRICTED)
-                repoAccessService.lambdaUpdate().eq(RepoAccess::getRepoId, repoId).remove();
+        if (request.getVisibility() != null && request.getVisibility() != repo.getVisibility()) {
+            repoAccessService.lambdaUpdate().eq(RepoAccess::getRepoId, repoId).remove();
+            notificationService.deleteAll(NotificationType.REPO_VIEWER_ACCESS_PENDING, repoId);
+            notificationService.deleteAll(NotificationType.REPO_VIEWER_ACCESS_APPROVED, repoId);
+            notificationService.deleteAll(NotificationType.REPO_VIEWER_ACCESS_REJECTED, repoId);
+            notificationService.deleteAll(NotificationType.REPO_CONTRIBUTOR_ACCESS_PENDING, repoId);
+            notificationService.deleteAll(NotificationType.REPO_CONTRIBUTOR_ACCESS_APPROVED, repoId);
+            notificationService.deleteAll(NotificationType.REPO_CONTRIBUTOR_ACCESS_REJECTED, repoId);
             repo.setVisibility(request.getVisibility());
         }
         repo.setUpdatedAt(LocalDateTime.now());
@@ -133,6 +138,8 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         Repo repo = getById(repoId);
         if (repo == null || repo.getStatus() == Status.DISABLED)
             throw new BusinessException(404, "Repo not found");
+        if (repo.getVisibility() == Visibility.PRIVATE && !repo.getUserId().equals(userId))
+            throw new BusinessException(403, "Repo is private");
         if (!repo.getUserId().equals(userId) && !isContributed(repo, userId))
             throw new BusinessException(403, "No permission to add item");
         updateById(repo);
@@ -145,6 +152,8 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         Repo repo = getById(repoId);
         if (repo == null || repo.getStatus() == Status.DISABLED)
             throw new BusinessException(404, "Repo not found");
+        if (repo.getVisibility() == Visibility.PRIVATE && !repo.getUserId().equals(userId))
+            throw new BusinessException(403, "Repo is private");
         if (!repo.getUserId().equals(userId) && !isContributed(repo, userId))
             throw new BusinessException(403, "No permission to delete item");
         RepoItem item = repoItemService.getById(itemId);
@@ -160,6 +169,8 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         Repo repo = getById(repoId);
         if (repo == null || repo.getStatus() == Status.DISABLED)
             throw new BusinessException(404, "Repo not found");
+        if (repo.getVisibility() == Visibility.PRIVATE && !repo.getUserId().equals(userId))
+            throw new BusinessException(403, "Repo is private");
         if (!repo.getUserId().equals(userId) && !isContributed(repo, userId))
             throw new BusinessException(403, "No permission to swap item");
         repoItemService.swap(repoId, itemIdA, itemIdB);

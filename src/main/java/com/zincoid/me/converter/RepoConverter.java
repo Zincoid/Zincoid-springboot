@@ -42,11 +42,12 @@ public interface RepoConverter {
     @Mapping(target = "itemCount", source = "itemCount")
     @Mapping(target = "isLiked", source = "isLiked")
     @Mapping(target = "restricted", source = "isRestricted")
+    @Mapping(target = "contributed", source = "contributed")
     @Mapping(target = "createdAt", source = "repo.createdAt")
     @Mapping(target = "updatedAt", source = "repo.updatedAt")
     RepoCardVO toCardVO(Repo repo, User user, boolean isLiked,
                         long likeCount, long commentCount, long itemCount,
-                        boolean isRestricted, String cover);
+                        boolean isRestricted, boolean contributed, String cover);
 
     @Mapping(target = "id", source = "repo.id")
     @Mapping(target = "userId", source = "repo.userId")

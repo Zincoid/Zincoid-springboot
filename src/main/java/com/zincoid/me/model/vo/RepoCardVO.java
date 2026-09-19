@@ -29,6 +29,7 @@ public class RepoCardVO {
     private Long itemCount;
     private Boolean isLiked;
     private Boolean restricted;
+    private Boolean contributed;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

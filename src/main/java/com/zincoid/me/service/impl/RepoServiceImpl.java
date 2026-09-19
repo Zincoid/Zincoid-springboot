@@ -275,11 +275,12 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         long commentCount = commentService.count(RelatedType.REPO, repo.getId());
         boolean isLiked = likeService.liked(viewerId, RelatedType.REPO, repo.getId());
         boolean restricted = isRestricted(repo, viewerId);
+        boolean contributed = isContributed(repo, viewerId);
         long itemCount = repo.getType() == RepoType.CODE ? 0L
                 : repoItemService.count(repo.getId());
         return RepoConverter.INSTANCE.toCardVO(
                 repo, user, isLiked, likeCount, commentCount, itemCount,
-                restricted, restricted ? null : coverOrDefault(repo)
+                restricted, contributed, restricted ? null : coverOrDefault(repo)
         );
     }
 

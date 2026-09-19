@@ -52,6 +52,8 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
         Repo repo = repoService.getById(repoId);
         if (repo == null)
             throw new BusinessException(404, "Repo not found");
+        if (repo.getUserId().equals(userId))
+            throw new BusinessException(400, "You are the owner");
         if (repo.getVisibility() != Visibility.RESTRICTED)
             throw new BusinessException(403, "Repo is not restricted");
         RepoAccess existing = lambdaQuery()
@@ -127,6 +129,8 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
     @Transactional
     public void approve(Long userId, Long accessId) {
         RepoAccess access = getOrThrow(accessId);
+        if (access.getAccess() != Access.PENDING)
+            throw new BusinessException(400, "Access already resolved");
         Repo repo = verifyOwner(userId, access);
         access.setAccess(Access.APPROVED);
         updateById(access);
@@ -139,6 +143,8 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
     @Transactional
     public void reject(Long userId, Long accessId) {
         RepoAccess access = getOrThrow(accessId);
+        if (access.getAccess() != Access.PENDING)
+            throw new BusinessException(400, "Access already resolved");
         verifyOwner(userId, access);
         access.setAccess(Access.REJECTED);
         updateById(access);

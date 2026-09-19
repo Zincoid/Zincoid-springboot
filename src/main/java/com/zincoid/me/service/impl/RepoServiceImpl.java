@@ -128,7 +128,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     @Transactional
     public RepoItemVO addItem(Long userId, Long repoId, Long fileId) {
         Repo repo = getById(repoId);
-        if (repo == null)
+        if (repo == null || repo.getStatus() == Status.DISABLED)
             throw new BusinessException(404, "Repo not found");
         if (!repo.getUserId().equals(userId) && !isContributed(repo, userId))
             throw new BusinessException(403, "No permission to add item");
@@ -140,7 +140,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     @Transactional
     public void deleteItem(Long userId, Long repoId, Long itemId) {
         Repo repo = getById(repoId);
-        if (repo == null)
+        if (repo == null || repo.getStatus() == Status.DISABLED)
             throw new BusinessException(404, "Repo not found");
         if (!repo.getUserId().equals(userId) && !isContributed(repo, userId))
             throw new BusinessException(403, "No permission to delete item");
@@ -155,7 +155,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     @Transactional
     public void swapItems(Long userId, Long repoId, Long itemIdA, Long itemIdB) {
         Repo repo = getById(repoId);
-        if (repo == null)
+        if (repo == null || repo.getStatus() == Status.DISABLED)
             throw new BusinessException(404, "Repo not found");
         if (!repo.getUserId().equals(userId) && !isContributed(repo, userId))
             throw new BusinessException(403, "No permission to swap item");

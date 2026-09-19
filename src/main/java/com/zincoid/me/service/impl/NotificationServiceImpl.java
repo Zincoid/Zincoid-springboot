@@ -133,9 +133,9 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                         request.getMeta(), n.getMessage());
             } else if (n.getRelatedType() == NotificationType.REGISTER) {
                 snippet = sender.getEmail();
-            } else if (n.getRelatedType() == NotificationType.ACCESS_REQUEST
-                    || n.getRelatedType() == NotificationType.ACCESS_REJECTED
-                    || n.getRelatedType() == NotificationType.ACCESS_APPROVED) {
+            } else if (n.getRelatedType() == NotificationType.REPO_VIEWER_ACCESS_PENDING
+                    || n.getRelatedType() == NotificationType.REPO_VIEWER_ACCESS_REJECTED
+                    || n.getRelatedType() == NotificationType.REPO_VIEWER_ACCESS_APPROVED) {
                 Repo repo = repoService.getById(n.getRelatedId());
                 snippet = repo.getName();
             }

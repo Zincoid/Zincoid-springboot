@@ -117,9 +117,9 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         repoItemService.deleteByRepoId(repoId);
         likeService.delete(RelatedType.REPO, repoId);
         commentService.delete(RelatedType.REPO, repoId);
-        notificationService.deleteAll(NotificationType.ACCESS_REQUEST, repoId);
-        notificationService.deleteAll(NotificationType.ACCESS_APPROVED, repoId);
-        notificationService.deleteAll(NotificationType.ACCESS_REJECTED, repoId);
+        notificationService.deleteAll(NotificationType.REPO_VIEWER_ACCESS_PENDING, repoId);
+        notificationService.deleteAll(NotificationType.REPO_VIEWER_ACCESS_APPROVED, repoId);
+        notificationService.deleteAll(NotificationType.REPO_VIEWER_ACCESS_REJECTED, repoId);
         removeById(repoId);
         log.info("Repo deleted: user={}, admin={}, id={}", userId, isAdmin, repoId);
     }

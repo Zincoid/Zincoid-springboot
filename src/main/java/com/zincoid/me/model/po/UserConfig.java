@@ -24,6 +24,7 @@ public class UserConfig {
     private Boolean receiveEmail;
     private Boolean receiveEmailSys;
     private Boolean receiveEmailRepoAccess;
+    private Boolean autoPlayMusic;
     private LocalDateTime createdAt;
     @TableField(update = "NOW()")
     private LocalDateTime updatedAt;

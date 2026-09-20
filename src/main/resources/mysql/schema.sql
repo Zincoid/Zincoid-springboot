@@ -167,6 +167,7 @@ CREATE TABLE IF NOT EXISTS `user_config` (
     `receive_email`             BOOLEAN     NOT NULL DEFAULT TRUE    COMMENT 'Email notification master switch',
     `receive_email_sys`         BOOLEAN     NOT NULL DEFAULT FALSE   COMMENT 'Whether to receive system email notifications',
     `receive_email_repo_access` BOOLEAN     NOT NULL DEFAULT TRUE    COMMENT 'Whether to receive repo access email notifications',
+    `auto_play_music`           BOOLEAN     NOT NULL DEFAULT TRUE    COMMENT 'Whether the Walkman auto plays',
     `created_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
     `updated_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Update time',
     PRIMARY KEY (`id`),

@@ -12,4 +12,6 @@ public class UserConfigUpdateRequest {
     private Boolean receiveEmailSys;
     @NotNull(message = "receiveEmailRepoAccess is required")
     private Boolean receiveEmailRepoAccess;
+    @NotNull(message = "autoPlayMusic is required")
+    private Boolean autoPlayMusic;
 }

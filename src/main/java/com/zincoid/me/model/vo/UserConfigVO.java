@@ -10,4 +10,5 @@ public class UserConfigVO {
     private Boolean receiveEmail;
     private Boolean receiveEmailSys;
     private Boolean receiveEmailRepoAccess;
+    private Boolean autoPlayMusic;
 }

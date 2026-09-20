@@ -25,6 +25,7 @@ public class UserConfigServiceImpl extends ServiceImpl<UserConfigMapper, UserCon
                 .receiveEmail(true)
                 .receiveEmailSys(false)
                 .receiveEmailRepoAccess(true)
+                .autoPlayMusic(true)
                 .build();
         save(config);
         return config;
@@ -45,9 +46,10 @@ public class UserConfigServiceImpl extends ServiceImpl<UserConfigMapper, UserCon
         config.setReceiveEmail(request.getReceiveEmail());
         config.setReceiveEmailSys(request.getReceiveEmailSys());
         config.setReceiveEmailRepoAccess(request.getReceiveEmailRepoAccess());
+        config.setAutoPlayMusic(request.getAutoPlayMusic());
         saveOrUpdate(config);
-        log.info("User config updated: user={}, receiveEmail={}, receiveEmailSys={}, receiveEmailRepoAccess={}",
-                userId, config.getReceiveEmail(), config.getReceiveEmailSys(), config.getReceiveEmailRepoAccess());
+        log.info("User config updated: user={}, receiveEmail={}, receiveEmailSys={}, receiveEmailRepoAccess={}, autoPlayMusic={}",
+                userId, config.getReceiveEmail(), config.getReceiveEmailSys(), config.getReceiveEmailRepoAccess(), config.getAutoPlayMusic());
         return UserConfigConverter.INSTANCE.toVO(config);
     }
 

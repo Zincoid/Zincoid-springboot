@@ -5,9 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.converter.RepoConverter;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.RepoItemMapper;
-import com.zincoid.me.model.enums.FileType;
 import com.zincoid.me.model.enums.RelatedType;
-import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.po.RepoItem;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.RepoItemVO;
@@ -99,17 +97,8 @@ public class RepoItemServiceImpl extends ServiceImpl<RepoItemMapper, RepoItem> i
 
     @Override
     public String firstImageUrl(Long repoId) {
-        return lambdaQuery()
-                .eq(RepoItem::getRepoId, repoId)
-                .orderByAsc(RepoItem::getSortOrder)
-                .list().stream()
-                .filter(i -> {
-                    File f = fileService.getById(i.getFileId());
-                    return f != null && f.getFileType() == FileType.IMAGE;
-                })
-                .findFirst()
-                .map(i -> "/uploads/" + fileService.getById(i.getFileId()).getFilePath())
-                .orElse(null);
+        String path = baseMapper.selectFirstImagePath(repoId);
+        return path == null ? null : "/uploads/" + path;
     }
 
     // ──────── Private tool ────────────────────────────────

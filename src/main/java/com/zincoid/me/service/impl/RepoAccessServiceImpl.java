@@ -190,9 +190,10 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
     }
 
     @Override
-    public PageVO<RepoAccessVO> sentPending(Long userId, AccessRole role, int page, int size) {
+    public PageVO<RepoAccessVO> sentPending(Long userId, Long repoId, AccessRole role, int page, int size) {
         Page<RepoAccess> p = lambdaQuery().eq(RepoAccess::getUserId, userId)
                 .eq(RepoAccess::getAccess, Access.PENDING)
+                .eq(repoId != null, RepoAccess::getRepoId, repoId)
                 .eq(role != null, RepoAccess::getRole, role)
                 .orderByDesc(RepoAccess::getCreatedAt)
                 .page(Page.of(page, size));
@@ -200,9 +201,10 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
     }
 
     @Override
-    public PageVO<RepoAccessVO> sentResolved(Long userId, AccessRole role, int page, int size) {
+    public PageVO<RepoAccessVO> sentResolved(Long userId, Long repoId, AccessRole role, int page, int size) {
         Page<RepoAccess> p = lambdaQuery().eq(RepoAccess::getUserId, userId)
                 .ne(RepoAccess::getAccess, Access.PENDING)
+                .eq(repoId != null, RepoAccess::getRepoId, repoId)
                 .eq(role != null, RepoAccess::getRole, role)
                 .orderByDesc(RepoAccess::getUpdatedAt)
                 .page(Page.of(page, size));
@@ -210,8 +212,12 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
     }
 
     @Override
-    public PageVO<RepoAccessVO> receivedPending(Long userId, AccessRole role, int page, int size) {
-        List<Long> ids = repoService.lambdaQuery().eq(Repo::getUserId, userId).select(Repo::getId).list()
+    public PageVO<RepoAccessVO> receivedPending(Long userId, Long repoId, AccessRole role, int page, int size) {
+        List<Long> ids = repoService.lambdaQuery()
+                .eq(repoId != null, Repo::getId, repoId)
+                .eq(Repo::getUserId, userId)
+                .select(Repo::getId)
+                .list()
                 .stream().map(Repo::getId).toList();
         Page<RepoAccess> p = ids.isEmpty() ? Page.of(page, size) : lambdaQuery()
                 .in(RepoAccess::getRepoId, ids).eq(RepoAccess::getAccess, Access.PENDING)
@@ -221,8 +227,12 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
     }
 
     @Override
-    public PageVO<RepoAccessVO> receivedResolved(Long userId, AccessRole role, int page, int size) {
-        List<Long> ids = repoService.lambdaQuery().eq(Repo::getUserId, userId).select(Repo::getId).list()
+    public PageVO<RepoAccessVO> receivedResolved(Long userId, Long repoId, AccessRole role, int page, int size) {
+        List<Long> ids = repoService.lambdaQuery()
+                .eq(repoId != null, Repo::getId, repoId)
+                .eq(Repo::getUserId, userId)
+                .select(Repo::getId)
+                .list()
                 .stream().map(Repo::getId).toList();
         Page<RepoAccess> p = ids.isEmpty() ? Page.of(page, size) : lambdaQuery()
                 .in(RepoAccess::getRepoId, ids).ne(RepoAccess::getAccess, Access.PENDING)

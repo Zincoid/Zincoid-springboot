@@ -43,7 +43,7 @@ public class DataInitializer implements CommandLineRunner {
         initConfig("loading_spinner_hold", "250", "Loading spinner hold duration (ms) before fade");
         initConfig("loading_spinner_fade", "125", "Loading spinner fade-out duration (ms)");
         initConfig("hero_animation", "random", "Hero animation: squares, raindrop, raindrop_sin, or random");
-        initConfig("audio_spectrum_ratio", "0.25", "Audio spectrum ratio of digital flow for Walkman");
+        initConfig("audio_spectrum_ratio", "0.2", "Audio spectrum ratio of digital flow for Walkman");
         initConfig("maintenance_enabled", "true", "Enable daily maintenance (UTC+8 00:00-00:10, auto cleanup and block all requests)");
     }
 

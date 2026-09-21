@@ -316,6 +316,6 @@ INSERT INTO `config` (`config_key`, `config_value`, `description`) VALUES
 ('loading_spinner_hold', '150', 'Loading spinner hold duration (ms) before fade'),
 ('loading_spinner_fade', '150', 'Loading spinner fade-out duration (ms)'),
 ('hero_animation', 'random', 'Hero animation: squares, raindrop, raindrop_sin, or random'),
-('audio_spectrum_ratio', '0.25', 'Audio spectrum ratio of digital flow for Walkman'),
+('audio_spectrum_ratio', '0.2', 'Audio spectrum ratio of digital flow for Walkman'),
 ('maintenance_enabled', 'true', 'Enable daily maintenance (UTC+8 00:00-00:10, auto cleanup and block all requests)')
 ON DUPLICATE KEY UPDATE `config_key` = VALUES(`config_key`);

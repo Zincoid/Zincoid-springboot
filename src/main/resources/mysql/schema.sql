@@ -311,10 +311,11 @@ INSERT INTO `config` (`config_key`, `config_value`, `description`) VALUES
 ('site_name', 'Zincoid\'s', 'Website name'),
 ('site_desc_en', 'Personal website and blogs', 'Website description (English)'),
 ('site_desc_zh', '个人网站与博客', 'Website description (Chinese)'),
-('page_size', '10', 'Default pagination page size'),
+('page_size', '12', 'Default pagination page size'),
 ('message_max_count', '100', 'Maximum number of messages to keep'),
-('loading_spinner_hold', '250', 'Loading spinner hold duration (ms) before fade'),
-('loading_spinner_fade', '125', 'Loading spinner fade-out duration (ms)'),
+('loading_spinner_hold', '150', 'Loading spinner hold duration (ms) before fade'),
+('loading_spinner_fade', '150', 'Loading spinner fade-out duration (ms)'),
 ('hero_animation', 'random', 'Hero animation: squares, raindrop, raindrop_sin, or random'),
+('audio_spectrum_ratio', '0.25', 'Audio spectrum ratio of digital flow for Walkman'),
 ('maintenance_enabled', 'true', 'Enable daily maintenance (UTC+8 00:00-00:10, auto cleanup and block all requests)')
 ON DUPLICATE KEY UPDATE `config_key` = VALUES(`config_key`);

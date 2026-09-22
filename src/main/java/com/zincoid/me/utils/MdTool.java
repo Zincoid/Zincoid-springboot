@@ -24,6 +24,7 @@ public class MdTool {
 
     public MdTool() {
         MutableDataSet options = new MutableDataSet();
+        options.set(AnchorLinkExtension.ANCHORLINKS_SET_ID, true);
         options.set(Parser.EXTENSIONS, List.of(
                 TablesExtension.create(),
                 StrikethroughExtension.create(),

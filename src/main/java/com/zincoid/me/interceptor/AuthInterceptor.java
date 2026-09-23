@@ -75,8 +75,6 @@ public class AuthInterceptor implements HandlerInterceptor {
             throw new BusinessException(404, "Account not found");
         if (user.getStatus() == Status.DISABLED)
             throw new BusinessException(403, "Account is disabled");
-        if (user.getRole() != AuthCtx.getRole())
-            throw new BusinessException(403, "Token role stale");
 
         // Update user last active time
         userService.updateActiveAt(user.getId());

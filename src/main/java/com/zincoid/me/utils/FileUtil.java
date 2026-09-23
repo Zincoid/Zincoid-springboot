@@ -24,8 +24,12 @@ public final class FileUtil {
     public static final Set<String> VIDEO_EXTS = Set.of("mp4", "webm", "ogg", "mov", "avi");
     public static final Set<String> AUDIO_EXTS = Set.of("mp3", "wav", "ogg", "aac", "flac");
     public static final Set<String> DOC_EXTS = Set.of("pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx",
-            "txt", "csv", "json", "xml", "yaml", "yml", "md", "java", "py", "js", "ts", "html", "css",
+            "txt", "csv", "json", "xml", "yaml", "yml", "md", "java", "py", "ts", "css",
             "zip", "rar", "7z", "tar", "gz", "bz2", "sql", "sh", "bat", "c", "cpp", "h", "rs", "go");
+
+    /** Web-executable file type is not allowed */
+    public static final Set<String> FORBIDDEN_EXTS = Set.of(
+            "html", "htm", "xhtml", "shtml", "mhtml", "svg", "js", "mjs");
 
     private FileUtil() {}
 
@@ -111,7 +115,9 @@ public final class FileUtil {
             throw new BusinessException("File is empty");
         String extension = getExt(file.getOriginalFilename());
         if (!isAllowed(extension))
-            throw new BusinessException("Unsupported file type: " + extension);
+            throw new BusinessException(isForbidden(extension)
+                    ? "Forbidden file type: " + extension
+                    : "Unsupported file type: " + extension);
         String filename = UUID.randomUUID() + "." + extension;
         Path targetPath = Paths.get(path, filename);
         try {
@@ -184,7 +190,12 @@ public final class FileUtil {
         return ext != null && DOC_EXTS.contains(ext);
     }
 
+    public static boolean isForbidden(String ext) {
+        return ext != null && FORBIDDEN_EXTS.contains(ext);
+    }
+
     private static boolean isAllowed(String ext) {
-        return isImage(ext) || isVideo(ext) || isAudio(ext) || isDoc(ext);
+        return !isForbidden(ext)
+                && (isImage(ext) || isVideo(ext) || isAudio(ext) || isDoc(ext));
     }
 }

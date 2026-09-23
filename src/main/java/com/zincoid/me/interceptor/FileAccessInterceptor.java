@@ -1,6 +1,7 @@
 package com.zincoid.me.interceptor;
 
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.model.enums.FileType;
 import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.po.File;
 import com.zincoid.me.service.FileService;
@@ -9,8 +10,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
+
+import java.nio.charset.StandardCharsets;
 
 @Component
 @RequiredArgsConstructor
@@ -18,6 +22,7 @@ public class FileAccessInterceptor implements HandlerInterceptor {
 
     private static final String CACHE_PUBLIC = "public, max-age=31536000, immutable";
     private static final String CACHE_PRIVATE = "private, no-store";
+    private static final String CSP = "default-src 'none'; frame-ancestors 'none'; sandbox";
 
     private final FileService fileService;
 
@@ -40,6 +45,19 @@ public class FileAccessInterceptor implements HandlerInterceptor {
         boolean cacheable = fileService.cacheable(file);
         response.setHeader("Cache-Control",
                 cacheable ? CACHE_PUBLIC : CACHE_PRIVATE);
+
+        response.setHeader("X-Content-Type-Options", "nosniff");
+        response.setHeader("Content-Security-Policy", CSP);
+        if (file.getFileType() == FileType.OTHER) {
+            String filename = file.getFileName();
+            response.setHeader("Content-Disposition",
+                    ContentDisposition.attachment()
+                            .filename(filename, StandardCharsets.UTF_8)
+                            .build()
+                            .toString()
+            );
+        }
+
         return true;
     }
 

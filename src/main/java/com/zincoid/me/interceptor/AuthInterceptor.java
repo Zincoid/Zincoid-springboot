@@ -36,8 +36,8 @@ public class AuthInterceptor implements HandlerInterceptor {
             "/api/comments/public",
             "/api/likes/public",
             "/api/configs/public",
-            "/uploads/",
-            "/thumbnails/"
+            "/uploads",
+            "/thumbnails"
     );
 
     @Override
@@ -50,7 +50,8 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         // Check public paths
         String path = request.getRequestURI();
-        boolean isPublic = PUBLIC_PATHS.stream().anyMatch(path::startsWith);
+        boolean isPublic = PUBLIC_PATHS.stream().anyMatch(
+                p -> path.equals(p) || path.startsWith(p + "/"));
 
         // Resolve token from header or cookie
         String token = resolveToken(request);

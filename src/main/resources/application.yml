@@ -59,6 +59,10 @@ cookie:
   same-site: ${zincoid.cookie.same-site}
   max-age: ${zincoid.cookie.max-age}
 
+# CORS
+cors:
+  allowed-origins: ${zincoid.cors.allowed-origins}
+
 # File
 upload:
   path: ${zincoid.upload.path}

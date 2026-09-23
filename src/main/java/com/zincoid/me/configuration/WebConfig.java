@@ -13,6 +13,7 @@ import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.enums.Visibility;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
@@ -32,6 +33,9 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Value("${upload.path:./uploads}")
     private String uploadPath;
+
+    @Value("${cors.allowed-origins}")
+    private String[] allowedOrigins;
 
     @Override
     public void addFormatters(FormatterRegistry registry) {
@@ -54,9 +58,10 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Override
-    public void addCorsMappings(CorsRegistry registry) {
+    public void addCorsMappings(@NonNull CorsRegistry registry) {
+        if (allowedOrigins.length == 0) return;
         registry.addMapping("/api/**")
-                .allowedOriginPatterns("*")
+                .allowedOrigins(allowedOrigins)
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)

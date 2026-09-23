@@ -201,6 +201,21 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
         return ids.size();
     }
 
+    @Override
+    public boolean isMusicShared(Long userId, File file) {
+        if (userId == null || file == null || file.getFilePath() == null) return false;
+        String url = "/uploads/" + file.getFilePath();
+        return lambdaQuery()
+                .eq(Request::getSenderId, userId)
+                .eq(Request::getType, RequestType.MUSIC_REQUEST)
+                .eq(Request::getAccess, Access.APPROVED)
+                .list().stream()
+                .anyMatch(r -> {
+                    JsonNode node = parseMeta(r.getMeta());
+                    return node != null && url.equals(node.path("url").asText());
+                });
+    }
+
     // ──────── Private tool ────────────────────────────────
 
     private void apply(Request request) {

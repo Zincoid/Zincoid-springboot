@@ -16,6 +16,7 @@ import com.zincoid.me.service.MessageService;
 import com.zincoid.me.service.MomentService;
 import com.zincoid.me.service.RepoAccessService;
 import com.zincoid.me.service.RepoService;
+import com.zincoid.me.service.RequestService;
 import com.zincoid.me.service.UserService;
 import com.zincoid.me.utils.FileUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -50,19 +51,22 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     private final RepoService repoService;
     private final RepoAccessService repoAccessService;
     private final MessageService messageService;
+    private final RequestService requestService;
 
     public FileServiceImpl(UserService userService,
                            @Lazy MomentService momentService,
                            @Lazy ArticleService articleService,
                            @Lazy RepoService repoService,
                            @Lazy RepoAccessService repoAccessService,
-                           @Lazy MessageService messageService) {
+                           @Lazy MessageService messageService,
+                           @Lazy RequestService requestService) {
         this.userService = userService;
         this.momentService = momentService;
         this.articleService = articleService;
         this.repoService = repoService;
         this.repoAccessService = repoAccessService;
         this.messageService = messageService;
+        this.requestService = requestService;
     }
 
     @Override
@@ -79,7 +83,13 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
             return userId != null && userId.equals(file.getUserId());
         boolean isAdmin = role == Role.ADMIN;
         return switch (file.getRelatedType()) {
-            case AVATAR, MUSIC, CHAT -> true;
+            case AVATAR, CHAT -> true;
+            case MUSIC -> {
+                if (file.getRelatedId() != null && file.getRelatedId() == 1L) yield true;
+                boolean isOwner = userId != null && userId.equals(file.getUserId());
+                if (isOwner || isAdmin) yield true;
+                yield userId != null && requestService.isMusicShared(userId, file);
+            }
             case MOMENT -> {
                 Moment moment = momentService.getById(file.getRelatedId());
                 if (moment == null || moment.getStatus() == Status.DISABLED) yield false;
@@ -108,7 +118,8 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     public boolean cacheable(File file) {
         if (file == null || file.getRelatedType() == null) return false;
         return switch (file.getRelatedType()) {
-            case AVATAR, MUSIC, CHAT -> true;
+            case AVATAR, CHAT -> true;
+            case MUSIC -> file.getRelatedId() != null && file.getRelatedId() == 1L;
             case MOMENT -> {
                 Moment moment = momentService.getById(file.getRelatedId());
                 yield moment != null && moment.getStatus() != Status.DISABLED

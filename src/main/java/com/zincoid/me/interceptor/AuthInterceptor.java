@@ -63,12 +63,12 @@ public class AuthInterceptor implements HandlerInterceptor {
                 throw new UnauthorizedException("Token is invalid");
             if (!isPublic && revoked)
                 throw new UnauthorizedException("Token is revoked");
-            if (valid && !revoked)
-                AuthCtx.set(
+            if (valid && !revoked) {
+                AuthCtx.init(
                         jwtUtils.getUserId(token),
-                        jwtUtils.getUsername(token),
                         jwtUtils.getRole(token)
                 );
+            }
         }
 
         // Allow public paths without auth
@@ -84,6 +84,8 @@ public class AuthInterceptor implements HandlerInterceptor {
             throw new BusinessException(404, "Account not found");
         if (user.getStatus() == Status.DISABLED)
             throw new BusinessException(403, "Account is disabled");
+        if (user.getRole() != AuthCtx.getRole())
+            throw new BusinessException(403, "Token role stale");
 
         // Update user last active time
         userService.updateActiveAt(user.getId());

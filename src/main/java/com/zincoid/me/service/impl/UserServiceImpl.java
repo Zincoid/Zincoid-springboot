@@ -106,7 +106,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         for (User admin : admins)
             notificationService.notify(user.getId(), admin.getId(),
                     NotificationType.REGISTER, user.getId());
-        String token = jwtTool.generate(user.getId(), user.getUsername(), user.getRole());
+        String token = jwtTool.generate(user.getId(), user.getRole());
         return LoginVO.builder()
                 .token(token)
                 .user(UserConverter.INSTANCE.toDetailVO(user))
@@ -120,7 +120,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException("Invalid username or password");
         if (user.getStatus() == Status.DISABLED)
             throw new BusinessException("Account is disabled");
-        String token = jwtTool.generate(user.getId(), user.getUsername(), user.getRole());
+        String token = jwtTool.generate(user.getId(), user.getRole());
         log.info("User logged in: id={}, username={}", user.getId(), user.getUsername());
         return LoginVO.builder()
                 .token(token)

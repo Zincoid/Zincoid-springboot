@@ -1,7 +1,6 @@
 package com.zincoid.me.interceptor;
 
 import com.zincoid.me.controller.AuthController;
-import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.exception.UnauthorizedException;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.po.User;
@@ -68,18 +67,22 @@ public class AuthInterceptor implements HandlerInterceptor {
                 user = userService.getById(jwtTool.getUserId(token));
         }
 
-        // Allow public paths without auth
-        if (isPublic) return true;
-        // Other paths require auth
-        if (user == null)
-            throw new BusinessException(404, "Account not found");
-        if (user.getStatus() == Status.DISABLED)
-            throw new BusinessException(403, "Account is disabled");
-
-        // Update user last active time
-        userService.updateActiveAt(user.getId());
-        // AuthCtx initialize
-        AuthCtx.init(user.getId(), user.getRole());
+        if (isPublic) {
+            // Public paths without auth
+            if (user != null && user.getStatus() != Status.DISABLED)
+                // Optional AuthCtx initialize
+                AuthCtx.init(user);
+        } else {
+            // Other paths require auth
+            if (user == null)
+                throw new UnauthorizedException("Account not found");
+            if (user.getStatus() == Status.DISABLED)
+                throw new UnauthorizedException("Account is disabled");
+            // Update user last active time
+            userService.updateActiveAt(user.getId());
+            // Required AuthCtx initialize
+            AuthCtx.init(user);
+        }
 
         return true;
     }

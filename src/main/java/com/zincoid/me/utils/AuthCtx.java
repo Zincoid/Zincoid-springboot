@@ -2,6 +2,7 @@ package com.zincoid.me.utils;
 
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.enums.Role;
+import com.zincoid.me.model.po.User;
 
 public class AuthCtx {
 
@@ -9,10 +10,10 @@ public class AuthCtx {
     private static final ThreadLocal<Long> USER_ID = new ThreadLocal<>();
     private static final ThreadLocal<Role> ROLE = new ThreadLocal<>();
 
-    public static void init(Long userId, Role role) {
+    public static void init(User user) {
         AUTHED.set(true);
-        USER_ID.set(userId);
-        ROLE.set(role);
+        USER_ID.set(user.getId());
+        ROLE.set(user.getRole());
     }
 
     public static void clear() {

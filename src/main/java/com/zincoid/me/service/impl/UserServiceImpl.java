@@ -233,6 +233,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             fileService.delete(user.getAvatar());
         user.setAvatar(avatar);
         updateById(user);
+        fileService.link(List.of(avatar), RelatedType.AVATAR, userId, userId);
         log.info("User avatar updated: id={}, username={}, avatar={}", userId, user.getUsername(), avatar);
         return UserConverter.INSTANCE.toDetailVO(user);
     }

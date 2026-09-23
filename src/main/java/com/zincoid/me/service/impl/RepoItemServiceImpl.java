@@ -6,6 +6,7 @@ import com.zincoid.me.converter.RepoConverter;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.RepoItemMapper;
 import com.zincoid.me.model.enums.RelatedType;
+import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.po.RepoItem;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.RepoItemVO;
@@ -45,14 +46,19 @@ public class RepoItemServiceImpl extends ServiceImpl<RepoItemMapper, RepoItem> i
 
     @Override
     @Transactional
-    public RepoItemVO add(Long repoId, Long fileId) {
+    public RepoItemVO add(Long userId, Long repoId, Long fileId) {
+        File file = fileService.getById(fileId);
+        if (file == null)
+            throw new BusinessException(404, "File not found");
+        if (userId == null || !userId.equals(file.getUserId()))
+            throw new BusinessException(403, "Permission denied");
         RepoItem item = RepoItem.builder()
                 .repoId(repoId)
                 .fileId(fileId)
                 .sortOrder(getMaxSortOrder(repoId) + 1)
                 .build();
         save(item);
-        fileService._link(List.of(fileId), RelatedType.REPO, repoId);
+        fileService._link(List.of(fileId), RelatedType.REPO, repoId, userId);
         log.info("Repo item added: repo={}, item={}", repoId, item.getId());
         return buildItemVO(item);
     }

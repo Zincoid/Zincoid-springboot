@@ -19,11 +19,11 @@ public interface FileService extends IService<File> {
 
     boolean cacheable(File file);
 
-    FileVO upload(Long userId, MultipartFile file, RelatedType relatedType, Long relatedId);
+    FileVO upload(Long userId, MultipartFile file);
 
-    void _link(List<Long> fileIds, RelatedType relatedType, Long relatedId);
+    void _link(List<Long> fileIds, RelatedType relatedType, Long relatedId, Long userId);
 
-    void link(List<String> filePathsOrUrls, RelatedType relatedType, Long relatedId);
+    void link(List<String> filePathsOrUrls, RelatedType relatedType, Long relatedId, Long userId);
 
     void delete(Long fileId);
 

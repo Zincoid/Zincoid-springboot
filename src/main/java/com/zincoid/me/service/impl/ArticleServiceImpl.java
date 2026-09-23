@@ -66,7 +66,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         List<String> urls = new ArrayList<>();
         if (article.getCoverImage() != null) urls.add(article.getCoverImage());
         urls.addAll(extractUploadUrls(article.getContentMd()));
-        if (!urls.isEmpty()) fileService.link(urls, RelatedType.ARTICLE, article.getId());
+        if (!urls.isEmpty()) fileService.link(urls, RelatedType.ARTICLE, article.getId(), userId);
         log.info("Article created: user={}, id={}", userId, article.getId());
         return buildDetailVO(article);
     }
@@ -105,7 +105,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         if (article.getCoverImage() != null && !article.getCoverImage().isBlank())
             urls.add(article.getCoverImage());
         urls.addAll(extractUploadUrls(article.getContentMd()));
-        if (!urls.isEmpty()) fileService.link(urls, RelatedType.ARTICLE, article.getId());
+        if (!urls.isEmpty()) fileService.link(urls, RelatedType.ARTICLE, article.getId(), userId);
         log.info("Article updated: user={}, id={}", userId, articleId);
         return buildDetailVO(article);
     }

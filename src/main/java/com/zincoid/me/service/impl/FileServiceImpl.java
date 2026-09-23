@@ -140,7 +140,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
 
     @Override
     @Transactional
-    public FileVO upload(Long userId, MultipartFile file, RelatedType relatedType, Long relatedId) {
+    public FileVO upload(Long userId, MultipartFile file) {
         User user = userService.getById(userId);
         if (user == null) throw new BusinessException(404, "User not found");
         long available = Math.max(user.getCapacity() - totalSize(userId), 0L);
@@ -157,11 +157,9 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
                 .filePath(filePath)
                 .fileType(fileType)
                 .fileSize(file.getSize())
-                .relatedType(relatedType)
-                .relatedId(relatedId)
                 .build();
         save(uploadFile);
-        log.info("File uploaded: path={}, type={}, relation={}:{}", filePath, fileType, relatedType, relatedId);
+        log.info("File uploaded: path={}, type={}", filePath, fileType);
         return FileVO.builder()
                 .id(uploadFile.getId())
                 .fileName(file.getOriginalFilename())
@@ -172,33 +170,29 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     }
 
     @Override
-    public void _link(List<Long> fileIds, RelatedType relatedType, Long relatedId) {
+    public void _link(List<Long> fileIds, RelatedType relatedType, Long relatedId, Long userId) {
         if (fileIds == null || fileIds.isEmpty()) return;
-        lambdaUpdate()
+        List<File> unbound = lambdaQuery()
+                .in(File::getId, fileIds)
                 .isNull(File::getRelatedType)
                 .isNull(File::getRelatedId)
-                .in(File::getId, fileIds)
-                .set(File::getRelatedType, relatedType)
-                .set(File::getRelatedId, relatedId)
-                .update();
-        log.info("Files linked: {} -> {}:{}", fileIds, relatedType, relatedId);
+                .list();
+        claimUnbound(unbound, relatedType, relatedId, userId);
     }
 
     @Override
     @Transactional
-    public void link(List<String> filePathsOrUrls, RelatedType relatedType, Long relatedId) {
+    public void link(List<String> filePathsOrUrls, RelatedType relatedType, Long relatedId, Long userId) {
         if (filePathsOrUrls == null || filePathsOrUrls.isEmpty()) return;
         List<String> paths = filePathsOrUrls.stream()
                 .map(p -> p.startsWith("/uploads/") ? p.substring("/uploads/".length()) : p)
                 .toList();
-        lambdaUpdate()
+        List<File> unbound = lambdaQuery()
+                .in(File::getFilePath, paths)
                 .isNull(File::getRelatedType)
                 .isNull(File::getRelatedId)
-                .in(File::getFilePath, paths)
-                .set(File::getRelatedType, relatedType)
-                .set(File::getRelatedId, relatedId)
-                .update();
-        log.info("Files linked: {} -> {}:{}", paths, relatedType, relatedId);
+                .list();
+        claimUnbound(unbound, relatedType, relatedId, userId);
     }
 
     @Override
@@ -331,6 +325,21 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     }
 
     // ──────── Private tool ────────────────────────────────
+
+    private void claimUnbound(List<File> unbound, RelatedType relatedType, Long relatedId, Long userId) {
+        for (File file : unbound)
+            if (userId == null || !userId.equals(file.getUserId()))
+                throw new BusinessException(403, "Permission denied");
+        if (unbound.isEmpty()) return;
+        lambdaUpdate()
+                .isNull(File::getRelatedType)
+                .isNull(File::getRelatedId)
+                .in(File::getId, unbound.stream().map(File::getId).toList())
+                .set(File::getRelatedType, relatedType)
+                .set(File::getRelatedId, relatedId)
+                .update();
+        log.info("Files linked: {} -> {}:{}", unbound.stream().map(File::getFileName).toList(), relatedType, relatedId);
+    }
 
     private boolean businessExists(File file) {
         Long id = file.getRelatedId();

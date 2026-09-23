@@ -11,7 +11,7 @@ public interface RepoItemService extends IService<RepoItem> {
 
     PageVO<RepoItemVO> list(Long repoId, int page, int size);
 
-    RepoItemVO add(Long repoId, Long fileId);
+    RepoItemVO add(Long userId, Long repoId, Long fileId);
 
     void delete(Long itemId);
 

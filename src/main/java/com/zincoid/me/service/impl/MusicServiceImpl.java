@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -28,7 +30,9 @@ public class MusicServiceImpl implements MusicService {
     public FileVO upload(Long userId, MultipartFile file, boolean isPublic, boolean isAdmin) {
         if (isPublic && !isAdmin)
             throw new BusinessException(403, "No permission to upload public music");
-        return fileService.upload(userId, file, RelatedType.MUSIC, isPublic ? 1L : 0L);
+        FileVO vo = fileService.upload(userId, file);
+        fileService._link(List.of(vo.getId()), RelatedType.MUSIC, isPublic ? 1L : 0L, userId);
+        return vo;
     }
 
     @Override

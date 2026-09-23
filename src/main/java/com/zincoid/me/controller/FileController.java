@@ -1,6 +1,5 @@
 package com.zincoid.me.controller;
 
-import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.model.vo.FileVO;
 import com.zincoid.me.service.FileService;
@@ -19,9 +18,7 @@ public class FileController {
     // ──── Private endpoints ───────────────
 
     @PostMapping("/upload")
-    public ApiResponse<FileVO> uploadFile(@RequestParam("file") MultipartFile file,
-                                          @RequestParam(value = "relatedType", required = false) RelatedType relatedType,
-                                          @RequestParam(value = "relatedId", required = false) Long relatedId) {
-        return ApiResponse.success(fileService.upload(AuthCtx.getUserId(), file, relatedType, relatedId));
+    public ApiResponse<FileVO> uploadFile(@RequestParam("file") MultipartFile file) {
+        return ApiResponse.success(fileService.upload(AuthCtx.getUserId(), file));
     }
 }

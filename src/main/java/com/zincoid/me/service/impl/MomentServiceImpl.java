@@ -61,7 +61,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
         notificationService.notifyAt(userId, request.getContent(), NotificationType.MOMENT_MENTION, moment.getId());
         log.info("Moment created: user={}, id={}", userId, moment.getId());
         if (request.getUrls() != null && !request.getUrls().isEmpty())
-            fileService.link(request.getUrls(), RelatedType.MOMENT, moment.getId());
+            fileService.link(request.getUrls(), RelatedType.MOMENT, moment.getId(), userId);
         return buildCardVO(moment);
     }
 
@@ -89,7 +89,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
             moment.setUrls(JsonUtil.toJson(request.getUrls()));
             List<String> newPaths = new ArrayList<>(newSet);
             if (!newPaths.isEmpty())
-                fileService.link(newPaths, RelatedType.MOMENT, moment.getId());
+                fileService.link(newPaths, RelatedType.MOMENT, moment.getId(), userId);
         }
         if (request.getVisibility() != null)
             moment.setVisibility(request.getVisibility());

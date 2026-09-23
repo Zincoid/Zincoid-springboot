@@ -63,7 +63,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 .build();
         save(repo);
         if (repo.getCoverImage() != null)
-            fileService.link(List.of(repo.getCoverImage()), RelatedType.REPO, repo.getId());
+            fileService.link(List.of(repo.getCoverImage()), RelatedType.REPO, repo.getId(), userId);
         log.info("Repo created: user={}, id={}, type={}", userId, repo.getId(), repo.getType());
         return buildDetailVO(repo);
     }
@@ -102,7 +102,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         repo.setUpdatedAt(LocalDateTime.now());
         updateById(repo);
         if (repo.getCoverImage() != null && !repo.getCoverImage().isBlank())
-            fileService.link(List.of(repo.getCoverImage()), RelatedType.REPO, repo.getId());
+            fileService.link(List.of(repo.getCoverImage()), RelatedType.REPO, repo.getId(), userId);
         log.info("Repo updated: user={}, id={}", userId, repoId);
         return buildDetailVO(repo);
     }
@@ -139,7 +139,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         if (!repo.getUserId().equals(userId) && !isContributed(repo, userId))
             throw new BusinessException(403, "No permission to add item");
         updateById(repo);
-        return repoItemService.add(repoId, fileId);
+        return repoItemService.add(userId, repoId, fileId);
     }
 
     @Override

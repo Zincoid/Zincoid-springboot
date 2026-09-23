@@ -16,6 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -60,12 +61,13 @@ public class DataInitializer implements CommandLineRunner {
 
     private void initAdminUser() {
         if (userService.lambdaQuery().eq(User::getRole, Role.ADMIN).exists()) {
-            log.info("Admin user already exists, skipping init.");
+            log.info("Admin already exists, skipping init.");
             return;
         }
+        String password = UUID.randomUUID().toString();
         User admin = User.builder()
                 .username("admin")
-                .password(passwordEncoder.encode("admin"))
+                .password(passwordEncoder.encode(password))
                 .nickname("admin")
                 .role(Role.ADMIN)
                 .title("Founder")
@@ -74,7 +76,7 @@ public class DataInitializer implements CommandLineRunner {
                 .updatedAt(LocalDateTime.now())
                 .build();
         userService.save(admin);
-        log.info("Default admin user created (username: admin, password: admin)");
+        log.info("Default admin created (username: admin, password: {})", password);
     }
 
     private void initUserConfigs() {

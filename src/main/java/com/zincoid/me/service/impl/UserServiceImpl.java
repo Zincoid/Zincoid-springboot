@@ -34,6 +34,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -132,7 +134,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         try {
             long expiration = jwtTool.parse(token).getExpiration().getTime();
             revokedTokens.put(token, expiration);
-            log.info("User logged out: token={}, expiration={}", token, expiration);
+            log.info("User logged out: token_fp={}, expiration={}", fingerprint(token), expiration);
         } catch (Exception ignored) {}
     }
 
@@ -333,5 +335,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User user = getById(userId);
         if (user == null) throw new BusinessException(404, "User not found");
         return user;
+    }
+
+    private static String fingerprint(String token) {
+        try {
+            byte[] hash = MessageDigest.getInstance("SHA-256")
+                    .digest(token.getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder(12);
+            for (int i = 0; i < 6; i++)
+                sb.append(String.format("%02x", hash[i]));
+            return sb.toString();
+        } catch (Exception e) {
+            return "***";
+        }
     }
 }

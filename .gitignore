@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Runtime & secrets ###
+files/
+src/test/file/
+src/main/resources/application-dev.yml
+src/main/resources/application-prod.yml

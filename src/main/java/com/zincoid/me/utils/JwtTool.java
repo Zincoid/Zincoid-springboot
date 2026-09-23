@@ -1,6 +1,5 @@
 package com.zincoid.me.utils;
 
-import com.zincoid.me.model.enums.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -31,10 +30,9 @@ public class JwtTool {
         this.key = Keys.hmacShaKeyFor(bytes);
     }
 
-    public String generate(Long userId, Role role) {
+    public String generate(Long userId) {
         return Jwts.builder()
                 .claim("userId", userId)
-                .claim("role", role.getValue())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration * 1000))
                 .signWith(key, Jwts.SIG.HS256)
@@ -61,11 +59,5 @@ public class JwtTool {
     public Long getUserId(String token) {
         Object value = parse(token).get("userId");
         return value instanceof Number n ? n.longValue() : null;
-    }
-
-    public Role getRole(String token) {
-        Object role = parse(token).get("role");
-        if (!(role instanceof Number n)) return null;
-        return Role.fromValue(n.intValue());
     }
 }

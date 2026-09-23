@@ -22,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthInterceptor implements HandlerInterceptor {
 
-    private final JwtTool jwtUtils;
+    private final JwtTool jwtTool;
     private final UserService userService;
 
     private static final List<String> PUBLIC_PATHS = List.of(
@@ -56,30 +56,21 @@ public class AuthInterceptor implements HandlerInterceptor {
         // Resolve token from header or cookie
         String token = resolveToken(request);
         boolean hasToken = token != null && !token.isBlank();
+        User user = null;
         if (hasToken) {
-            boolean valid = jwtUtils.validate(token);
+            boolean valid = jwtTool.validate(token);
             boolean revoked = valid && userService.isTokenRevoked(token);
             if (!isPublic && !valid)
                 throw new UnauthorizedException("Token is invalid");
             if (!isPublic && revoked)
                 throw new UnauthorizedException("Token is revoked");
-            if (valid && !revoked) {
-                AuthCtx.init(
-                        jwtUtils.getUserId(token),
-                        jwtUtils.getRole(token)
-                );
-            }
+            if (valid && !revoked)
+                user = userService.getById(jwtTool.getUserId(token));
         }
 
         // Allow public paths without auth
         if (isPublic) return true;
-
         // Other paths require auth
-        if (!AuthCtx.isAuthed())
-            throw new UnauthorizedException("Authentication required");
-
-        // Check user exist and active
-        User user = userService.getById(AuthCtx.getUserId());
         if (user == null)
             throw new BusinessException(404, "Account not found");
         if (user.getStatus() == Status.DISABLED)
@@ -89,6 +80,8 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         // Update user last active time
         userService.updateActiveAt(user.getId());
+        // AuthCtx initialize
+        AuthCtx.init(user.getId(), user.getRole());
 
         return true;
     }

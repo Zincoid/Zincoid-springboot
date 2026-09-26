@@ -15,6 +15,7 @@ import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.converter.CommentConverter;
 import com.zincoid.me.model.vo.CommentVO;
+import com.zincoid.me.model.vo.HomeCommentVO;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.service.ArticleService;
 import com.zincoid.me.service.CommentService;
@@ -68,6 +69,20 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 .toList();
         PageVO<CommentVO> result = PageVO.of(rootPage, roots);
         result.setTotal(count(targetType, targetId));
+        return result;
+    }
+
+    @Override
+    public List<HomeCommentVO> home(int size) {
+        List<Comment> comments = lambdaQuery()
+                .orderByDesc(Comment::getCreatedAt)
+                .last("LIMIT " + size)
+                .list();
+        List<HomeCommentVO> result = new ArrayList<>();
+        for (Comment comment : comments) {
+            if (!isTargetActive(comment.getTargetType(), comment.getTargetId())) continue;
+            result.add(toHomeCommentVO(comment));
+        }
         return result;
     }
 
@@ -199,6 +214,20 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
 
     // ──────── Target validation ───────────────────────────
 
+    private boolean isTargetActive(RelatedType targetType, Long targetId) {
+        if (targetType == RelatedType.MOMENT) {
+            Moment m = momentService.lambdaQuery().select(Moment::getStatus).eq(Moment::getId, targetId).one();
+            return m != null && m.getStatus() == Status.ACTIVE;
+        } else if (targetType == RelatedType.ARTICLE) {
+            Article a = articleService.lambdaQuery().select(Article::getStatus).eq(Article::getId, targetId).one();
+            return a != null && a.getStatus() == Status.ACTIVE;
+        } else if (targetType == RelatedType.REPO) {
+            Repo r = repoService.lambdaQuery().select(Repo::getStatus).eq(Repo::getId, targetId).one();
+            return r != null && r.getStatus() == Status.ACTIVE;
+        }
+        return false;
+    }
+
     private void validateTarget(RelatedType targetType, Long targetId) {
         if (targetType == RelatedType.MOMENT) {
             Moment m = momentService.lambdaQuery().select(Moment::getStatus).eq(Moment::getId, targetId).one();
@@ -252,5 +281,15 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     private CommentVO toCommentVO(Comment comment, List<CommentVO> replies, long replyCount) {
         User user = userService.getById(comment.getUserId());
         return CommentConverter.INSTANCE.toVO(comment, user, replies, replyCount);
+    }
+
+    private HomeCommentVO toHomeCommentVO(Comment comment) {
+        User user = userService.getById(comment.getUserId());
+        User parentUser = null;
+        if (comment.getParentId() != null) {
+            Comment parent = getById(comment.getParentId());
+            if (parent != null) parentUser = userService.getById(parent.getUserId());
+        }
+        return CommentConverter.INSTANCE.toHomeVO(comment, user, parentUser);
     }
 }

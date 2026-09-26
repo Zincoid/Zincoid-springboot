@@ -5,6 +5,7 @@ import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.model.vo.CommentVO;
+import com.zincoid.me.model.vo.HomeCommentVO;
 import com.zincoid.me.model.vo.PageVO;
 
 import java.util.List;
@@ -52,6 +53,11 @@ public class CommentController {
     }
 
     // ──── Public endpoints ────────────────
+
+    @GetMapping("/public/home")
+    public ApiResponse<List<HomeCommentVO>> homeComments(@RequestParam(defaultValue = "10") int size) {
+        return ApiResponse.success(commentService.home(size));
+    }
 
     @GetMapping("/public/moment/{momentId}")
     public ApiResponse<PageVO<CommentVO>> momentComments(@PathVariable Long momentId,

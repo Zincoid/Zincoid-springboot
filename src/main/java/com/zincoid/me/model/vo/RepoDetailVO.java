@@ -24,6 +24,7 @@ public class RepoDetailVO {
     private List<String> tags;
     private String coverImage;
     private Boolean isDefaultCover;
+    private Boolean isPinned;
     private Long viewCount;
     private Long likeCount;
     private Long contributorCount;

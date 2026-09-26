@@ -15,6 +15,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/repos")
 @RequiredArgsConstructor
@@ -41,6 +43,20 @@ public class RepoController {
         return ApiResponse.success();
     }
 
+    @PutMapping("/{repoId}/pin")
+    public ApiResponse<Void> pinRepo(@PathVariable Long repoId) {
+        AuthCtx.requireAdmin();
+        repoService.pin(repoId);
+        return ApiResponse.success();
+    }
+
+    @PutMapping("/{repoId}/unpin")
+    public ApiResponse<Void> unpinRepo(@PathVariable Long repoId) {
+        AuthCtx.requireAdmin();
+        repoService.unpin(repoId);
+        return ApiResponse.success();
+    }
+
     @PostMapping("/{repoId}/items")
     public ApiResponse<RepoItemVO> addRepoItem(@PathVariable Long repoId,
                                                @RequestParam Long fileId) {
@@ -64,14 +80,25 @@ public class RepoController {
 
     // ──── Public endpoints ────────────────
 
+    @GetMapping("/public/random")
+    public ApiResponse<RepoCardVO> randomRepo() {
+        return ApiResponse.success(repoService.random());
+    }
+
+    @GetMapping("/public/home")
+    public ApiResponse<List<RepoCardVO>> homeRepos(@RequestParam(defaultValue = "10") int size) {
+        return ApiResponse.success(repoService.home(size));
+    }
+
     @GetMapping("/public")
     public ApiResponse<PageVO<RepoCardVO>> listRepos(@RequestParam(defaultValue = "1") int page,
                                                      @RequestParam(defaultValue = "10") int size,
                                                      @RequestParam(required = false) RepoType type,
                                                      @RequestParam(required = false) String keyword,
                                                      @RequestParam(required = false, defaultValue = "false") boolean tagged,
-                                                     @RequestParam(required = false, defaultValue = "false") boolean updated) {
-        return ApiResponse.success(repoService.list(type, keyword, tagged, updated, page, size));
+                                                     @RequestParam(required = false, defaultValue = "false") boolean updated,
+                                                     @RequestParam(defaultValue = "false") boolean pinned) {
+        return ApiResponse.success(repoService.list(type, keyword, tagged, updated, pinned, page, size));
     }
 
     @GetMapping("/public/user/{userId}")
@@ -79,8 +106,9 @@ public class RepoController {
                                                      @RequestParam(defaultValue = "1") int page,
                                                      @RequestParam(defaultValue = "10") int size,
                                                      @RequestParam(required = false) RepoType type,
-                                                     @RequestParam(required = false, defaultValue = "false") boolean updated) {
-        return ApiResponse.success(repoService.list(type, userId, updated, page, size));
+                                                     @RequestParam(required = false, defaultValue = "false") boolean updated,
+                                                     @RequestParam(defaultValue = "false") boolean pinned) {
+        return ApiResponse.success(repoService.list(type, userId, updated, pinned, page, size));
     }
 
     @GetMapping("/public/{repoId}")

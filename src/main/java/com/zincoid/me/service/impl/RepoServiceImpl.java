@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -129,6 +130,26 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     }
 
     @Override
+    public void pin(Long repoId) {
+        Repo repo = getById(repoId);
+        if (repo == null || repo.getStatus() == Status.DISABLED)
+            throw new BusinessException(404, "Repo not found");
+        repo.setIsPinned(true);
+        updateById(repo);
+        log.info("Repo pinned: id={}", repoId);
+    }
+
+    @Override
+    public void unpin(Long repoId) {
+        Repo repo = getById(repoId);
+        if (repo == null)
+            throw new BusinessException(404, "Repo not found");
+        repo.setIsPinned(false);
+        updateById(repo);
+        log.info("Repo unpinned: id={}", repoId);
+    }
+
+    @Override
     @Transactional
     public RepoItemVO addItem(Long userId, Long repoId, Long fileId) {
         Repo repo = getById(repoId);
@@ -175,7 +196,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     }
 
     @Override
-    public PageVO<RepoCardVO> list(RepoType type, String keyword, boolean tagged, boolean updated, int page, int size) {
+    public PageVO<RepoCardVO> list(RepoType type, String keyword, boolean tagged, boolean updated, boolean pinned, int page, int size) {
         boolean hasKeyword = keyword != null && !keyword.isBlank();
         Page<Repo> repoPage = lambdaQuery()
                 .eq(Repo::getStatus, Status.ACTIVE)
@@ -183,6 +204,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 .eq(type != null, Repo::getType, type)
                 .like(hasKeyword && !tagged, Repo::getName, keyword)
                 .like(hasKeyword && tagged, Repo::getTags, keyword)
+                .orderByDesc(pinned, Repo::getIsPinned)
                 .orderByDesc(updated, Repo::getUpdatedAt)
                 .orderByDesc(!updated, Repo::getCreatedAt)
                 .page(Page.of(page, size));
@@ -190,7 +212,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     }
 
     @Override
-    public PageVO<RepoCardVO> list(RepoType type, Long userId, boolean updated, int page, int size) {
+    public PageVO<RepoCardVO> list(RepoType type, Long userId, boolean updated, boolean pinned, int page, int size) {
         Long viewerId = AuthCtx.getUserId();
         boolean isOwner = viewerId != null && viewerId.equals(userId);
         boolean isAdmin = viewerId != null && AuthCtx.getRole() == Role.ADMIN;
@@ -199,10 +221,42 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 .eq(Repo::getUserId, userId)
                 .eq(type != null, Repo::getType, type)
                 .ne(!isOwner && !isAdmin, Repo::getVisibility, Visibility.PRIVATE)
+                .orderByDesc(pinned, Repo::getIsPinned)
                 .orderByDesc(updated, Repo::getUpdatedAt)
                 .orderByDesc(!updated, Repo::getCreatedAt);
         Page<Repo> repoPage = wrapper.page(Page.of(page, size));
         return PageVO.of(repoPage, this::buildCardVO);
+    }
+
+    @Override
+    public List<RepoCardVO> home(int size) {
+        List<Repo> pinned = lambdaQuery()
+                .eq(Repo::getStatus, Status.ACTIVE)
+                .ne(Repo::getVisibility, Visibility.PRIVATE)
+                .eq(Repo::getIsPinned, true)
+                .orderByDesc(Repo::getCreatedAt)
+                .list();
+        List<Repo> records = new ArrayList<>(pinned);
+        List<Repo> nonPinned = lambdaQuery()
+                .eq(Repo::getStatus, Status.ACTIVE)
+                .ne(Repo::getVisibility, Visibility.PRIVATE)
+                .eq(Repo::getIsPinned, false)
+                .orderByDesc(Repo::getCreatedAt)
+                .last("LIMIT " + size)
+                .list();
+        records.addAll(nonPinned);
+        return records.stream().map(this::buildCardVO).toList();
+    }
+
+    @Override
+    public RepoCardVO random() {
+        Repo repo = lambdaQuery()
+                .eq(Repo::getStatus, Status.ACTIVE)
+                .ne(Repo::getVisibility, Visibility.PRIVATE)
+                .last("ORDER BY RAND() LIMIT 1")
+                .one();
+        if (repo == null) return null;
+        return buildCardVO(repo);
     }
 
     @Override

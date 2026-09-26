@@ -23,6 +23,7 @@ public class RepoCardVO {
     private String url;
     private List<String> tags;
     private String coverThumb;
+    private Boolean isPinned;
     private Long viewCount;
     private Long likeCount;
     private Long commentCount;

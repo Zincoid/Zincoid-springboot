@@ -30,6 +30,7 @@ public class Repo {
     private String url;
     private String tags;
     private String coverImage;
+    private Boolean isPinned;
     private Status status;
     private Visibility visibility;
     private Long viewCount;

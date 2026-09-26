@@ -10,6 +10,8 @@ import com.zincoid.me.model.vo.RepoCardVO;
 import com.zincoid.me.model.vo.RepoDetailVO;
 import com.zincoid.me.model.vo.RepoItemVO;
 
+import java.util.List;
+
 public interface RepoService extends IService<Repo> {
 
     RepoDetailVO create(Long userId, RepoCreateRequest request);
@@ -18,15 +20,23 @@ public interface RepoService extends IService<Repo> {
 
     void delete(Long userId, Long repoId, boolean isAdmin);
 
+    void pin(Long repoId);
+
+    void unpin(Long repoId);
+
     RepoItemVO addItem(Long userId, Long repoId, Long fileId);
 
     void deleteItem(Long userId, Long repoId, Long itemId);
 
     void swapItems(Long userId, Long repoId, Long itemIdA, Long itemIdB);
 
-    PageVO<RepoCardVO> list(RepoType type, String keyword, boolean tagged, boolean updated, int page, int size);
+    PageVO<RepoCardVO> list(RepoType type, String keyword, boolean tagged, boolean updated, boolean pinned, int page, int size);
 
-    PageVO<RepoCardVO> list(RepoType type, Long userId, boolean updated, int page, int size);
+    PageVO<RepoCardVO> list(RepoType type, Long userId, boolean updated, boolean pinned, int page, int size);
+
+    List<RepoCardVO> home(int size);
+
+    RepoCardVO random();
 
     RepoDetailVO get(Long repoId);
 

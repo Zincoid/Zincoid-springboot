@@ -16,7 +16,7 @@ public interface UserPermissionService extends IService<UserPermission> {
 
     void grant(Long userId, Perm perm, Long operatorId);
 
-    void revoke(Long userId, Perm perm, Long operatorId);
+    void revoke(Long id, Long operatorId);
 
     List<Perm> get(Long userId);
 

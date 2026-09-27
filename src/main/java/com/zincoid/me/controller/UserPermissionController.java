@@ -27,10 +27,10 @@ public class UserPermissionController {
         return ApiResponse.success();
     }
 
-    @DeleteMapping("/{userId}/{perm}")
-    public ApiResponse<Void> revokePermission(@PathVariable Long userId, @PathVariable Perm perm) {
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> revokePermission(@PathVariable Long id) {
         AuthCtx.requireAdmin();
-        userPermissionService.revoke(userId, perm, AuthCtx.getUserId());
+        userPermissionService.revoke(id, AuthCtx.getUserId());
         return ApiResponse.success();
     }
 

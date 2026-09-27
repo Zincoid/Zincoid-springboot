@@ -63,15 +63,12 @@ public class UserPermissionServiceImpl extends ServiceImpl<UserPermissionMapper,
 
     @Override
     @Transactional
-    public void revoke(Long userId, Perm perm, Long operatorId) {
-        UserPermission existing = lambdaQuery()
-                .eq(UserPermission::getUserId, userId)
-                .eq(UserPermission::getPerm, perm)
-                .one();
+    public void revoke(Long id, Long operatorId) {
+        UserPermission existing = getById(id);
         if (existing == null)
             throw new BusinessException(404, "Permission not found");
-        removeById(existing.getId());
-        log.info("Permission revoked: user={}, perm={}, by={}", userId, perm, operatorId);
+        removeById(id);
+        log.info("Permission revoked: id={}, user={}, perm={}, by={}", id, existing.getUserId(), existing.getPerm(), operatorId);
     }
 
     @Override

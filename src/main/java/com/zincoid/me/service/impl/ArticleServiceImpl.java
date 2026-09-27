@@ -10,6 +10,7 @@ import com.zincoid.me.model.dto.ArticleCreateRequest;
 import com.zincoid.me.model.dto.ArticleUpdateRequest;
 import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.User;
+import com.zincoid.me.model.enums.Perm;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.enums.Role;
@@ -21,6 +22,7 @@ import com.zincoid.me.service.ArticleService;
 import com.zincoid.me.service.CommentService;
 import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.LikeService;
+import com.zincoid.me.service.UserPermissionService;
 import com.zincoid.me.service.UserService;
 import com.zincoid.me.utils.MdTool;
 import com.zincoid.me.utils.AuthCtx;
@@ -48,11 +50,13 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     private final UserService userService;
     private final LikeService likeService;
     private final CommentService commentService;
+    private final UserPermissionService userPermissionService;
     private final MdTool mdTool;
 
     @Override
     @Transactional
     public ArticleDetailVO create(Long userId, ArticleCreateRequest request) {
+        userPermissionService.require(Perm.ARTICLE_OP);
         Article article = Article.builder()
                 .userId(userId)
                 .title(request.getTitle())
@@ -74,6 +78,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Override
     @Transactional
     public ArticleDetailVO update(Long userId, Long articleId, ArticleUpdateRequest request) {
+        userPermissionService.require(Perm.ARTICLE_OP);
         Article article = getById(articleId);
         if (article == null)
             throw new BusinessException(404, "Article not found");
@@ -113,6 +118,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Override
     @Transactional
     public void delete(Long userId, Long articleId, boolean isAdmin) {
+        userPermissionService.require(Perm.ARTICLE_OP);
         Article article = getById(articleId);
         if (article == null)
             throw new BusinessException(404, "Article not found");

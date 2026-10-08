@@ -11,13 +11,14 @@ import com.zincoid.me.service.MessageService;
 import com.zincoid.me.service.UserService;
 import com.zincoid.me.utils.FileUtil;
 import com.zincoid.me.utils.JsonUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class Send implements Tool {
 
     private record Args(String content, String image) {}
@@ -28,14 +29,6 @@ public class Send implements Tool {
 
     @Value("${site.url}")
     private String siteUrl;
-
-    public Send(@Lazy MessageService messageService,
-                UserService userService,
-                FileService fileService) {
-        this.messageService = messageService;
-        this.userService = userService;
-        this.fileService = fileService;
-    }
 
     @Override
     public ToolDef def() {

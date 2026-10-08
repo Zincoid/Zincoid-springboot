@@ -1,6 +1,7 @@
 package com.zincoid.me.utils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
@@ -11,7 +12,7 @@ public final class JsonUtil {
 
     private JsonUtil() {}
 
-    public static String toJson(Object obj) {
+    public static String toString(Object obj) {
         try {
             return MAPPER.writeValueAsString(obj);
         } catch (Exception e) {
@@ -25,6 +26,14 @@ public final class JsonUtil {
             return MAPPER.readValue(imagesJson, new TypeReference<List<String>>() {});
         } catch (Exception e) {
             return List.of();
+        }
+    }
+
+    public static <T> T parse(String json, Class<T> clazz) {
+        try {
+            return MAPPER.readValue(json, clazz);
+        } catch (Exception e) {
+            throw new RuntimeException("Json parse error: " + json, e);
         }
     }
 }

@@ -71,3 +71,17 @@ upload:
 # GitHub
 github:
   token: ${zincoid.github.token}
+
+# AI
+ai:
+  chat:
+    max-length: ${zincoid.ai.chat.max-length:20}
+    max-tokens: ${zincoid.ai.chat.max-tokens:1024}
+    max-tcs: ${zincoid.ai.chat.max-tcs:5}
+  openai:
+    active: ${zincoid.ai.openai.active:default}
+    providers:
+      - name: ${zincoid.ai.openai.name:default}
+        api-url: ${zincoid.ai.openai.api-url:}
+        api-key: ${zincoid.ai.openai.api-key:}
+        model: ${zincoid.ai.openai.model:}

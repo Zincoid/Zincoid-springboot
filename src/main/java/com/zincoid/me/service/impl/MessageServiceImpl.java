@@ -2,6 +2,9 @@ package com.zincoid.me.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zincoid.me.ai.AiChatProperties;
+import com.zincoid.me.ai.client.ChatClient;
+import com.zincoid.me.ai.message.AiMessage;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.MessageMapper;
 import com.zincoid.me.model.enums.NotificationType;
@@ -16,23 +19,34 @@ import com.zincoid.me.service.FileService;
 import com.zincoid.me.converter.MessageConverter;
 import com.zincoid.me.service.MessageService;
 import com.zincoid.me.service.UserService;
+import com.zincoid.me.utils.FileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> implements MessageService {
 
+    private static final ReentrantLock AI_CHAT_LOCK = new ReentrantLock();
+
     private final ConfigService configService;
     private final FileService fileService;
     private final UserService userService;
     private final NotificationService notificationService;
+
+    private final ChatClient chatClient;
+    private final AiChatProperties aiChatProperties;
+
+    @Value("${site.url}")
+    private String siteUrl;
 
     @Override
     @Transactional
@@ -52,6 +66,22 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         notificationService.notifyAt(userId, msg.getContent(), NotificationType.CHAT_MENTION, msg.getId());
         log.info("Message sent: user={}, id={}", userId, msg.getId());
         return buildVO(msg);
+    }
+
+    @Override
+    @Transactional
+    public MessageVO sendToAi(Long userId, String content, String file, boolean thinking) {
+        AI_CHAT_LOCK.lock();
+        try {
+            send(userId, content, file);
+            User ai = aiUser();
+            List<AiMessage> history = buildAiHistory(ai.getId());
+            String prompt = configService.get("ai_chat_prompt");
+            String reply = chatClient.chat(history, prompt, thinking);
+            return send(ai.getId(), reply, null);
+        } finally {
+            AI_CHAT_LOCK.unlock();
+        }
     }
 
     @Override
@@ -77,6 +107,38 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     }
 
     // ──────── Private tool ────────────────────────────────
+
+    private User aiUser() {
+        User ai = userService.lambdaQuery().eq(User::getUsername, "bot").one();
+        if (ai == null)
+            throw new BusinessException(500, "AI user not initialized");
+        return ai;
+    }
+
+    private List<AiMessage> buildAiHistory(Long aiId) {
+        List<Message> rows = lambdaQuery()
+                .orderByDesc(Message::getId)
+                .last("LIMIT " + aiChatProperties.getMaxLength())
+                .list();
+        Collections.reverse(rows);
+        List<AiMessage> messages = new ArrayList<>();
+        for (Message m : rows) {
+            if (aiId.equals(m.getUserId())) {
+                messages.add(AiMessage.assistant(m.getContent() != null ? m.getContent() : ""));
+                continue;
+            }
+            List<String> images = imageUrls(m.getFile());
+            String text = m.getContent() != null ? m.getContent() : "";
+            if (text.isBlank() && images.isEmpty()) continue;
+            messages.add(AiMessage.user(text, images));
+        }
+        return messages;
+    }
+
+    private List<String> imageUrls(String file) {
+        if (!FileUtil.isImage(FileUtil.getExt(file))) return List.of();
+        return List.of(siteUrl + file);
+    }
 
     private void trim() {
         String maxStr = configService.get("message_max_count");

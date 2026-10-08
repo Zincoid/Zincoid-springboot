@@ -215,7 +215,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (request.getTitle() != null) user.setTitle(request.getTitle());
         if (request.getBio() != null) user.setBio(request.getBio());
         if (request.getSkills() != null) {
-            String json = JsonUtil.toJson(request.getSkills());
+            String json = JsonUtil.toString(request.getSkills());
             user.setSkills(json);
         }
         if (request.getContacts() != null) {

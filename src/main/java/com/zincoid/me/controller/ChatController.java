@@ -24,6 +24,13 @@ public class ChatController {
         return ApiResponse.success(messageService.send(AuthCtx.getUserId(), content, file));
     }
 
+    @PostMapping("/ai")
+    public ApiResponse<MessageVO> sendToAi(@RequestParam(required = false) String content,
+                                           @RequestParam(required = false) String file,
+                                           @RequestParam(defaultValue = "true") boolean thinking) {
+        return ApiResponse.success(messageService.sendToAi(AuthCtx.getUserId(), content, file, thinking));
+    }
+
     @DeleteMapping("/{messageId}")
     public ApiResponse<Void> delete(@PathVariable Long messageId) {
         messageService.delete(AuthCtx.getUserId(), messageId, AuthCtx.getRole() == Role.ADMIN);

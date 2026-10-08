@@ -45,3 +45,14 @@ zincoid:
   # ────── GitHub ────────────────── #
   github:
     token:                       # GitHub 令牌
+
+  # ────── AI ──────────────────────── #
+  ai:
+    chat:
+      max-length: 20             # 历史消息窗口
+      max-tokens: 1024           # 回复最大 tokens
+      max-tcs: 5                 # 工具调用最大轮数
+    openai:
+      api-url:                   # OpenAI 兼容 API 地址
+      api-key:                   # API 密钥
+      model:                     # 模型名

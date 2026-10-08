@@ -57,7 +57,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 .type(request.getType())
                 .visibility(request.getVisibility() != null ? request.getVisibility() : Visibility.PUBLIC)
                 .url(request.getUrl())
-                .tags(JsonUtil.toJson(request.getTags()))
+                .tags(JsonUtil.toString(request.getTags()))
                 .coverImage(request.getCoverImage() != null && !request.getCoverImage().isBlank()
                         ? request.getCoverImage() : null)
                 .status(Status.ACTIVE)
@@ -80,7 +80,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         if (request.getName() != null) repo.setName(request.getName());
         if (request.getDescription() != null) repo.setDescription(request.getDescription());
         if (request.getUrl() != null) repo.setUrl(request.getUrl());
-        if (request.getTags() != null) repo.setTags(JsonUtil.toJson(request.getTags()));
+        if (request.getTags() != null) repo.setTags(JsonUtil.toString(request.getTags()));
         if (request.getCoverImage() != null) {
             String newCover = request.getCoverImage().isBlank() ? null : request.getCoverImage();
             String oldCover = repo.getCoverImage();

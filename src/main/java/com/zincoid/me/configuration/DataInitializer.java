@@ -31,6 +31,7 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String @NonNull ... args) {
         initAdminUser();
+        initAiUser();
         initConfigs();
         initUserConfigs();
     }
@@ -46,6 +47,7 @@ public class DataInitializer implements CommandLineRunner {
         initConfig("hero_animation", "random", "Hero animation: squares, raindrop, raindrop_sin, or random");
         initConfig("audio_spectrum_ratio", "0.2", "Audio spectrum ratio of digital flow for Walkman");
         initConfig("maintenance_enabled", "true", "Enable daily maintenance (UTC+8 00:00-00:10, auto cleanup and block all requests)");
+        initConfig("ai_chat_prompt", "你是 Zincoid 网站聊天室里的 AI 助手。请自然地融入对话，回复简洁友好，不要长篇大论。", "AI chat system prompt");
     }
 
     private void initConfig(String key, String value, String description) {
@@ -77,6 +79,25 @@ public class DataInitializer implements CommandLineRunner {
                 .build();
         userService.save(admin);
         log.info("Default admin created (username: admin, password: {})", password);
+    }
+
+    private void initAiUser() {
+        if (userService.lambdaQuery().eq(User::getUsername, "bot").exists()) {
+            log.info("Bot already exists, skipping init.");
+            return;
+        }
+        User ai = User.builder()
+                .username("bot")
+                .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                .nickname("Bot")
+                .role(Role.ADMIN)
+                .title("AI Assistant")
+                .status(Status.ACTIVE)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+        userService.save(ai);
+        log.info("Default bot created (username: bot, id: {})", ai.getId());
     }
 
     private void initUserConfigs() {

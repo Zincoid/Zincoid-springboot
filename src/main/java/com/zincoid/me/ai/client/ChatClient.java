@@ -1,0 +1,86 @@
+package com.zincoid.me.ai.client;
+
+import com.zincoid.me.ai.AiChatProperties;
+import com.zincoid.me.ai.message.AiMessage;
+import com.zincoid.me.ai.model.Model;
+import com.zincoid.me.ai.model.ModelReq;
+import com.zincoid.me.ai.model.ModelRes;
+import com.zincoid.me.ai.tool.Tool;
+import com.zincoid.me.ai.tool.ToolCall;
+import com.zincoid.me.ai.tool.ToolReg;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class ChatClient {
+
+    private final Model model;
+    private final ToolReg toolReg;
+    private final AiChatProperties aiChatProperties;
+
+    public String chat(List<AiMessage> history, String prompt, boolean thinking) {
+        List<AiMessage> work = new ArrayList<>();
+        if (prompt != null && !prompt.isBlank())
+            work.add(AiMessage.system(prompt));
+        work.addAll(history);
+        int maxTcs = aiChatProperties.getMaxTcs();
+        int maxTokens = aiChatProperties.getMaxTokens();
+        if (maxTcs <= 0)
+            return replyFinal(work, thinking, maxTokens);
+        for (int i = 0; i < maxTcs; i++) {
+            ModelRes res = model.invoke(ModelReq.of(
+                    work,
+                    toolReg.getAll(),
+                    thinking,
+                    maxTokens
+            ));
+            if (!res.hasTcs())
+                return ensureContent(res.getContent());
+            log.info("Tc round {}: {} call(s)", i + 1, res.getTcs().size());
+            work.add(AiMessage.assistant(res.getTcs())
+                    .withReasoning(res.getReasoning()));
+            for (ToolCall tc : res.getTcs())
+                work.add(AiMessage.tool(tc.getId(), runTool(tc)));
+        }
+        log.warn("Tc limit reached: {}", maxTcs);
+        work.add(AiMessage.user("""
+        The maximum number of tool call rounds has been reached.
+        Please provide the final answer based on the available information.
+        Do not call any more tools!!!"""
+        ));
+        return replyFinal(work, thinking, maxTokens);
+    }
+
+    // ──── Private Tool ────────────────
+
+    private String replyFinal(List<AiMessage> work, boolean thinking, int maxTokens) {
+        ModelRes res = model.invoke(ModelReq.of(work, thinking, maxTokens));
+        return ensureContent(res.getContent());
+    }
+
+    private String ensureContent(String content) {
+        if (content != null && !content.isBlank()) return content;
+        return "(AI is temporarily unable to answer)";
+    }
+
+    private String runTool(ToolCall tc) {
+        Tool tool = toolReg.get(tc.getName());
+        if (tool == null)
+            return "Error: Tool \"%s\" doesn't exist."
+                    .formatted(tc.getName());
+        try {
+            String res = tool.run(tc.getArgs());
+            log.info("Tool success: {}({}) -> {}", tc.getName(), tc.getArgs(), res);
+            return res;
+        } catch (Exception e) {
+            log.warn("Tool error: {}", e.getMessage());
+            return "Error: %s.".formatted(e.getMessage());
+        }
+    }
+}

@@ -9,6 +9,8 @@ public interface MessageService extends IService<Message> {
 
     MessageVO send(Long userId, String content, String file);
 
+    MessageVO sendToAi(Long userId, String content, String file, boolean thinking);
+
     PageVO<MessageVO> list(int page, int size);
 
     void delete(Long userId, Long messageId, boolean isAdmin);

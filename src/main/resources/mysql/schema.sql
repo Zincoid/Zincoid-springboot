@@ -334,5 +334,6 @@ INSERT INTO `config` (`config_key`, `config_value`, `description`) VALUES
 ('loading_spinner_fade', '150', 'Loading spinner fade-out duration (ms)'),
 ('hero_animation', 'random', 'Hero animation: squares, raindrop, raindrop_sin, or random'),
 ('audio_spectrum_ratio', '0.2', 'Audio spectrum ratio of digital flow for Walkman'),
-('maintenance_enabled', 'true', 'Enable daily maintenance (UTC+8 00:00-00:10, auto cleanup and block all requests)')
+('maintenance_enabled', 'true', 'Enable daily maintenance (UTC+8 00:00-00:10, auto cleanup and block all requests)'),
+('ai_chat_prompt', '你是 Zincoid 网站聊天室里的 AI 助手。请自然地融入对话，回复简洁友好，不要长篇大论。', 'AI chat system prompt')
 ON DUPLICATE KEY UPDATE `config_key` = VALUES(`config_key`);

@@ -1,0 +1,83 @@
+package com.zincoid.me.ai.tool;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+import java.util.*;
+
+@Getter
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public class ToolDef {
+
+    private record ParamSpec(String name, String type, String description, Set<String> enumValues) {}
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    private final String name;
+    private final String description;
+    private final ObjectNode parameters;
+
+    public static Builder builder(String name, String description) {
+        return new Builder(name, description);
+    }
+
+    @RequiredArgsConstructor
+    public static class Builder {
+
+        private final String name;
+        private final String description;
+        private final List<ParamSpec> params = new ArrayList<>();
+        private final Set<String> required = new LinkedHashSet<>();
+
+        public Builder addString(String name, String desc) {
+            params.add(new ParamSpec(name, "string", desc, null));
+            return this;
+        }
+
+        public Builder addString(String name, String desc, boolean required) {
+            params.add(new ParamSpec(name, "string", desc, null));
+            if (required) this.required.add(name);
+            return this;
+        }
+
+        public Builder addEnum(String name, String desc, Set<String> values) {
+            params.add(new ParamSpec(name, "string", desc, new TreeSet<>(values)));
+            return this;
+        }
+
+        public Builder addEnum(String name, String desc, Set<String> values, boolean required) {
+            params.add(new ParamSpec(name, "string", desc, new TreeSet<>(values)));
+            if (required) this.required.add(name);
+            return this;
+        }
+
+        public ToolDef build() {
+            ObjectNode root = MAPPER.createObjectNode();
+            root.put("type", "object");
+            ObjectNode props = MAPPER.createObjectNode();
+            for (ParamSpec spec : params) {
+                ObjectNode prop = MAPPER.createObjectNode();
+                prop.put("type", spec.type);
+                prop.put("description", spec.description);
+                if (spec.enumValues != null) {
+                    ArrayNode arr = MAPPER.createArrayNode();
+                    spec.enumValues.forEach(arr::add);
+                    prop.set("enum", arr);
+                }
+                props.set(spec.name, prop);
+            }
+            root.set("properties", props);
+            if (!required.isEmpty()) {
+                ArrayNode requiredArr = MAPPER.createArrayNode();
+                required.forEach(requiredArr::add);
+                root.set("required", requiredArr);
+            }
+            return new ToolDef(name, description, root);
+        }
+    }
+}

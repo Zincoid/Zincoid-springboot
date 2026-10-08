@@ -54,7 +54,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
         Moment moment = Moment.builder()
                 .userId(userId)
                 .content(request.getContent())
-                .urls(JsonUtil.toJson(request.getUrls()))
+                .urls(JsonUtil.toString(request.getUrls()))
                 .visibility(request.getVisibility() != null ? request.getVisibility() : Visibility.PUBLIC)
                 .build();
         save(moment);
@@ -86,7 +86,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
             for (String oldPath : oldSet)
                 if (!newSet.contains(oldPath))
                     fileService.delete(oldPath);
-            moment.setUrls(JsonUtil.toJson(request.getUrls()));
+            moment.setUrls(JsonUtil.toString(request.getUrls()));
             List<String> newPaths = new ArrayList<>(newSet);
             if (!newPaths.isEmpty())
                 fileService.link(newPaths, RelatedType.MOMENT, moment.getId(), userId);

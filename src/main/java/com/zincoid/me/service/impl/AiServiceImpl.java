@@ -46,7 +46,7 @@ public class AiServiceImpl implements AiService {
                          UserService userService,
                          @Lazy MessageService messageService,
                          @Lazy CommentService commentService,
-                         ChatClient chatClient,
+                         @Lazy ChatClient chatClient,
                          AiChatProperties aiChatProperties) {
         this.configService = configService;
         this.userService = userService;

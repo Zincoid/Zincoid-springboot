@@ -42,19 +42,19 @@ public class Search implements Tool {
     @Override
     public ToolDef def() {
         return ToolDef.builder("search", """
-                        Search this website's own content: moments (short posts), articles and repositories.""")
+                        Search this website's own content: moments (short posts), articles and repositories. \
+                        Without a keyword it lists the latest content by date.""")
                 .addEnum("type", "Content type to search: moment, article or repo. Omit to search all types.", TYPES)
                 .addString("username", "Only return content authored by this username. Omit to search all users.")
-                .addString("keyword", "Search keyword.", true)
+                .addString("keyword", "Search keyword. Omit to list the latest content by date.")
                 .build();
     }
 
     @Override
     public ToolRes run(String json) {
         Args args = JsonUtil.parse(json, Args.class);
-        if (args.keyword() == null || args.keyword().isBlank())
-            return ToolRes.of("Error: keyword must not be empty");
-        String keyword = args.keyword().trim();
+        String keyword = args.keyword() != null && !args.keyword().isBlank()
+                ? args.keyword().trim() : null;
         String type = args.type();
         if (type != null && !type.isBlank() && !TYPES.contains(type))
             return ToolRes.of("Error: unknown type \"%s\", valid values: moment, article, repo".formatted(type));
@@ -75,10 +75,15 @@ public class Search implements Tool {
         if (type == null || type.isBlank() || "repo".equals(type))
             hits.addAll(searchRepos(keyword, userId));
         if (hits.isEmpty())
-            return ToolRes.of("No results found for \"%s\".".formatted(keyword));
+            return ToolRes.of(keyword != null
+                    ? "No results found for \"%s\".".formatted(keyword)
+                    : "No results found.");
+        if (keyword == null)
+            hits.sort(Comparator.comparing(Hit::date, Comparator.nullsLast(Comparator.reverseOrder())));
         Map<Long, User> users = loadUsers(hits);
-        StringBuilder sb = new StringBuilder("Search results for \"")
-                .append(keyword).append("\":\n");
+        StringBuilder sb = keyword != null
+                ? new StringBuilder("Search results for \"").append(keyword).append("\":\n")
+                : new StringBuilder("Latest content:\n");
         for (Hit hit : hits) {
             sb.append("- [").append(hit.kind()).append(" id=").append(hit.id()).append("]");
             if (hit.title() != null)
@@ -103,7 +108,7 @@ public class Search implements Tool {
                 .eq(Moment::getStatus, Status.ACTIVE)
                 .eq(Moment::getVisibility, Visibility.PUBLIC)
                 .eq(userId != null, Moment::getUserId, userId)
-                .like(Moment::getContent, keyword)
+                .like(keyword != null, Moment::getContent, keyword)
                 .orderByDesc(Moment::getCreatedAt)
                 .last("LIMIT %d".formatted(MAX_RESULTS))
                 .list();
@@ -118,7 +123,7 @@ public class Search implements Tool {
                 .eq(Article::getStatus, Status.ACTIVE)
                 .eq(Article::getVisibility, Visibility.PUBLIC)
                 .eq(userId != null, Article::getUserId, userId)
-                .and(w -> w.like(Article::getTitle, keyword)
+                .and(keyword != null, w -> w.like(Article::getTitle, keyword)
                         .or().like(Article::getSummary, keyword)
                         .or().like(Article::getContentMd, keyword))
                 .orderByDesc(Article::getCreatedAt)
@@ -139,7 +144,7 @@ public class Search implements Tool {
                 .eq(Repo::getStatus, Status.ACTIVE)
                 .ne(Repo::getVisibility, Visibility.PRIVATE)
                 .eq(userId != null, Repo::getUserId, userId)
-                .and(w -> w.like(Repo::getName, keyword)
+                .and(keyword != null, w -> w.like(Repo::getName, keyword)
                         .or().like(Repo::getDescription, keyword)
                         .or().like(Repo::getTags, keyword))
                 .orderByDesc(Repo::getCreatedAt)

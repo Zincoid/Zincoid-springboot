@@ -32,6 +32,7 @@ public interface MomentConverter {
 
     @Mapping(target = "id", source = "moment.id")
     @Mapping(target = "createdAt", source = "moment.createdAt")
+    @Mapping(target = "username", source = "user.username")
     @Mapping(target = "userNickname", source = "user.nickname")
     @Mapping(target = "userAvatar", source = "user.avatar", qualifiedByName = "thumbUrl")
     @Mapping(target = "urls", source = "moment.urls", qualifiedByName = "parseUrls")

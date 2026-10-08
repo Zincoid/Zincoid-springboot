@@ -51,6 +51,7 @@ public interface RepoConverter {
 
     @Mapping(target = "id", source = "repo.id")
     @Mapping(target = "userId", source = "repo.userId")
+    @Mapping(target = "username", source = "user.username")
     @Mapping(target = "userNickname", source = "user.nickname")
     @Mapping(target = "userAvatar", source = "user.avatar", qualifiedByName = "thumbUrl")
     @Mapping(target = "name", source = "repo.name")

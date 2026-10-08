@@ -14,6 +14,7 @@ public class RepoDetailVO {
 
     private Long id;
     private Long userId;
+    private String username;
     private String userNickname;
     private String userAvatar;
     private String name;

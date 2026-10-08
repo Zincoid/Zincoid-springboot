@@ -30,6 +30,7 @@ public interface ArticleConverter {
     @Mapping(target = "title", source = "article.title")
     @Mapping(target = "createdAt", source = "article.createdAt")
     @Mapping(target = "updatedAt", source = "article.updatedAt")
+    @Mapping(target = "username", source = "user.username")
     @Mapping(target = "userNickname", source = "user.nickname")
     @Mapping(target = "userAvatar", source = "user.avatar", qualifiedByName = "thumbUrl")
     ArticleDetailVO toDetailVO(Article article, User user, boolean isLiked, long likeCount,

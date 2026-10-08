@@ -19,12 +19,14 @@ public interface CommentConverter {
 
     @Mapping(target = "id", source = "comment.id")
     @Mapping(target = "createdAt", source = "comment.createdAt")
+    @Mapping(target = "username", source = "user.username")
     @Mapping(target = "userNickname", source = "user.nickname")
     @Mapping(target = "userAvatar", source = "user.avatar", qualifiedByName = "thumbUrl")
     CommentVO toVO(Comment comment, User user, List<CommentVO> replies, long replyCount);
 
     @Mapping(target = "id", source = "comment.id")
     @Mapping(target = "createdAt", source = "comment.createdAt")
+    @Mapping(target = "username", source = "user.username")
     @Mapping(target = "userNickname", source = "user.nickname")
     @Mapping(target = "userAvatar", source = "user.avatar", qualifiedByName = "thumbUrl")
     @Mapping(target = "parentUserId", source = "parentUser.id")

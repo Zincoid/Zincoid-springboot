@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -76,6 +78,9 @@ public class AiServiceImpl implements AiService {
                 .last("LIMIT " + aiChatProperties.getMaxLength())
                 .list();
         Collections.reverse(rows);
+        Map<Long, User> users = userService.listByIds(
+                        rows.stream().map(Message::getUserId).distinct().toList())
+                .stream().collect(Collectors.toMap(User::getId, u -> u));
         List<AiMessage> messages = new ArrayList<>();
         for (Message m : rows) {
             if (aiId.equals(m.getUserId())) {
@@ -85,7 +90,12 @@ public class AiServiceImpl implements AiService {
             List<String> images = buildImageUrls(m.getFile());
             String text = m.getContent() != null ? m.getContent() : "";
             if (text.isBlank() && images.isEmpty()) continue;
-            messages.add(AiMessage.user(text, images));
+            User user = users.get(m.getUserId());
+            String name = user != null ? user.getUsername() : null;
+            String label = name;
+            if (user != null && user.getNickname() != null && !user.getNickname().isBlank())
+                label = user.getNickname() + "@" + name;
+            messages.add(AiMessage.user(name, label != null ? label + ": " + text : text, images));
         }
         return messages;
     }

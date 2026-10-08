@@ -13,7 +13,7 @@ import java.util.Map;
 @ToString
 public class AiMessage {
 
-    private final MsgRole role;
+    private final AiRole role;
     private final String name;
     private final String content;
     private final List<ToolCall> tcs;
@@ -21,7 +21,7 @@ public class AiMessage {
     private final List<String> images;
     private String reasoning;
 
-    private AiMessage(MsgRole role, String name, String content, List<ToolCall> tcs, String tcId, List<String> images) {
+    private AiMessage(AiRole role, String name, String content, List<ToolCall> tcs, String tcId, List<String> images) {
         this.role = role;
         this.name = name;
         this.content = content;
@@ -81,22 +81,22 @@ public class AiMessage {
     }
 
     public static AiMessage user(String name, String content, List<String> images) {
-        return new AiMessage(MsgRole.USER, name, content, null, null, images != null ? images : List.of());
+        return new AiMessage(AiRole.USER, name, content, null, null, images != null ? images : List.of());
     }
 
     public static AiMessage assistant(String content) {
-        return new AiMessage(MsgRole.ASSISTANT, null, content, null, null, List.of());
+        return new AiMessage(AiRole.ASSISTANT, null, content, null, null, List.of());
     }
 
     public static AiMessage assistant(List<ToolCall> tcs) {
-        return new AiMessage(MsgRole.ASSISTANT, null, null, tcs, null, List.of());
+        return new AiMessage(AiRole.ASSISTANT, null, null, tcs, null, List.of());
     }
 
     public static AiMessage system(String content) {
-        return new AiMessage(MsgRole.SYSTEM, null, content, null, null, List.of());
+        return new AiMessage(AiRole.SYSTEM, null, content, null, null, List.of());
     }
 
     public static AiMessage tool(String tcId, String content) {
-        return new AiMessage(MsgRole.TOOL, null, content, null, tcId, List.of());
+        return new AiMessage(AiRole.TOOL, null, content, null, tcId, List.of());
     }
 }

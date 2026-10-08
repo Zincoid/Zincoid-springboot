@@ -3,7 +3,7 @@ package com.zincoid.me.ai.message;
 import lombok.Getter;
 
 @Getter
-public enum MsgRole {
+public enum AiRole {
 
     USER("user"),
     ASSISTANT("assistant"),
@@ -12,7 +12,7 @@ public enum MsgRole {
 
     private final String value;
 
-    MsgRole(String value) {
+    AiRole(String value) {
         this.value = value;
     }
 }

@@ -160,7 +160,8 @@ public class AiServiceImpl implements AiService {
         List<AiMessage> messages = new ArrayList<>();
         for (Message m : rows) {
             if (aiId.equals(m.getUserId())) {
-                messages.add(AiMessage.assistant(m.getContent() != null ? m.getContent() : ""));
+                String content = m.getContent() != null ? m.getContent() : "";
+                messages.add(AiMessage.assistant(content.isBlank() ? "(sent an image)" : content));
                 continue;
             }
             List<String> images = buildImageUrls(m.getFile());

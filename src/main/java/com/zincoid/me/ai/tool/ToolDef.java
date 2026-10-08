@@ -1,6 +1,5 @@
 package com.zincoid.me.ai.tool;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -41,6 +40,12 @@ public class ToolDef {
 
         public Builder addString(String name, String desc, boolean required) {
             params.add(new ParamSpec(name, "string", desc, null));
+            if (required) this.required.add(name);
+            return this;
+        }
+
+        public Builder addInteger(String name, String desc, boolean required) {
+            params.add(new ParamSpec(name, "integer", desc, null));
             if (required) this.required.add(name);
             return this;
         }

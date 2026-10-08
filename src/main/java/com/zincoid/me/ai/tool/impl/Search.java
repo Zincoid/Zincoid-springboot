@@ -2,6 +2,7 @@ package com.zincoid.me.ai.tool.impl;
 
 import com.zincoid.me.ai.tool.Tool;
 import com.zincoid.me.ai.tool.ToolDef;
+import com.zincoid.me.ai.tool.ToolRes;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.enums.Visibility;
 import com.zincoid.me.model.po.Article;
@@ -49,21 +50,21 @@ public class Search implements Tool {
     }
 
     @Override
-    public String run(String json) {
+    public ToolRes run(String json) {
         Args args = JsonUtil.parse(json, Args.class);
         if (args.keyword() == null || args.keyword().isBlank())
-            return "Error: keyword must not be empty";
+            return ToolRes.of("Error: keyword must not be empty");
         String keyword = args.keyword().trim();
         String type = args.type();
         if (type != null && !type.isBlank() && !TYPES.contains(type))
-            return "Error: unknown type \"" + type + "\", valid values: moment, article, repo";
+            return ToolRes.of("Error: unknown type \"%s\", valid values: moment, article, repo".formatted(type));
         Long userId = null;
         String username = args.username();
         if (username != null && !username.isBlank()) {
             User user = userService.lambdaQuery()
                     .eq(User::getUsername, username.trim()).one();
             if (user == null)
-                return "No user found with username \"" + username.trim() + "\".";
+                return ToolRes.of("No user found with username \"%s\".".formatted(username.trim()));
             userId = user.getId();
         }
         List<Hit> hits = new ArrayList<>();
@@ -74,7 +75,7 @@ public class Search implements Tool {
         if (type == null || type.isBlank() || "repo".equals(type))
             hits.addAll(searchRepos(keyword, userId));
         if (hits.isEmpty())
-            return "No results found for \"" + keyword + "\".";
+            return ToolRes.of("No results found for \"%s\".".formatted(keyword));
         Map<Long, User> users = loadUsers(hits);
         StringBuilder sb = new StringBuilder("Search results for \"")
                 .append(keyword).append("\":\n");
@@ -92,7 +93,7 @@ public class Search implements Tool {
                 sb.append(": ").append(hit.text());
             sb.append("\n");
         }
-        return sb.toString();
+        return ToolRes.of(sb.toString());
     }
 
     // ──────── Private tool ────────────────────────────────
@@ -104,7 +105,7 @@ public class Search implements Tool {
                 .eq(userId != null, Moment::getUserId, userId)
                 .like(Moment::getContent, keyword)
                 .orderByDesc(Moment::getCreatedAt)
-                .last("LIMIT " + MAX_RESULTS)
+                .last("LIMIT %d".formatted(MAX_RESULTS))
                 .list();
         return rows.stream()
                 .map(m -> new Hit("moment", m.getId(), null, m.getUserId(),
@@ -121,7 +122,7 @@ public class Search implements Tool {
                         .or().like(Article::getSummary, keyword)
                         .or().like(Article::getContentMd, keyword))
                 .orderByDesc(Article::getCreatedAt)
-                .last("LIMIT " + MAX_RESULTS)
+                .last("LIMIT %d".formatted(MAX_RESULTS))
                 .list();
         return rows.stream()
                 .map(a -> {
@@ -142,15 +143,15 @@ public class Search implements Tool {
                         .or().like(Repo::getDescription, keyword)
                         .or().like(Repo::getTags, keyword))
                 .orderByDesc(Repo::getCreatedAt)
-                .last("LIMIT " + MAX_RESULTS)
+                .last("LIMIT %d".formatted(MAX_RESULTS))
                 .list();
         return rows.stream()
                 .map(r -> {
                     String tags = r.getTags() != null && !r.getTags().isBlank()
-                            ? "tags: " + r.getTags() : null;
+                            ? "tags: %s".formatted(r.getTags()) : null;
                     String text = snippet(r.getDescription());
                     if (tags != null)
-                        text = text.isEmpty() ? tags : tags + "; " + text;
+                        text = text.isEmpty() ? tags : "%s; %s".formatted(tags, text);
                     return new Hit("repo", r.getId(), r.getName(), r.getUserId(),
                             date(r.getCreatedAt()), text, r.getUrl());
                 })
@@ -169,7 +170,7 @@ public class Search implements Tool {
     private String author(User user) {
         if (user == null) return "unknown";
         if (user.getNickname() != null && !user.getNickname().isBlank())
-            return user.getNickname() + "@" + user.getUsername();
+            return "%s@%s".formatted(user.getNickname(), user.getUsername());
         return user.getUsername();
     }
 
@@ -180,6 +181,6 @@ public class Search implements Tool {
     private String snippet(String text) {
         if (text == null) return "";
         String t = text.replaceAll("\\s+", " ").trim();
-        return t.length() > SNIPPET_LENGTH ? t.substring(0, SNIPPET_LENGTH) + "..." : t;
+        return t.length() > SNIPPET_LENGTH ? "%s...".formatted(t.substring(0, SNIPPET_LENGTH)) : t;
     }
 }

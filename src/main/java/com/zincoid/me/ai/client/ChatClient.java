@@ -8,6 +8,7 @@ import com.zincoid.me.ai.model.ModelRes;
 import com.zincoid.me.ai.tool.Tool;
 import com.zincoid.me.ai.tool.ToolCall;
 import com.zincoid.me.ai.tool.ToolReg;
+import com.zincoid.me.ai.tool.ToolRes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -45,14 +46,24 @@ public class ChatClient {
             log.info("Tc round {}: {} call(s)", i + 1, res.getTcs().size());
             work.add(AiMessage.assistant(res.getTcs())
                     .withReasoning(res.getReasoning()));
-            for (ToolCall tc : res.getTcs())
-                work.add(AiMessage.tool(tc.getId(), runTool(tc)));
+            List<AiMessage> images = new ArrayList<>();
+            for (ToolCall tc : res.getTcs()) {
+                ToolRes tr = runTool(tc);
+                work.add(AiMessage.tool(tc.getId(), tr.text()));
+                if (tr.images().isEmpty()) continue;
+                images.add(AiMessage.user(
+                        null,
+                        "Image(s) from tool \"%s\"".formatted(tc.getName()),
+                        tr.images()
+                ));
+            }
+            work.addAll(images);
         }
         log.warn("Tc limit reached: {}", maxTcs);
         work.add(AiMessage.user("""
-        The maximum number of tool call rounds has been reached.
-        Please provide the final answer based on the available information.
-        Do not call any more tools!!!"""
+                The maximum number of tool call rounds has been reached.
+                Please provide the final answer based on the available information.
+                Do not call any more tools!!!"""
         ));
         return replyFinal(work, thinking, maxTokens);
     }
@@ -69,18 +80,18 @@ public class ChatClient {
         return "(AI is temporarily unable to answer)";
     }
 
-    private String runTool(ToolCall tc) {
+    private ToolRes runTool(ToolCall tc) {
         Tool tool = toolReg.get(tc.getName());
         if (tool == null)
-            return "Error: Tool \"%s\" doesn't exist."
-                    .formatted(tc.getName());
+            return ToolRes.of("Error: Tool \"%s\" doesn't exist."
+                    .formatted(tc.getName()));
         try {
-            String res = tool.run(tc.getArgs());
+            ToolRes res = tool.run(tc.getArgs());
             log.info("Tool success: {}({}) -> {}", tc.getName(), tc.getArgs(), res);
             return res;
         } catch (Exception e) {
             log.warn("Tool error: {}", e.getMessage());
-            return "Error: %s.".formatted(e.getMessage());
+            return ToolRes.of("Error: %s.".formatted(e.getMessage()));
         }
     }
 }

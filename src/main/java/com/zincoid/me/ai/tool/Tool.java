@@ -4,5 +4,5 @@ public interface Tool {
 
     ToolDef def();
 
-    String run(String json);
+    ToolRes run(String json);
 }

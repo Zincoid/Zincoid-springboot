@@ -2,6 +2,7 @@ package com.zincoid.me.ai.tool.impl;
 
 import com.zincoid.me.ai.tool.Tool;
 import com.zincoid.me.ai.tool.ToolDef;
+import com.zincoid.me.ai.tool.ToolRes;
 import com.zincoid.me.utils.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -15,7 +16,7 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @Component
-public class WebFetch implements Tool {
+public class Web implements Tool {
 
     private record Args(String url) {}
 
@@ -43,19 +44,19 @@ public class WebFetch implements Tool {
     }
 
     @Override
-    public String run(String json) {
+    public ToolRes run(String json) {
         try {
             Args args = JsonUtil.parse(json, Args.class);
             if (args.url() == null || args.url().isBlank())
-                return "Error: URL must not be empty";
+                return ToolRes.of("Error: URL must not be empty");
             if (!args.url().startsWith("http://") && !args.url().startsWith("https://"))
-                return "Error: unsupported URL scheme, only http/https is allowed";
+                return ToolRes.of("Error: unsupported URL scheme, only http/https is allowed");
             String html = fetchPage(args.url());
             String text = extractText(html);
-            return "Page content (" + args.url() + "):\n" + text;
+            return ToolRes.of("Page content (%s):\n%s".formatted(args.url(), text));
         } catch (Exception e) {
             log.warn("Web fetch failed: {}", e.getMessage());
-            return "Error: failed to fetch webpage - " + e.getMessage();
+            return ToolRes.of("Error: failed to fetch webpage - %s".formatted(e.getMessage()));
         }
     }
 
@@ -71,9 +72,9 @@ public class WebFetch implements Tool {
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         String contentType = response.headers().firstValue("Content-Type").orElse("");
         if (!contentType.contains("text/html") && !contentType.contains("text/plain"))
-            throw new RuntimeException("Unsupported Content-Type: " + contentType + ", only HTML/text pages are supported");
+            throw new RuntimeException("Unsupported Content-Type: %s, only HTML/text pages are supported".formatted(contentType));
         if (response.statusCode() != 200)
-            throw new RuntimeException("HTTP " + response.statusCode());
+            throw new RuntimeException("HTTP %d".formatted(response.statusCode()));
         return response.body();
     }
 
@@ -89,7 +90,7 @@ public class WebFetch implements Tool {
                 .replace("&#39;", "'");
         text = WHITESPACE_PATTERN.matcher(text).replaceAll("\n").trim();
         if (text.length() > MAX_BODY_LENGTH)
-            text = text.substring(0, MAX_BODY_LENGTH) + "...(content truncated)";
+            text = "%s...(content truncated)".formatted(text.substring(0, MAX_BODY_LENGTH));
         return text;
     }
 }

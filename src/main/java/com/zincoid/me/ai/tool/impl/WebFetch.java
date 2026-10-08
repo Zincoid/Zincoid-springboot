@@ -47,16 +47,16 @@ public class WebFetch implements Tool {
         try {
             Args args = JsonUtil.parse(json, Args.class);
             if (args.url() == null || args.url().isBlank())
-                return "错误: URL不能为空";
+                return "Error: URL must not be empty";
             if (!args.url().startsWith("http://") && !args.url().startsWith("https://"))
-                return "错误: 不支持的URL协议，仅支持 http/https";
+                return "Error: unsupported URL scheme, only http/https is allowed";
 
             String html = fetchPage(args.url());
             String text = extractText(html);
-            return "网页内容 (" + args.url() + "):\n" + text;
+            return "Page content (" + args.url() + "):\n" + text;
         } catch (Exception e) {
             log.warn("Web fetch failed: {}", e.getMessage());
-            return "错误: 获取网页失败 - " + e.getMessage();
+            return "Error: failed to fetch webpage - " + e.getMessage();
         }
     }
 
@@ -74,7 +74,7 @@ public class WebFetch implements Tool {
 
         String contentType = response.headers().firstValue("Content-Type").orElse("");
         if (!contentType.contains("text/html") && !contentType.contains("text/plain"))
-            throw new RuntimeException("不支持的Content-Type: " + contentType + "，仅支持HTML/文本页面");
+            throw new RuntimeException("Unsupported Content-Type: " + contentType + ", only HTML/text pages are supported");
         if (response.statusCode() != 200)
             throw new RuntimeException("HTTP " + response.statusCode());
         return response.body();
@@ -94,7 +94,7 @@ public class WebFetch implements Tool {
 
         text = WHITESPACE_PATTERN.matcher(text).replaceAll("\n").trim();
         if (text.length() > MAX_BODY_LENGTH)
-            text = text.substring(0, MAX_BODY_LENGTH) + "...(内容已截断)";
+            text = text.substring(0, MAX_BODY_LENGTH) + "...(content truncated)";
         return text;
     }
 }

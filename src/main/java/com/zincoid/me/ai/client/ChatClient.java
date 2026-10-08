@@ -57,7 +57,7 @@ public class ChatClient {
         return replyFinal(work, thinking, maxTokens);
     }
 
-    // ──── Private Tool ────────────────
+    // ──────── Private tool ────────────────────────────────
 
     private String replyFinal(List<AiMessage> work, boolean thinking, int maxTokens) {
         ModelRes res = model.invoke(ModelReq.of(work, thinking, maxTokens));

@@ -50,7 +50,6 @@ public class WebFetch implements Tool {
                 return "Error: URL must not be empty";
             if (!args.url().startsWith("http://") && !args.url().startsWith("https://"))
                 return "Error: unsupported URL scheme, only http/https is allowed";
-
             String html = fetchPage(args.url());
             String text = extractText(html);
             return "Page content (" + args.url() + "):\n" + text;
@@ -69,9 +68,7 @@ public class WebFetch implements Tool {
                 .timeout(Duration.ofSeconds(15))
                 .GET()
                 .build();
-
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
         String contentType = response.headers().firstValue("Content-Type").orElse("");
         if (!contentType.contains("text/html") && !contentType.contains("text/plain"))
             throw new RuntimeException("Unsupported Content-Type: " + contentType + ", only HTML/text pages are supported");
@@ -84,14 +81,12 @@ public class WebFetch implements Tool {
         String text = html;
         for (Pattern p : STRIP_PATTERNS)
             text = p.matcher(text).replaceAll("");
-
         text = text.replace("&nbsp;", " ")
                 .replace("&amp;", "&")
                 .replace("&lt;", "<")
                 .replace("&gt;", ">")
                 .replace("&quot;", "\"")
                 .replace("&#39;", "'");
-
         text = WHITESPACE_PATTERN.matcher(text).replaceAll("\n").trim();
         if (text.length() > MAX_BODY_LENGTH)
             text = text.substring(0, MAX_BODY_LENGTH) + "...(content truncated)";

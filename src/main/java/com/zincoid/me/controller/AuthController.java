@@ -114,7 +114,7 @@ public class AuthController {
         return ApiResponse.success();
     }
 
-    // ──── Private tool ────────────────────
+    // ──────── Private tool ────────────────────────────────
 
     private void issueCookie(HttpServletResponse response, String token) {
         ResponseCookie cookie = ResponseCookie.from(COOKIE_NAME, token)

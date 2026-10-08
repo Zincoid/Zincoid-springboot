@@ -26,6 +26,7 @@ import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.UserService;
 import com.zincoid.me.utils.AuthCtx;
 import com.zincoid.me.utils.JsonUtil;
+import com.zincoid.me.utils.StrUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -58,7 +59,8 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
                 .visibility(request.getVisibility() != null ? request.getVisibility() : Visibility.PUBLIC)
                 .build();
         save(moment);
-        notificationService.notifyAt(userId, request.getContent(), NotificationType.MOMENT_MENTION, moment.getId());
+        for (String name : StrUtil.extractAts(request.getContent()))
+            notificationService.notifyAt(userId, name, NotificationType.MOMENT_MENTION, moment.getId());
         log.info("Moment created: user={}, id={}", userId, moment.getId());
         if (request.getUrls() != null && !request.getUrls().isEmpty())
             fileService.link(request.getUrls(), RelatedType.MOMENT, moment.getId(), userId);
@@ -77,7 +79,8 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
             moment.setContent(request.getContent());
             notificationService.deleteAll(NotificationType.MOMENT_MENTION, momentId);
             if (!request.getContent().isBlank())
-                notificationService.notifyAt(userId, request.getContent(), NotificationType.MOMENT_MENTION, momentId);
+                for (String name : StrUtil.extractAts(request.getContent()))
+                    notificationService.notifyAt(userId, name, NotificationType.MOMENT_MENTION, momentId);
         }
         if (request.getUrls() != null) {
             List<String> oldImages = JsonUtil.parseImages(moment.getUrls());

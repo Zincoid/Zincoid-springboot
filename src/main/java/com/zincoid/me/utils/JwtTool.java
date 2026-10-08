@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
-public class JwtTool {
+public final class JwtTool {
 
     @Value("${jwt.secret}")
     private String secret;

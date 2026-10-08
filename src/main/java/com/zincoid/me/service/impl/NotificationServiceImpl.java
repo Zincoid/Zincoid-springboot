@@ -19,11 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Slf4j
 @Service
@@ -168,19 +164,12 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
 
     @Override
     @Transactional
-    public void notifyAt(Long senderId, String content, NotificationType type, Long relatedId) {
-        if (content == null) return;
-        Matcher m = Pattern.compile("@(\\w{3,50})").matcher(content);
-        Set<String> seen = new HashSet<>();
-        while (m.find()) {
-            String username = m.group(1);
-            if (!seen.add(username)) continue;
-            User mentioned = userService.lambdaQuery()
-                    .eq(User::getUsername, username)
-                    .eq(User::getStatus, Status.ACTIVE).one();
-            if (mentioned != null && !mentioned.getId().equals(senderId))
-                notify(senderId, mentioned.getId(), type, relatedId);
-        }
+    public void notifyAt(Long senderId, String receiverUsername, NotificationType type, Long relatedId) {
+        User receiver = userService.lambdaQuery()
+                .eq(User::getUsername, receiverUsername)
+                .eq(User::getStatus, Status.ACTIVE).one();
+        if (receiver != null && !receiver.getId().equals(senderId))
+            notify(senderId, receiver.getId(), type, relatedId);
     }
 
     @Override

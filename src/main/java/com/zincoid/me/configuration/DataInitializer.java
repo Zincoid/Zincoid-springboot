@@ -23,6 +23,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
+    public static final String AI_USERNAME = "ai";
+
     private final UserService userService;
     private final ConfigService configService;
     private final UserConfigService userConfigService;
@@ -82,14 +84,14 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void initAiUser() {
-        if (userService.lambdaQuery().eq(User::getUsername, "bot").exists()) {
-            log.info("Bot already exists, skipping init.");
+        if (userService.lambdaQuery().eq(User::getUsername, AI_USERNAME).exists()) {
+            log.info("AI already exists, skipping init.");
             return;
         }
         User ai = User.builder()
-                .username("bot")
+                .username(AI_USERNAME)
                 .password(passwordEncoder.encode(UUID.randomUUID().toString()))
-                .nickname("Bot")
+                .nickname("AI")
                 .role(Role.ADMIN)
                 .title("AI Assistant")
                 .status(Status.ACTIVE)
@@ -97,7 +99,7 @@ public class DataInitializer implements CommandLineRunner {
                 .updatedAt(LocalDateTime.now())
                 .build();
         userService.save(ai);
-        log.info("Default bot created (username: bot, id: {})", ai.getId());
+        log.info("Default AI created (username: {}, id: {})", AI_USERNAME, ai.getId());
     }
 
     private void initUserConfigs() {
@@ -109,6 +111,6 @@ public class DataInitializer implements CommandLineRunner {
             userConfigService.create(user.getId());
             count++;
         }
-        if (count > 0) log.info("Default user configs created for {} existing users", count);
+        if (count > 0) log.info("Default user configs created: {}", count);
     }
 }

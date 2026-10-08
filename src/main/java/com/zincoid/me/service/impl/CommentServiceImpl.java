@@ -23,6 +23,7 @@ import com.zincoid.me.service.MomentService;
 import com.zincoid.me.service.RepoService;
 import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.UserService;
+import com.zincoid.me.utils.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -149,7 +150,8 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 notificationService.notify(userId, authorId,
                         NotificationType.COMMENT, comment.getId());
         }
-        notificationService.notifyAt(userId, content, NotificationType.COMMENT_MENTION, comment.getId());
+        for (String name : StrUtil.extractAts(content))
+            notificationService.notifyAt(userId, name, NotificationType.COMMENT_MENTION, comment.getId());
         log.info("Comment added: user={}, target={}:{}, id={}", userId, targetType, targetId, comment.getId());
         return toCommentVO(comment, List.of(), 0);
     }

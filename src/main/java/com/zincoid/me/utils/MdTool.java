@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class MdTool {
+public final class MdTool {
 
     private final Parser parser;
     private final HtmlRenderer renderer;

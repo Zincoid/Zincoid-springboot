@@ -4,7 +4,7 @@ import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.po.User;
 
-public class AuthCtx {
+public final class AuthCtx {
 
     private static final ThreadLocal<Boolean> AUTHED = ThreadLocal.withInitial(() -> false);
     private static final ThreadLocal<Long> USER_ID = new ThreadLocal<>();

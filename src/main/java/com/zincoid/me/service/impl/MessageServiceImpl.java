@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.ai.AiChatProperties;
 import com.zincoid.me.ai.client.ChatClient;
 import com.zincoid.me.ai.message.AiMessage;
+import com.zincoid.me.configuration.DataInitializer;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.MessageMapper;
 import com.zincoid.me.model.enums.NotificationType;
@@ -20,6 +21,7 @@ import com.zincoid.me.converter.MessageConverter;
 import com.zincoid.me.service.MessageService;
 import com.zincoid.me.service.UserService;
 import com.zincoid.me.utils.FileUtil;
+import com.zincoid.me.utils.StrUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,7 +37,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @RequiredArgsConstructor
 public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> implements MessageService {
 
-    private static final ReentrantLock AI_CHAT_LOCK = new ReentrantLock();
+    private static final ReentrantLock LOCK = new ReentrantLock();
 
     private final ConfigService configService;
     private final FileService fileService;
@@ -63,25 +65,27 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         if (msg.getFile() != null)
             fileService.link(List.of(msg.getFile()), RelatedType.CHAT, msg.getId(), userId);
         trim();
-        notificationService.notifyAt(userId, msg.getContent(), NotificationType.CHAT_MENTION, msg.getId());
+        boolean isBotMentioned = false;
+        for (String name : StrUtil.extractAts(msg.getContent())) {
+            if (DataInitializer.AI_USERNAME.equals(name)) { isBotMentioned = true; continue; }
+            notificationService.notifyAt(userId, name, NotificationType.CHAT_MENTION, msg.getId());
+        }
+        if (isBotMentioned) {
+            User ai = aiUser();
+            if (!ai.getId().equals(userId)) {
+                LOCK.lock();
+                try {
+                    List<AiMessage> history = buildAiHistory(ai.getId());
+                    String prompt = configService.get("ai_chat_prompt");
+                    String reply = chatClient.chat(history, prompt, true);
+                    send(ai.getId(), reply, null);
+                } finally {
+                    LOCK.unlock();
+                }
+            }
+        }
         log.info("Message sent: user={}, id={}", userId, msg.getId());
         return buildVO(msg);
-    }
-
-    @Override
-    @Transactional
-    public MessageVO sendToAi(Long userId, String content, String file, boolean thinking) {
-        AI_CHAT_LOCK.lock();
-        try {
-            send(userId, content, file);
-            User ai = aiUser();
-            List<AiMessage> history = buildAiHistory(ai.getId());
-            String prompt = configService.get("ai_chat_prompt");
-            String reply = chatClient.chat(history, prompt, thinking);
-            return send(ai.getId(), reply, null);
-        } finally {
-            AI_CHAT_LOCK.unlock();
-        }
     }
 
     @Override
@@ -109,7 +113,8 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     // ──────── Private tool ────────────────────────────────
 
     private User aiUser() {
-        User ai = userService.lambdaQuery().eq(User::getUsername, "bot").one();
+        User ai = userService.lambdaQuery()
+                .eq(User::getUsername, DataInitializer.AI_USERNAME).one();
         if (ai == null)
             throw new BusinessException(500, "AI user not initialized");
         return ai;
@@ -143,8 +148,10 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     private void trim() {
         String maxStr = configService.get("message_max_count");
         int max = 200;
-        try { if (maxStr != null) max = Integer.parseInt(maxStr); }
-        catch (NumberFormatException ignored) {}
+        try {
+            if (maxStr != null) max = Integer.parseInt(maxStr);
+        } catch (NumberFormatException ignored) {
+        }
         long total = count();
         if (total <= max) return;
         int toDelete = (int) (total - max);

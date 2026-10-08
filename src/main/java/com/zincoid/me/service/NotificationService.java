@@ -12,7 +12,7 @@ public interface NotificationService extends IService<Notification> {
 
     void notify(Long senderId, Long receiverId, NotificationType type, Long relatedId);
 
-    void notifyAt(Long senderId, String content, NotificationType type, Long relatedId);
+    void notifyAt(Long senderId, String receiverUsername, NotificationType type, Long relatedId);
 
     void notifyReq(Long senderId, Long receiverId, String message, Long requestId, boolean isAdminOnly);
 

@@ -14,6 +14,7 @@ import com.zincoid.me.service.ArticleService;
 import com.zincoid.me.service.MomentService;
 import com.zincoid.me.service.RepoService;
 import com.zincoid.me.service.UserService;
+import com.zincoid.me.utils.FileUtil;
 import com.zincoid.me.utils.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,10 +76,9 @@ public class Get implements Tool {
         Moment m = momentService.getById(id);
         if (m == null || m.getStatus() != Status.ACTIVE || m.getVisibility() != Visibility.PUBLIC)
             return ToolRes.of("Not found: moment id=%d does not exist or is not publicly visible".formatted(id));
-        List<String> images = imageUrls(JsonUtil.parseImages(m.getUrls()));
         StringBuilder sb = header("moment", m.getId(), null, m.getUserId(), m.getCreatedAt());
         sb.append(truncate(m.getContent())).append("\n");
-        appendImages(sb, images);
+        appendAttachments(sb, JsonUtil.parseImages(m.getUrls()));
         return ToolRes.of(sb.toString());
     }
 
@@ -86,12 +86,12 @@ public class Get implements Tool {
         Article a = articleService.getById(id);
         if (a == null || a.getStatus() != Status.ACTIVE || a.getVisibility() != Visibility.PUBLIC)
             return ToolRes.of("Not found: article id=%d does not exist or is not publicly visible".formatted(id));
-        List<String> images = imageUrls(Collections.singletonList(a.getCoverImage()));
+        List<String> images = Collections.singletonList(a.getCoverImage());
         StringBuilder sb = header("article", a.getId(), a.getTitle(), a.getUserId(), a.getCreatedAt());
         if (a.getSummary() != null && !a.getSummary().isBlank())
             sb.append("summary: ").append(a.getSummary()).append("\n");
         sb.append(truncate(a.getContentMd())).append("\n");
-        appendImages(sb, images);
+        appendAttachments(sb, images);
         return ToolRes.of(sb.toString());
     }
 
@@ -111,7 +111,7 @@ public class Get implements Tool {
         if (r.getDescription() != null && !r.getDescription().isBlank())
             sb.append(truncate(r.getDescription())).append("\n");
         if (!restricted)
-            appendImages(sb, imageUrls(Collections.singletonList(r.getCoverImage())));
+            appendAttachments(sb, Collections.singletonList(r.getCoverImage()));
         return ToolRes.of(sb.toString());
     }
 
@@ -135,19 +135,24 @@ public class Get implements Tool {
         return user.getUsername();
     }
 
-    private List<String> imageUrls(List<String> paths) {
-        List<String> urls = new ArrayList<>();
+    private void appendAttachments(StringBuilder sb, List<String> paths) {
+        List<String> images = new ArrayList<>();
+        List<String> others = new ArrayList<>();
         for (String path : paths) {
             if (path == null || path.isBlank()) continue;
-            urls.add(path.startsWith("http") ? path : siteUrl + path);
+            String url = path.startsWith("http") ? path : siteUrl + path;
+            String ext = FileUtil.getExt(url);
+            if (FileUtil.isVideo(ext) || FileUtil.isAudio(ext) || FileUtil.isDoc(ext))
+                others.add(url);
+            else
+                images.add(url);
         }
-        return urls;
-    }
-
-    private void appendImages(StringBuilder sb, List<String> images) {
-        if (images.isEmpty()) return;
-        sb.append("images: ").append(images).append("\n");
-        sb.append("Use the view tool to look at any of these images.\n");
+        if (!images.isEmpty()) {
+            sb.append("images: ").append(images).append("\n");
+            sb.append("Use the view tool to look at any of these images.\n");
+        }
+        if (!others.isEmpty())
+            sb.append("other attachments (not viewable): ").append(others).append("\n");
     }
 
     private String truncate(String text) {

@@ -96,6 +96,11 @@ public final class FileUtil {
 
     // ──── File operations ───────────────────
 
+    public static boolean exists(String filename, String path) {
+        return filename != null && !filename.isBlank()
+                && Files.exists(Paths.get(path, filename));
+    }
+
     public static Set<String> list(String path) {
         Path dir = Paths.get(path);
         if (!Files.exists(dir)) return Set.of();

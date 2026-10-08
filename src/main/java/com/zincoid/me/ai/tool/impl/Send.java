@@ -6,6 +6,7 @@ import com.zincoid.me.ai.tool.ToolRes;
 import com.zincoid.me.configuration.DataInitializer;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.vo.MessageVO;
+import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.MessageService;
 import com.zincoid.me.service.UserService;
 import com.zincoid.me.utils.FileUtil;
@@ -23,13 +24,17 @@ public class Send implements Tool {
 
     private final MessageService messageService;
     private final UserService userService;
+    private final FileService fileService;
 
     @Value("${site.url}")
     private String siteUrl;
 
-    public Send(@Lazy MessageService messageService, UserService userService) {
+    public Send(@Lazy MessageService messageService,
+                UserService userService,
+                FileService fileService) {
         this.messageService = messageService;
         this.userService = userService;
+        this.fileService = fileService;
     }
 
     @Override
@@ -59,6 +64,8 @@ public class Send implements Tool {
             file = url.substring(siteUrl.length());
             if (!FileUtil.isImage(FileUtil.getExt(file)))
                 return ToolRes.of("Error: not an image file: %s".formatted(image));
+            if (!fileService.exists(file))
+                return ToolRes.of("Error: image not found or no longer available: %s".formatted(image));
         }
         if (content == null && file == null)
             return ToolRes.of("Error: content or image is required");

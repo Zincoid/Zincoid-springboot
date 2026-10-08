@@ -15,6 +15,8 @@ public interface FileService extends IService<File> {
 
     File get(String path);
 
+    boolean exists(String filePathOrUrl);
+
     boolean accessible(File file, Long userId, Role role);
 
     boolean cacheable(File file);

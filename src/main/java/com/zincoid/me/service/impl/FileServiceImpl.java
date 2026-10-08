@@ -77,6 +77,16 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     }
 
     @Override
+    public boolean exists(String filePathOrUrl) {
+        if (filePathOrUrl == null || filePathOrUrl.isBlank()) return false;
+        String path = filePathOrUrl.startsWith("/uploads/")
+                ? filePathOrUrl.substring("/uploads/".length()) : filePathOrUrl;
+        if (path.contains("..") || path.contains("/") || path.contains("\\"))
+            return false;
+        return FileUtil.exists(path, uploadPath);
+    }
+
+    @Override
     public boolean accessible(File file, Long userId, Role role) {
         if (file == null) return false;
         if (file.getRelatedType() == null)

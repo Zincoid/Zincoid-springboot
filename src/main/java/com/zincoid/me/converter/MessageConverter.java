@@ -16,6 +16,7 @@ public interface MessageConverter {
 
     @Mapping(target = "id", source = "message.id")
     @Mapping(target = "createdAt", source = "message.createdAt")
+    @Mapping(target = "username", source = "user.username")
     @Mapping(target = "userNickname", source = "user.nickname")
     @Mapping(target = "userAvatar", source = "user.avatar", qualifiedByName = "thumbUrl")
     MessageVO toVO(Message message, User user);

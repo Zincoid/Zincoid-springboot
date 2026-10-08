@@ -52,7 +52,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
                 .createdAt(LocalDateTime.now())  // 无法回填需手动设置
                 .build();
         save(msg);
-        if (msg.getFile() != null)
+        if (msg.getFile() != null && !aiService.isAi(userId))  // AI 仅引用图片
             fileService.link(List.of(msg.getFile()), RelatedType.CHAT, msg.getId(), userId);
         trim();
         boolean isBotMentioned = false;

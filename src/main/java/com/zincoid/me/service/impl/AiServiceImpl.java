@@ -52,6 +52,12 @@ public class AiServiceImpl implements AiService {
     }
 
     @Override
+    public boolean isAi(Long userId) {
+        User user = userService.getById(userId);
+        return user != null && DataInitializer.AI_USERNAME.equals(user.getUsername());
+    }
+
+    @Override
     @Async("AsyncRunner")
     public void chat(Long userId) {
         User ai = getAiUser();

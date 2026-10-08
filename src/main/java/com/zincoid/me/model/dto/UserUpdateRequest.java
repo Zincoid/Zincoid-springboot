@@ -3,6 +3,7 @@ package com.zincoid.me.model.dto;
 import com.zincoid.me.model.enums.Gender;
 import com.zincoid.me.validation.ValidJsonObject;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -13,6 +14,7 @@ public class UserUpdateRequest {
 
     @NotBlank(message = "Username is required")
     @Size(min = 2, max = 50, message = "Username must be 2-50 characters")
+    @Pattern(regexp = "\\w+", message = "Username can only contain letters, digits and underscores")
     private String username;
 
     private String nickname;

@@ -21,7 +21,7 @@ public class View implements Tool {
 
     @Override
     public ToolDef def() {
-        return ToolDef.builder("view_image", """
+        return ToolDef.builder("view", """
                         View an image hosted on this website. The image is attached to the conversation \
                         so you can see it. Only use when the visual content actually matters; \
                         prefer the text returned by other tools otherwise.""")

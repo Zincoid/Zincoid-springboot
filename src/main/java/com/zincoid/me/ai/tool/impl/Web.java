@@ -37,7 +37,7 @@ public class Web implements Tool {
 
     @Override
     public ToolDef def() {
-        return ToolDef.builder("web_fetch", """
+        return ToolDef.builder("web", """
                         Read any webpage content for knowledge acquisition.""")
                 .addString("url", "Web url link.", true)
                 .build();

@@ -45,10 +45,10 @@ public class Get implements Tool {
 
     @Override
     public ToolDef def() {
-        return ToolDef.builder("get_content", """
+        return ToolDef.builder("get", """
                         Get the full content of a moment, article or repository by type and id \
                         (as returned by search). Attached images are listed as URLs; \
-                        use view_image to look at them selectively.""")
+                        use view to look at them selectively.""")
                 .addEnum("type", "Content type: moment, article or repo.", TYPES, true)
                 .addInteger("id", "Content id, as returned by search.", true)
                 .build();
@@ -147,7 +147,7 @@ public class Get implements Tool {
     private void appendImages(StringBuilder sb, List<String> images) {
         if (images.isEmpty()) return;
         sb.append("images: ").append(images).append("\n");
-        sb.append("Use the view_image tool to look at any of these images.\n");
+        sb.append("Use the view tool to look at any of these images.\n");
     }
 
     private String truncate(String text) {

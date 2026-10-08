@@ -44,6 +44,11 @@ public class ToolDef {
             return this;
         }
 
+        public Builder addInteger(String name, String desc) {
+            params.add(new ParamSpec(name, "integer", desc, null));
+            return this;
+        }
+
         public Builder addInteger(String name, String desc, boolean required) {
             params.add(new ParamSpec(name, "integer", desc, null));
             if (required) this.required.add(name);

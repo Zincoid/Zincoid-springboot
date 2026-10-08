@@ -5,9 +5,11 @@ import com.zincoid.me.ai.client.ChatClient;
 import com.zincoid.me.ai.message.AiMessage;
 import com.zincoid.me.configuration.DataInitializer;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.model.po.Comment;
 import com.zincoid.me.model.po.Message;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.service.AiService;
+import com.zincoid.me.service.CommentService;
 import com.zincoid.me.service.ConfigService;
 import com.zincoid.me.service.MessageService;
 import com.zincoid.me.service.UserService;
@@ -33,6 +35,7 @@ public class AiServiceImpl implements AiService {
     private final ConfigService configService;
     private final UserService userService;
     private final MessageService messageService;
+    private final CommentService commentService;
     private final ChatClient chatClient;
     private final AiChatProperties aiChatProperties;
 
@@ -42,11 +45,13 @@ public class AiServiceImpl implements AiService {
     public AiServiceImpl(ConfigService configService,
                          UserService userService,
                          @Lazy MessageService messageService,
+                         @Lazy CommentService commentService,
                          ChatClient chatClient,
                          AiChatProperties aiChatProperties) {
         this.configService = configService;
         this.userService = userService;
         this.messageService = messageService;
+        this.commentService = commentService;
         this.chatClient = chatClient;
         this.aiChatProperties = aiChatProperties;
     }
@@ -68,6 +73,19 @@ public class AiServiceImpl implements AiService {
         messageService.send(ai.getId(), reply, null);
     }
 
+    @Override
+    @Async("AsyncRunner")
+    public void comment(Long userId, Long commentId) {
+        User ai = getAiUser();
+        if (ai.getId().equals(userId)) return;
+        Comment trigger = commentService.getById(commentId);
+        if (trigger == null) return;
+        String prompt = configService.get("ai_comment_prompt");
+        String reply = chatClient.chat(buildComments(trigger), prompt, thinking);
+        commentService.add(ai.getId(), trigger.getTargetType(), trigger.getTargetId(),
+                reply, commentId);
+    }
+
     // ──────── Private tool ────────────────────────────────
 
     private User getAiUser() {
@@ -76,6 +94,58 @@ public class AiServiceImpl implements AiService {
         if (ai == null)
             throw new BusinessException(500, "AI user not initialized");
         return ai;
+    }
+
+    private List<AiMessage> buildComments(Comment trigger) {
+        Long rootId = trigger.getRootId() != null ? trigger.getRootId() : trigger.getId();
+        List<Comment> thread = commentService.lambdaQuery()
+                .eq(Comment::getTargetType, trigger.getTargetType())
+                .eq(Comment::getTargetId, trigger.getTargetId())
+                .eq(Comment::getRootId, rootId)
+                .orderByAsc(Comment::getCreatedAt)
+                .list();
+        Map<Long, Comment> byId = thread.stream()
+                .collect(Collectors.toMap(Comment::getId, c -> c));
+        Map<Long, User> users = userService.listByIds(
+                        thread.stream().map(Comment::getUserId).distinct().toList())
+                .stream().collect(Collectors.toMap(User::getId, u -> u));
+        StringBuilder sb = new StringBuilder();
+        sb.append("You are mentioned in a comment on %s id=%d.\n".formatted(
+                trigger.getTargetType().name().toLowerCase(), trigger.getTargetId()));
+        sb.append("Comment thread:\n");
+        for (Comment c : thread) {
+            sb.repeat("  ", depth(byId, c));
+            sb.append("[comment id=%d]".formatted(c.getId()));
+            if (c.getParentId() != null)
+                sb.append(" (reply to id=%d)".formatted(c.getParentId()));
+            sb.append(" %s: %s\n".formatted(author(users.get(c.getUserId())), text(c.getContent())));
+        }
+        sb.append("The mention is in comment id=%d.".formatted(trigger.getId()));
+        return List.of(AiMessage.user(sb.toString()));
+    }
+
+    private int depth(Map<Long, Comment> byId, Comment comment) {
+        int depth = 0;
+        Long parentId = comment.getParentId();
+        while (parentId != null && depth < 5) {
+            Comment parent = byId.get(parentId);
+            if (parent == null) break;
+            depth++;
+            parentId = parent.getParentId();
+        }
+        return depth;
+    }
+
+    private String author(User user) {
+        if (user == null) return "unknown";
+        if (user.getNickname() != null && !user.getNickname().isBlank())
+            return "%s@%s".formatted(user.getNickname(), user.getUsername());
+        return user.getUsername();
+    }
+
+    private String text(String content) {
+        if (content == null) return "";
+        return content.length() > 2048 ? "%s...(truncated)".formatted(content.substring(0, 2048)) : content;
     }
 
     private List<AiMessage> buildHistory(Long aiId) {

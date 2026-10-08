@@ -3,6 +3,7 @@ package com.zincoid.me.service.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zincoid.me.configuration.DataInitializer;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.mapper.CommentMapper;
 import com.zincoid.me.model.po.Article;
@@ -17,6 +18,7 @@ import com.zincoid.me.converter.CommentConverter;
 import com.zincoid.me.model.vo.CommentVO;
 import com.zincoid.me.model.vo.HomeCommentVO;
 import com.zincoid.me.model.vo.PageVO;
+import com.zincoid.me.service.AiService;
 import com.zincoid.me.service.ArticleService;
 import com.zincoid.me.service.CommentService;
 import com.zincoid.me.service.MomentService;
@@ -28,6 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,17 +45,20 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     private final ArticleService articleService;
     private final RepoService repoService;
     private final NotificationService notificationService;
+    private final AiService aiService;
 
     public CommentServiceImpl(UserService userService,
                               @Lazy MomentService momentService,
                               @Lazy ArticleService articleService,
                               @Lazy RepoService repoService,
-                              NotificationService notificationService) {
+                              NotificationService notificationService,
+                              AiService aiService) {
         this.userService = userService;
         this.momentService = momentService;
         this.articleService = articleService;
         this.repoService = repoService;
         this.notificationService = notificationService;
+        this.aiService = aiService;
     }
 
     @Override
@@ -150,8 +157,18 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 notificationService.notify(userId, authorId,
                         NotificationType.COMMENT, comment.getId());
         }
-        for (String name : StrUtil.extractAts(content))
+        boolean isAiMentioned = false;
+        for (String name : StrUtil.extractAts(content)) {
+            if (DataInitializer.AI_USERNAME.equals(name)) { isAiMentioned = true; continue; }
             notificationService.notifyAt(userId, name, NotificationType.COMMENT_MENTION, comment.getId());
+        }
+        if (isAiMentioned)
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    aiService.comment(userId, comment.getId());
+                }
+            });
         log.info("Comment added: user={}, target={}:{}, id={}", userId, targetType, targetId, comment.getId());
         return toCommentVO(comment, List.of(), 0);
     }

@@ -55,12 +55,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         if (msg.getFile() != null && !aiService.isAi(userId))  // AI 仅引用图片
             fileService.link(List.of(msg.getFile()), RelatedType.CHAT, msg.getId(), userId);
         trim();
-        boolean isBotMentioned = false;
+        boolean isAiMentioned = false;
         for (String name : StrUtil.extractAts(msg.getContent())) {
-            if (DataInitializer.AI_USERNAME.equals(name)) { isBotMentioned = true; continue; }
+            if (DataInitializer.AI_USERNAME.equals(name)) { isAiMentioned = true; continue; }
             notificationService.notifyAt(userId, name, NotificationType.CHAT_MENTION, msg.getId());
         }
-        if (isBotMentioned)
+        if (isAiMentioned)
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {

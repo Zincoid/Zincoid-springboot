@@ -50,6 +50,7 @@ public class DataInitializer implements CommandLineRunner {
         initConfig("audio_spectrum_ratio", "0.2", "Audio spectrum ratio of digital flow for Walkman");
         initConfig("maintenance_enabled", "true", "Enable daily maintenance (UTC+8 00:00-00:10, auto cleanup and block all requests)");
         initConfig("ai_chat_prompt", "你是 Zincoid 网站聊天室里的 AI 助手。请自然地融入对话，回复简洁友好，不要长篇大论。", "AI chat system prompt");
+        initConfig("ai_comment_prompt", "你是 Zincoid 网站的 AI 助手。用户在评论区@了你，回答将回复到那条评论下，请结合上下文回复。了解资源内容可自行调用工具。", "AI comment system prompt");
     }
 
     private void initConfig(String key, String value, String description) {
@@ -95,8 +96,8 @@ public class DataInitializer implements CommandLineRunner {
                 .role(Role.ADMIN)
                 .title("AI Assistant")
                 .bio("""
-                        在聊天页中，@此账号可与AI对话。
-                        In Chats, @ this account to chat with AI.""")
+                        在聊天或评论区中，@此账号可与AI对话。
+                        In Chats or Comments, @ this account to chat with AI.""")
                 .skills("[\"Chat\", \"WebSearch\"]")
                 .status(Status.ACTIVE)
                 .createdAt(LocalDateTime.now())

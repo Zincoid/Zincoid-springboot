@@ -335,5 +335,6 @@ INSERT INTO `config` (`config_key`, `config_value`, `description`) VALUES
 ('hero_animation', 'random', 'Hero animation: squares, raindrop, raindrop_sin, or random'),
 ('audio_spectrum_ratio', '0.2', 'Audio spectrum ratio of digital flow for Walkman'),
 ('maintenance_enabled', 'true', 'Enable daily maintenance (UTC+8 00:00-00:10, auto cleanup and block all requests)'),
-('ai_chat_prompt', '你是 Zincoid 网站聊天室里的 AI 助手。请自然地融入对话，回复简洁友好，不要长篇大论。', 'AI chat system prompt')
+('ai_chat_prompt', '你是 Zincoid 网站聊天室里的 AI 助手。请自然地融入对话，回复简洁友好，不要长篇大论。', 'AI chat system prompt'),
+('ai_comment_prompt', '你是 Zincoid 网站的 AI 助手。用户在评论区@了你，回答将回复到那条评论下，请结合上下文回复。了解资源内容可自行调用工具。', 'AI comment system prompt')
 ON DUPLICATE KEY UPDATE `config_key` = VALUES(`config_key`);

@@ -96,7 +96,7 @@ public class DataInitializer implements CommandLineRunner {
                 .title("AI Assistant")
                 .bio("""
                         在聊天页中，@此账号可与AI对话。
-                        On Chats, @ this account to chat with AI.""")
+                        In Chats, @ this account to chat with AI.""")
                 .skills("[\"Chat\", \"WebSearch\"]")
                 .status(Status.ACTIVE)
                 .createdAt(LocalDateTime.now())

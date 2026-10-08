@@ -51,9 +51,9 @@ public class AiServiceImpl implements AiService {
 
     @Override
     @Async("AsyncRunner")
-    public void replyAi(Long senderId) {
+    public void chat(Long userId) {
         User ai = getAiUser();
-        if (ai.getId().equals(senderId)) return;
+        if (ai.getId().equals(userId)) return;
         List<AiMessage> history = buildHistory(ai.getId());
         String prompt = configService.get("ai_chat_prompt");
         String reply = chatClient.chat(history, prompt, thinking);

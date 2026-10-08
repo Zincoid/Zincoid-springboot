@@ -64,7 +64,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    aiService.replyAi(userId);
+                    aiService.chat(userId);
                 }
             });
         log.info("Message sent: user={}, id={}", userId, msg.getId());

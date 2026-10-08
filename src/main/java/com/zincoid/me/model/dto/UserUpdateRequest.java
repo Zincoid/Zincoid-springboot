@@ -12,7 +12,7 @@ import java.util.List;
 public class UserUpdateRequest {
 
     @NotBlank(message = "Username is required")
-    @Size(min = 3, max = 50, message = "Username must be 3-50 characters")
+    @Size(min = 2, max = 50, message = "Username must be 2-50 characters")
     private String username;
 
     private String nickname;

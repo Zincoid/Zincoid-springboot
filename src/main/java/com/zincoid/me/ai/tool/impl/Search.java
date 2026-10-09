@@ -57,7 +57,7 @@ public class Search implements Tool {
                 ? args.keyword().trim() : null;
         String type = args.type();
         if (type != null && !type.isBlank() && !TYPES.contains(type))
-            return ToolRes.of("Error: unknown type \"%s\", valid values: moment, article, repo".formatted(type));
+            return ToolRes.error("unknown type \"%s\", valid values: moment, article, repo".formatted(type));
         Long userId = null;
         String username = args.username();
         if (username != null && !username.isBlank()) {

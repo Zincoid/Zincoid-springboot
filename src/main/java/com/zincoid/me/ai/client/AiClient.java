@@ -53,8 +53,10 @@ public class AiClient {
             for (ToolCall tc : res.getTcs()) {
                 streamTool(task, AiState.RUNNING, tc, null);
                 ToolRes tr = runTool(tc);
-                streamTool(task, AiState.DONE, tc, truncateContent(tr.text()));
-                work.add(AiMessage.tool(tc.getId(), tr.text()));
+                AiState state = tr.error() ? AiState.ERROR : AiState.DONE;
+                streamTool(task, state, tc, truncateContent(tr.text()));
+                String content = tr.error() ? "Error: " + tr.text() : tr.text();
+                work.add(AiMessage.tool(tc.getId(), content));
                 if (tr.images().isEmpty()) continue;
                 images.add(AiMessage.user(
                         null,
@@ -104,15 +106,14 @@ public class AiClient {
     private ToolRes runTool(ToolCall tc) {
         Tool tool = toolReg.get(tc.getName());
         if (tool == null)
-            return ToolRes.of("Error: Tool \"%s\" doesn't exist."
-                    .formatted(tc.getName()));
+            return ToolRes.error("Tool not found");
         try {
             ToolRes res = tool.run(tc.getArgs());
-            log.info("Tool success: {}({}) -> {}", tc.getName(), tc.getArgs(), res);
+            log.info("Tc success: {} -> {}", tc, res);
             return res;
         } catch (Exception e) {
-            log.warn("Tool error: {}", e.getMessage());
-            return ToolRes.of("Error: %s.".formatted(e.getMessage()));
+            log.warn("Tc error: {}", e.getMessage());
+            return ToolRes.error(e.getMessage());
         }
     }
 }

@@ -40,17 +40,17 @@ public class View implements Tool {
         Args args = JsonUtil.parse(json, Args.class);
         String url = args.url() != null ? args.url().trim() : null;
         if (url == null || url.isBlank())
-            return ToolRes.of("Error: url must not be empty");
+            return ToolRes.error("url must not be empty");
         if (url.startsWith("/"))
             url = siteUrl + url;
         if (!url.startsWith(siteUrl))
-            return ToolRes.of("Error: only images hosted on this site can be viewed");
+            return ToolRes.error("only images hosted on this site can be viewed");
         int q = url.indexOf('?');
         String clean = q >= 0 ? url.substring(0, q) : url;
         if (!FileUtil.isImage(FileUtil.getExt(clean)))
-            return ToolRes.of("Error: only images can be viewed; this file is not a supported image");
+            return ToolRes.error("only images can be viewed; this file is not a supported image");
         if (!fileService.exists(clean.substring(siteUrl.length())))
-            return ToolRes.of("Error: image not found or no longer available");
+            return ToolRes.error("image not found or no longer available");
         log.info("Attach image: {}", url);
         return ToolRes.of("Image attached: %s".formatted(url), List.of(url));
     }

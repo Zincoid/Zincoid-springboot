@@ -47,16 +47,16 @@ public class Item implements Tool {
     public ToolRes run(String json) {
         Args args = JsonUtil.parse(json, Args.class);
         if (args.id() == null)
-            return ToolRes.of("Error: id must not be empty");
+            return ToolRes.error("id must not be empty");
         Long id = args.id();
         Repo repo = repoService.getById(id);
         if (repo == null || repo.getStatus() != Status.ACTIVE
                 || repo.getVisibility() == Visibility.PRIVATE)
             return ToolRes.of("Not found: repo id=%d does not exist or is not publicly visible".formatted(id));
         if (repo.getVisibility() == Visibility.RESTRICTED)
-            return ToolRes.of("Error: repo id=%d is restricted, its items are not accessible".formatted(id));
+            return ToolRes.error("repo id=%d is restricted, its items are not accessible".formatted(id));
         if (repo.getType() == RepoType.CODE)
-            return ToolRes.of("Error: code repositories have no items");
+            return ToolRes.error("code repositories have no items");
         int page = args.page() != null && args.page() > 0 ? args.page() : 1;
         PageVO<RepoItemVO> vo = repoItemService.list(id, page, PAGE_SIZE);
         if (vo.getTotal() == 0)

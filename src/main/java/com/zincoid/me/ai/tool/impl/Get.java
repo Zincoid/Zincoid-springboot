@@ -60,9 +60,9 @@ public class Get implements Tool {
         Args args = JsonUtil.parse(json, Args.class);
         String type = args.type();
         if (type == null || !TYPES.contains(type))
-            return ToolRes.of("Error: unknown type \"%s\", valid values: moment, article, repo".formatted(type));
+            return ToolRes.error("unknown type \"%s\", valid values: moment, article, repo".formatted(type));
         if (args.id() == null)
-            return ToolRes.of("Error: id must not be empty");
+            return ToolRes.error("id must not be empty");
         return switch (type) {
             case "moment" -> renderMoment(args.id());
             case "article" -> renderArticle(args.id());

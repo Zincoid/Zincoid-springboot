@@ -7,7 +7,8 @@ import lombok.Getter;
 public enum AiState {
 
     RUNNING("running"),
-    DONE("done");
+    DONE("done"),
+    ERROR("error");
 
     private final String value;
 

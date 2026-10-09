@@ -48,15 +48,15 @@ public class Web implements Tool {
         try {
             Args args = JsonUtil.parse(json, Args.class);
             if (args.url() == null || args.url().isBlank())
-                return ToolRes.of("Error: URL must not be empty");
+                return ToolRes.error("URL must not be empty");
             if (!args.url().startsWith("http://") && !args.url().startsWith("https://"))
-                return ToolRes.of("Error: unsupported URL scheme, only http/https is allowed");
+                return ToolRes.error("unsupported URL scheme, only http/https is allowed");
             String html = fetchPage(args.url());
             String text = extractText(html);
             return ToolRes.of("Page content (%s):\n%s".formatted(args.url(), text));
         } catch (Exception e) {
             log.warn("Web fetch failed: {}", e.getMessage());
-            return ToolRes.of("Error: failed to fetch webpage - %s".formatted(e.getMessage()));
+            return ToolRes.error("failed to fetch webpage - %s".formatted(e.getMessage()));
         }
     }
 

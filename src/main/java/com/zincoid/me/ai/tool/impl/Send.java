@@ -53,19 +53,19 @@ public class Send implements Tool {
         if (image != null) {
             String url = image.startsWith("/") ? siteUrl + image : image;
             if (!url.startsWith(siteUrl))
-                return ToolRes.of("Error: only images hosted on this site can be sent");
+                return ToolRes.error("only images hosted on this site can be sent");
             file = url.substring(siteUrl.length());
             if (!FileUtil.isImage(FileUtil.getExt(file)))
-                return ToolRes.of("Error: not an image file: %s".formatted(image));
+                return ToolRes.error("not an image file: %s".formatted(image));
             if (!fileService.exists(file))
-                return ToolRes.of("Error: image not found or no longer available: %s".formatted(image));
+                return ToolRes.error("image not found or no longer available: %s".formatted(image));
         }
         if (content == null && file == null)
-            return ToolRes.of("Error: content or image is required");
+            return ToolRes.error("content or image is required");
         User ai = userService.lambdaQuery()
                 .eq(User::getUsername, DataInitializer.AI_USERNAME).one();
         if (ai == null)
-            return ToolRes.of("Error: AI user not initialized");
+            return ToolRes.error("AI user not initialized");
         MessageVO vo = messageService.send(ai.getId(), content, file);
         return ToolRes.of("Sent message id=%d.".formatted(vo.getId()));
     }

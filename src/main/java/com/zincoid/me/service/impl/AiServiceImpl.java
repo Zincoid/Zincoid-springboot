@@ -74,7 +74,7 @@ public class AiServiceImpl implements AiService {
             String reply = aiClient.invoke(history, prompt, thinking, AiTask.CHAT);
             messageService.send(ai.getId(), reply, null);
         } catch (Exception e) {
-            messageService.send(ai.getId(), e.getMessage(), null);
+            messageService.send(ai.getId(), error(e), null);
             throw e;
         }
     }
@@ -94,7 +94,7 @@ public class AiServiceImpl implements AiService {
                     trigger.getTargetId(), reply, commentId);
         } catch (Exception e) {
             commentService.add(ai.getId(), trigger.getTargetType(),
-                    trigger.getTargetId(), e.getMessage(), commentId);
+                    trigger.getTargetId(), error(e), commentId);
             throw e;
         }
     }
@@ -193,5 +193,9 @@ public class AiServiceImpl implements AiService {
     private List<String> buildImageUrls(String file) {
         if (!FileUtil.isImage(FileUtil.getExt(file))) return List.of();
         return List.of(siteUrl + file);
+    }
+
+    private String error(Exception e) {
+        return e.getMessage() != null && !e.getMessage().isBlank() ? e.getMessage() : "Unknown error";
     }
 }

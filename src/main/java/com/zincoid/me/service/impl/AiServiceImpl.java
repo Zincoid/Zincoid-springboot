@@ -70,8 +70,13 @@ public class AiServiceImpl implements AiService {
         if (ai.getId().equals(userId)) return;
         List<AiMessage> history = buildHistory(ai.getId());
         String prompt = configService.get("ai_chat_prompt");
-        String reply = aiClient.invoke(history, prompt, thinking, AiTask.CHAT);
-        messageService.send(ai.getId(), reply, null);
+        try {
+            String reply = aiClient.invoke(history, prompt, thinking, AiTask.CHAT);
+            messageService.send(ai.getId(), reply, null);
+        } catch (Exception e) {
+            messageService.send(ai.getId(), e.getMessage(), null);
+            throw e;
+        }
     }
 
     @Override
@@ -81,10 +86,17 @@ public class AiServiceImpl implements AiService {
         if (ai.getId().equals(userId)) return;
         Comment trigger = commentService.getById(commentId);
         if (trigger == null) return;
+        List<AiMessage> history = buildComments(trigger);
         String prompt = configService.get("ai_comment_prompt");
-        String reply = aiClient.invoke(buildComments(trigger), prompt, thinking, AiTask.COMMENT);
-        commentService.add(ai.getId(), trigger.getTargetType(), trigger.getTargetId(),
-                reply, commentId);
+        try {
+            String reply = aiClient.invoke(history, prompt, thinking, AiTask.COMMENT);
+            commentService.add(ai.getId(), trigger.getTargetType(),
+                    trigger.getTargetId(), reply, commentId);
+        } catch (Exception e) {
+            commentService.add(ai.getId(), trigger.getTargetType(),
+                    trigger.getTargetId(), e.getMessage(), commentId);
+            throw e;
+        }
     }
 
     // ──────── Private tool ────────────────────────────────

@@ -1,6 +1,7 @@
 package com.zincoid.me.service.impl;
 
 import com.zincoid.me.model.vo.MessageVO;
+import com.zincoid.me.model.vo.ToolEventVO;
 import com.zincoid.me.service.MessageStreamService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -55,6 +56,18 @@ public class MessageStreamServiceImpl implements MessageStreamService {
         emitters.forEach((id, emitter) -> {
             try {
                 emitter.send(SseEmitter.event().name("delete").data(messageId));
+            } catch (IOException e) {
+                remove(id);
+            }
+        });
+    }
+
+    @Override
+    public void tool(ToolEventVO event) {
+        if (emitters.isEmpty()) return;
+        emitters.forEach((id, emitter) -> {
+            try {
+                emitter.send(SseEmitter.event().name("tool").data(event));
             } catch (IOException e) {
                 remove(id);
             }

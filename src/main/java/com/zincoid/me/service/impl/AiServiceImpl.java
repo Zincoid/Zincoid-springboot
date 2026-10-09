@@ -1,10 +1,11 @@
 package com.zincoid.me.service.impl;
 
 import com.zincoid.me.ai.AiChatProperties;
-import com.zincoid.me.ai.client.ChatClient;
+import com.zincoid.me.ai.client.AiClient;
 import com.zincoid.me.ai.message.AiMessage;
 import com.zincoid.me.configuration.DataInitializer;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.ai.client.AiTask;
 import com.zincoid.me.model.po.Comment;
 import com.zincoid.me.model.po.Message;
 import com.zincoid.me.model.po.User;
@@ -36,7 +37,7 @@ public class AiServiceImpl implements AiService {
     private final UserService userService;
     private final MessageService messageService;
     private final CommentService commentService;
-    private final ChatClient chatClient;
+    private final AiClient aiClient;
     private final AiChatProperties aiChatProperties;
 
     @Value("${site.url}")
@@ -46,13 +47,13 @@ public class AiServiceImpl implements AiService {
                          UserService userService,
                          @Lazy MessageService messageService,
                          @Lazy CommentService commentService,
-                         @Lazy ChatClient chatClient,
+                         @Lazy AiClient aiClient,
                          AiChatProperties aiChatProperties) {
         this.configService = configService;
         this.userService = userService;
         this.messageService = messageService;
         this.commentService = commentService;
-        this.chatClient = chatClient;
+        this.aiClient = aiClient;
         this.aiChatProperties = aiChatProperties;
     }
 
@@ -69,7 +70,7 @@ public class AiServiceImpl implements AiService {
         if (ai.getId().equals(userId)) return;
         List<AiMessage> history = buildHistory(ai.getId());
         String prompt = configService.get("ai_chat_prompt");
-        String reply = chatClient.chat(history, prompt, thinking);
+        String reply = aiClient.invoke(history, prompt, thinking, AiTask.CHAT);
         messageService.send(ai.getId(), reply, null);
     }
 
@@ -81,7 +82,7 @@ public class AiServiceImpl implements AiService {
         Comment trigger = commentService.getById(commentId);
         if (trigger == null) return;
         String prompt = configService.get("ai_comment_prompt");
-        String reply = chatClient.chat(buildComments(trigger), prompt, thinking);
+        String reply = aiClient.invoke(buildComments(trigger), prompt, thinking, AiTask.COMMENT);
         commentService.add(ai.getId(), trigger.getTargetType(), trigger.getTargetId(),
                 reply, commentId);
     }

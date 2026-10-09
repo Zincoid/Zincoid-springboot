@@ -9,6 +9,8 @@ import com.zincoid.me.ai.tool.Tool;
 import com.zincoid.me.ai.tool.ToolCall;
 import com.zincoid.me.ai.tool.ToolReg;
 import com.zincoid.me.ai.tool.ToolRes;
+import com.zincoid.me.model.vo.ToolEventVO;
+import com.zincoid.me.service.MessageStreamService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -19,13 +21,14 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ChatClient {
+public class AiClient {
 
     private final Model model;
     private final ToolReg toolReg;
     private final AiChatProperties aiChatProperties;
+    private final MessageStreamService messageStreamService;
 
-    public String chat(List<AiMessage> history, String prompt, boolean thinking) {
+    public String invoke(List<AiMessage> history, String prompt, boolean thinking, AiTask task) {
         List<AiMessage> work = new ArrayList<>();
         if (prompt != null && !prompt.isBlank())
             work.add(AiMessage.system(prompt));
@@ -48,7 +51,9 @@ public class ChatClient {
                     .withReasoning(res.getReasoning()));
             List<AiMessage> images = new ArrayList<>();
             for (ToolCall tc : res.getTcs()) {
+                streamTool(task, tc, "Running", null);
                 ToolRes tr = runTool(tc);
+                streamTool(task, tc, "Done", truncateContent(tr.text()));
                 work.add(AiMessage.tool(tc.getId(), tr.text()));
                 if (tr.images().isEmpty()) continue;
                 images.add(AiMessage.user(
@@ -78,6 +83,22 @@ public class ChatClient {
     private String ensureContent(String content) {
         if (content != null && !content.isBlank()) return content;
         return "(AI is temporarily unable to answer)";
+    }
+
+    private String truncateContent(String content) {
+        if (content == null) return null;
+        return content.length() > 200 ? "%s...(truncated)".formatted(content.substring(0, 200)) : content;
+    }
+
+    private void streamTool(AiTask task, ToolCall tc, String state, String result) {
+        messageStreamService.tool(ToolEventVO.builder()
+                .task(task)
+                .tcId(tc.getId())
+                .name(tc.getName())
+                .args(tc.getArgs())
+                .state(state)
+                .result(result)
+                .build());
     }
 
     private ToolRes runTool(ToolCall tc) {

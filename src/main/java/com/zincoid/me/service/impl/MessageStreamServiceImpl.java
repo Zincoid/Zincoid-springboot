@@ -3,6 +3,7 @@ package com.zincoid.me.service.impl;
 import com.zincoid.me.ai.client.AiState;
 import com.zincoid.me.ai.client.AiTask;
 import com.zincoid.me.ai.tool.ToolCall;
+import com.zincoid.me.ai.tool.ToolRes;
 import com.zincoid.me.model.vo.MessageVO;
 import com.zincoid.me.model.vo.ToolEventVO;
 import com.zincoid.me.service.MessageStreamService;
@@ -66,20 +67,30 @@ public class MessageStreamServiceImpl implements MessageStreamService {
     }
 
     @Override
-    public void tool(AiTask task, AiState state, ToolCall tc, String res) {
+    public void tool(AiTask task, ToolCall tc) {
+        tool(task, tc, null);
+    }
+
+    @Override
+    public void tool(AiTask task, ToolCall tc, ToolRes tr) {
         if (emitters.isEmpty()) return;
+        AiState state = tr == null
+                ? AiState.RUNNING : tr.error()
+                ? AiState.ERROR : AiState.DONE;
+        String result = (tr == null || tr.text() == null)
+                ? null : tr.text().length() > 100
+                ? "%s...(truncated)".formatted(tr.text().substring(0, 100)) : tr.text();
+        ToolEventVO event = ToolEventVO.builder()
+                .task(task)
+                .state(state)
+                .tcId(tc.getId())
+                .name(tc.getName())
+                .args(tc.getArgs())
+                .result(result)
+                .build();
         emitters.forEach((id, emitter) -> {
             try {
-                emitter.send(SseEmitter.event().name("tool").data(
-                        ToolEventVO.builder()
-                                .task(task)
-                                .state(state)
-                                .tcId(tc.getId())
-                                .name(tc.getName())
-                                .args(tc.getArgs())
-                                .result(res)
-                                .build())
-                );
+                emitter.send(SseEmitter.event().name("tool").data(event));
             } catch (IOException e) {
                 remove(id);
             }

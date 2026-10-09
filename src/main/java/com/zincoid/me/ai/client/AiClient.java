@@ -50,10 +50,9 @@ public class AiClient {
                     .withReasoning(res.getReasoning()));
             List<AiMessage> images = new ArrayList<>();
             for (ToolCall tc : res.getTcs()) {
-                messageStreamService.tool(task, AiState.RUNNING, tc, null);
+                messageStreamService.tool(task, tc);
                 ToolRes tr = runTool(tc);
-                AiState state = tr.error() ? AiState.ERROR : AiState.DONE;
-                messageStreamService.tool(task, state, tc, truncateContent(tr.text()));
+                messageStreamService.tool(task, tc, tr);
                 String content = tr.error() ? "Error: " + tr.text() : tr.text();
                 work.add(AiMessage.tool(tc.getId(), content));
                 if (tr.images().isEmpty()) continue;
@@ -84,11 +83,6 @@ public class AiClient {
     private String ensureContent(String content) {
         if (content != null && !content.isBlank()) return content;
         return "(AI is temporarily unable to answer)";
-    }
-
-    private String truncateContent(String content) {
-        if (content == null) return null;
-        return content.length() > 200 ? "%s...(truncated)".formatted(content.substring(0, 200)) : content;
     }
 
     private ToolRes runTool(ToolCall tc) {

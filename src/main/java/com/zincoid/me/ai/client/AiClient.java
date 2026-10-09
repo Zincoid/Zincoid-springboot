@@ -9,7 +9,6 @@ import com.zincoid.me.ai.tool.Tool;
 import com.zincoid.me.ai.tool.ToolCall;
 import com.zincoid.me.ai.tool.ToolReg;
 import com.zincoid.me.ai.tool.ToolRes;
-import com.zincoid.me.model.vo.ToolEventVO;
 import com.zincoid.me.service.MessageStreamService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,10 +50,10 @@ public class AiClient {
                     .withReasoning(res.getReasoning()));
             List<AiMessage> images = new ArrayList<>();
             for (ToolCall tc : res.getTcs()) {
-                streamTool(task, AiState.RUNNING, tc, null);
+                messageStreamService.tool(task, AiState.RUNNING, tc, null);
                 ToolRes tr = runTool(tc);
                 AiState state = tr.error() ? AiState.ERROR : AiState.DONE;
-                streamTool(task, state, tc, truncateContent(tr.text()));
+                messageStreamService.tool(task, state, tc, truncateContent(tr.text()));
                 String content = tr.error() ? "Error: " + tr.text() : tr.text();
                 work.add(AiMessage.tool(tc.getId(), content));
                 if (tr.images().isEmpty()) continue;
@@ -90,17 +89,6 @@ public class AiClient {
     private String truncateContent(String content) {
         if (content == null) return null;
         return content.length() > 200 ? "%s...(truncated)".formatted(content.substring(0, 200)) : content;
-    }
-
-    private void streamTool(AiTask task, AiState state, ToolCall tc, String result) {
-        messageStreamService.tool(ToolEventVO.builder()
-                .task(task)
-                .state(state)
-                .tcId(tc.getId())
-                .name(tc.getName())
-                .args(tc.getArgs())
-                .result(result)
-                .build());
     }
 
     private ToolRes runTool(ToolCall tc) {

@@ -1,5 +1,8 @@
 package com.zincoid.me.service.impl;
 
+import com.zincoid.me.ai.client.AiState;
+import com.zincoid.me.ai.client.AiTask;
+import com.zincoid.me.ai.tool.ToolCall;
 import com.zincoid.me.model.vo.MessageVO;
 import com.zincoid.me.model.vo.ToolEventVO;
 import com.zincoid.me.service.MessageStreamService;
@@ -63,11 +66,20 @@ public class MessageStreamServiceImpl implements MessageStreamService {
     }
 
     @Override
-    public void tool(ToolEventVO event) {
+    public void tool(AiTask task, AiState state, ToolCall tc, String res) {
         if (emitters.isEmpty()) return;
         emitters.forEach((id, emitter) -> {
             try {
-                emitter.send(SseEmitter.event().name("tool").data(event));
+                emitter.send(SseEmitter.event().name("tool").data(
+                        ToolEventVO.builder()
+                                .task(task)
+                                .state(state)
+                                .tcId(tc.getId())
+                                .name(tc.getName())
+                                .args(tc.getArgs())
+                                .result(res)
+                                .build())
+                );
             } catch (IOException e) {
                 remove(id);
             }

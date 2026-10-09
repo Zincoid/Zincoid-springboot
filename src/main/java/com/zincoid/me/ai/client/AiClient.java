@@ -51,9 +51,9 @@ public class AiClient {
                     .withReasoning(res.getReasoning()));
             List<AiMessage> images = new ArrayList<>();
             for (ToolCall tc : res.getTcs()) {
-                streamTool(task, tc, "running", null);
+                streamTool(task, AiState.RUNNING, tc, null);
                 ToolRes tr = runTool(tc);
-                streamTool(task, tc, "done", truncateContent(tr.text()));
+                streamTool(task, AiState.DONE, tc, truncateContent(tr.text()));
                 work.add(AiMessage.tool(tc.getId(), tr.text()));
                 if (tr.images().isEmpty()) continue;
                 images.add(AiMessage.user(
@@ -90,13 +90,13 @@ public class AiClient {
         return content.length() > 200 ? "%s...(truncated)".formatted(content.substring(0, 200)) : content;
     }
 
-    private void streamTool(AiTask task, ToolCall tc, String state, String result) {
+    private void streamTool(AiTask task, AiState state, ToolCall tc, String result) {
         messageStreamService.tool(ToolEventVO.builder()
                 .task(task)
+                .state(state)
                 .tcId(tc.getId())
                 .name(tc.getName())
                 .args(tc.getArgs())
-                .state(state)
                 .result(result)
                 .build());
     }

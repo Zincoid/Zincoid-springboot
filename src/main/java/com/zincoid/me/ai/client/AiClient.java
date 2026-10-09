@@ -51,9 +51,9 @@ public class AiClient {
                     .withReasoning(res.getReasoning()));
             List<AiMessage> images = new ArrayList<>();
             for (ToolCall tc : res.getTcs()) {
-                streamTool(task, tc, "Running", null);
+                streamTool(task, tc, "running", null);
                 ToolRes tr = runTool(tc);
-                streamTool(task, tc, "Done", truncateContent(tr.text()));
+                streamTool(task, tc, "done", truncateContent(tr.text()));
                 work.add(AiMessage.tool(tc.getId(), tr.text()));
                 if (tr.images().isEmpty()) continue;
                 images.add(AiMessage.user(

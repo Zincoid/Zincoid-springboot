@@ -17,6 +17,7 @@ import com.zincoid.me.service.ConfigService;
 import com.zincoid.me.service.FileService;
 import com.zincoid.me.converter.MessageConverter;
 import com.zincoid.me.service.MessageService;
+import com.zincoid.me.service.MessageStreamService;
 import com.zincoid.me.service.UserService;
 import com.zincoid.me.utils.StrUtil;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     private final UserService userService;
     private final NotificationService notificationService;
     private final AiService aiService;
+    private final MessageStreamService messageStreamService;
 
     @Override
     @Transactional
@@ -54,7 +56,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         save(msg);
         if (msg.getFile() != null && !aiService.isAi(userId))  // AI 仅引用图片
             fileService.link(List.of(msg.getFile()), RelatedType.CHAT, msg.getId(), userId);
-        trim();
+        List<Long> trimmed = trim();
         boolean isAiMentioned = false;
         for (String name : StrUtil.extractAts(msg.getContent())) {
             if (DataInitializer.AI_USERNAME.equals(name)) { isAiMentioned = true; continue; }
@@ -68,7 +70,15 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
                 }
             });
         log.info("Message sent: user={}, id={}", userId, msg.getId());
-        return buildVO(msg);
+        MessageVO vo = buildVO(msg);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                trimmed.forEach(messageStreamService::delete);
+                messageStreamService.broadcast(vo);
+            }
+        });
+        return vo;
     }
 
     @Override
@@ -83,6 +93,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         removeById(msg.getId());
         notificationService.deleteAll(NotificationType.CHAT_MENTION, msg.getId());
         log.info("Message deleted: user={}, id={}", msg.getUserId(), messageId);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                messageStreamService.delete(messageId);
+            }
+        });
     }
 
     @Override
@@ -95,7 +111,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     // ──────── Private tool ────────────────────────────────
 
-    private void trim() {
+    private List<Long> trim() {
         String maxStr = configService.get("message_max_count");
         int max = 200;
         try {
@@ -103,18 +119,21 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         } catch (NumberFormatException ignored) {
         }
         long total = count();
-        if (total <= max) return;
+        if (total <= max) return List.of();
         int toDelete = (int) (total - max);
         List<Message> oldest = lambdaQuery()
                 .orderByAsc(Message::getCreatedAt)
                 .last("LIMIT " + toDelete)
                 .list();
+        List<Long> deleted = new ArrayList<>();
         for (Message m : oldest) {
             if (m.getFile() != null)
                 fileService.delete(RelatedType.CHAT, m.getId());
             notificationService.deleteAll(NotificationType.CHAT_MENTION, m.getId());
             removeById(m.getId());
+            deleted.add(m.getId());
         }
+        return deleted;
     }
 
     private MessageVO buildVO(Message msg) {

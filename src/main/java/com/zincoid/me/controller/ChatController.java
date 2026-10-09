@@ -5,9 +5,12 @@ import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.vo.MessageVO;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.service.MessageService;
+import com.zincoid.me.service.MessageStreamService;
 import com.zincoid.me.utils.AuthCtx;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @RequestMapping("/api/chats")
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class ChatController {
 
     private final MessageService messageService;
+    private final MessageStreamService messageStreamService;
 
     // ──── Private endpoints ───────────────
 
@@ -31,6 +35,13 @@ public class ChatController {
     }
 
     // ──── Public endpoints ────────────────
+
+    @GetMapping("/public/stream")
+    public SseEmitter stream(HttpServletResponse response) {
+        response.setHeader("X-Accel-Buffering", "no");
+        response.setHeader("Cache-Control", "no-cache, no-transform");
+        return messageStreamService.subscribe();
+    }
 
     @GetMapping("/public")
     public ApiResponse<PageVO<MessageVO>> list(@RequestParam(defaultValue = "1") int page,

@@ -15,6 +15,7 @@ public class MessageVO {
     private String userNickname;
     private String userAvatar;
     private String content;
+    private String thumb;
     private String file;
     private LocalDateTime createdAt;
 }

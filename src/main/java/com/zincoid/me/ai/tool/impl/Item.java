@@ -58,7 +58,7 @@ public class Item implements Tool {
         if (repo.getType() == RepoType.CODE)
             return ToolRes.error("code repositories have no items");
         int page = args.page() != null && args.page() > 0 ? args.page() : 1;
-        PageVO<RepoItemVO> vo = repoItemService.list(id, page, PAGE_SIZE);
+        PageVO<RepoItemVO> vo = repoItemService.list(id, false, page, PAGE_SIZE);
         if (vo.getTotal() == 0)
             return ToolRes.of("This repo has no items.");
         if (vo.getRecords().isEmpty())

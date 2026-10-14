@@ -34,11 +34,12 @@ public class RepoItemServiceImpl extends ServiceImpl<RepoItemMapper, RepoItem> i
     }
 
     @Override
-    public PageVO<RepoItemVO> list(Long repoId, int page, int size) {
+    public PageVO<RepoItemVO> list(Long repoId, boolean latest, int page, int size) {
         return PageVO.of(
                 lambdaQuery()
                         .eq(RepoItem::getRepoId, repoId)
-                        .orderByAsc(RepoItem::getSortOrder)
+                        .orderByAsc(!latest, RepoItem::getSortOrder)
+                        .orderByDesc(latest, RepoItem::getCreatedAt)
                         .page(Page.of(page, size)),
                 this::buildItemVO
         );

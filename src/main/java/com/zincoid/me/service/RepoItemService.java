@@ -9,7 +9,7 @@ public interface RepoItemService extends IService<RepoItem> {
 
     long count(Long repoId);
 
-    PageVO<RepoItemVO> list(Long repoId, int page, int size);
+    PageVO<RepoItemVO> list(Long repoId, boolean latest, int page, int size);
 
     RepoItemVO add(Long userId, Long repoId, Long fileId);
 

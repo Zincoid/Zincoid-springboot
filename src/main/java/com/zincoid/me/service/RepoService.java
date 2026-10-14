@@ -40,5 +40,5 @@ public interface RepoService extends IService<Repo> {
 
     RepoDetailVO get(Long repoId);
 
-    PageVO<RepoItemVO> items(Long repoId, int page, int size);
+    PageVO<RepoItemVO> items(Long repoId, boolean latest, int page, int size);
 }

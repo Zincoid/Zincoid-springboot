@@ -119,7 +119,8 @@ public class RepoController {
     @GetMapping("/public/{repoId}/items")
     public ApiResponse<PageVO<RepoItemVO>> repoItems(@PathVariable Long repoId,
                                                      @RequestParam(defaultValue = "1") int page,
-                                                     @RequestParam(defaultValue = "10") int size) {
-        return ApiResponse.success(repoService.items(repoId, page, size));
+                                                     @RequestParam(defaultValue = "10") int size,
+                                                     @RequestParam(defaultValue = "false") boolean latest) {
+        return ApiResponse.success(repoService.items(repoId, latest, page, size));
     }
 }

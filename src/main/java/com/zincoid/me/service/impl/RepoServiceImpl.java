@@ -284,7 +284,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     }
 
     @Override
-    public PageVO<RepoItemVO> items(Long repoId, int page, int size) {
+    public PageVO<RepoItemVO> items(Long repoId, boolean latest, int page, int size) {
         Repo repo = getById(repoId);
         if (repo == null || repo.getStatus() == Status.DISABLED)
             throw new BusinessException(404, "Repo not found");
@@ -298,7 +298,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
             throw new BusinessException(403, "Repo is restricted");
         if (repo.getType() == RepoType.CODE)
             throw new BusinessException(403, "Repo is code type");
-        return repoItemService.list(repoId, page, size);
+        return repoItemService.list(repoId, latest, page, size);
     }
 
     // ──────── Private tool ────────────────────────────────

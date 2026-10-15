@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS `file` (
 -- =============================================
 CREATE TABLE IF NOT EXISTS `likes` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
-    `target_type`   TINYINT         NOT NULL                 COMMENT 'Target type: 0=MOMENT, 1=ARTICLE',
+    `target_type`   TINYINT         NOT NULL                 COMMENT 'Target type: 0=MOMENT, 1=ARTICLE, 4=REPO',
     `target_id`     BIGINT          NOT NULL                 COMMENT 'Target record ID',
     `user_id`       BIGINT          NOT NULL                 COMMENT 'User who liked',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Like time',

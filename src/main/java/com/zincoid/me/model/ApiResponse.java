@@ -29,9 +29,9 @@ public class ApiResponse<T> {
         return new ApiResponse<>(200, null, "success", null);
     }
 
-    /** Error response: uses the provided code and error, with fallback message. */
-    public static <T> ApiResponse<T> error(int code, Error error) {
-        return new ApiResponse<>(code, error.name(), error.getMessage(), null);
+    /** Error response: uses the provided error, with fallback message. */
+    public static <T> ApiResponse<T> error(Error error) {
+        return new ApiResponse<>(error.getCode(), error.name(), error.getMessage(), null);
     }
 
     /** Error response: message-only error (no stable code, e.g. DTO validation detail). */

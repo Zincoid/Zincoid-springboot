@@ -12,8 +12,4 @@ public abstract class ApplicationException extends RuntimeException {
         super(error.getMessage());
         this.error = error;
     }
-
-    public int getCode() {
-        return error.getCode();
-    }
 }

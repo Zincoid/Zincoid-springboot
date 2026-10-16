@@ -130,7 +130,6 @@ public enum Error {
     EMAIL_NEW_CODE_REQUIRED(400, "Email and newCode are required"),
     INVALID_DAYS_RANGE(400, "days must be between 1 and 365"),
     INVALID_TOP_RANGE(400, "top must be between 0 and 500"),
-    INVALID_PARAMETER(400, "Invalid parameter"),
 
     // ── AI ────────────────────────────────────────────────
     AI_USER_NOT_INITIALIZED(500, "AI user not initialized"),

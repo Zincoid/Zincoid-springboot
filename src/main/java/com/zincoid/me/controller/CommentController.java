@@ -62,22 +62,25 @@ public class CommentController {
     @GetMapping("/public/moment/{momentId}")
     public ApiResponse<PageVO<CommentVO>> momentComments(@PathVariable Long momentId,
                                                          @RequestParam(defaultValue = "1") int page,
-                                                         @RequestParam(defaultValue = "10") int size) {
-        return ApiResponse.success(commentService.list(RelatedType.MOMENT, momentId, page, size));
+                                                         @RequestParam(defaultValue = "10") int size,
+                                                         @RequestParam(defaultValue = "false") boolean hot) {
+        return ApiResponse.success(commentService.list(RelatedType.MOMENT, momentId, hot, page, size));
     }
 
     @GetMapping("/public/article/{articleId}")
     public ApiResponse<PageVO<CommentVO>> articleComments(@PathVariable Long articleId,
                                                           @RequestParam(defaultValue = "1") int page,
-                                                          @RequestParam(defaultValue = "10") int size) {
-        return ApiResponse.success(commentService.list(RelatedType.ARTICLE, articleId, page, size));
+                                                          @RequestParam(defaultValue = "10") int size,
+                                                          @RequestParam(defaultValue = "false") boolean hot) {
+        return ApiResponse.success(commentService.list(RelatedType.ARTICLE, articleId, hot, page, size));
     }
 
     @GetMapping("/public/repo/{repoId}")
     public ApiResponse<PageVO<CommentVO>> repoComments(@PathVariable Long repoId,
                                                        @RequestParam(defaultValue = "1") int page,
-                                                       @RequestParam(defaultValue = "10") int size) {
-        return ApiResponse.success(commentService.list(RelatedType.REPO, repoId, page, size));
+                                                       @RequestParam(defaultValue = "10") int size,
+                                                       @RequestParam(defaultValue = "false") boolean hot) {
+        return ApiResponse.success(commentService.list(RelatedType.REPO, repoId, hot, page, size));
     }
 
     @GetMapping("/public/replies/{parentId}")

@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface CommentService extends IService<Comment> {
 
-    PageVO<CommentVO> list(RelatedType targetType, Long targetId, int page, int size);
+    PageVO<CommentVO> list(RelatedType targetType, Long targetId, boolean hot, int page, int size);
 
     List<CommentCardVO> home(int size);
 

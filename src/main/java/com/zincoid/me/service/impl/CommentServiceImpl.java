@@ -67,14 +67,16 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     }
 
     @Override
-    public PageVO<CommentVO> list(RelatedType targetType, Long targetId, int page, int size) {
+    public PageVO<CommentVO> list(RelatedType targetType, Long targetId, boolean hot, int page, int size) {
         validateTarget(targetType, targetId);
-        IPage<Comment> rootPage = lambdaQuery()
-                .eq(Comment::getTargetType, targetType)
-                .eq(Comment::getTargetId, targetId)
-                .isNull(Comment::getParentId)
-                .orderByAsc(Comment::getCreatedAt)
-                .page(Page.of(page, size));
+        IPage<Comment> rootPage = hot
+                ? baseMapper.selectRootsByLikes(Page.of(page, size), targetType, targetId, RelatedType.COMMENT)
+                : lambdaQuery()
+                        .eq(Comment::getTargetType, targetType)
+                        .eq(Comment::getTargetId, targetId)
+                        .isNull(Comment::getParentId)
+                        .orderByAsc(Comment::getCreatedAt)
+                        .page(Page.of(page, size));
         List<Comment> rootComments = rootPage.getRecords();
         Map<Long, Long> replyCounts = getReplyCounts(targetType, targetId, rootComments);
         List<CommentVO> roots = rootComments.stream()

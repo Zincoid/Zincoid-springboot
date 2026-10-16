@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 public abstract class ApplicationException extends RuntimeException {
 
-    private final com.zincoid.me.model.Error error;
+    private final Error error;
 
     protected ApplicationException(Error error) {
         super(error.getMessage());

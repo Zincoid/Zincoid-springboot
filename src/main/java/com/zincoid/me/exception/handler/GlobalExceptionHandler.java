@@ -19,30 +19,43 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(UnauthorizedException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ApiResponse<Void> handleUnauthorizedException(UnauthorizedException e) {
-        log.warn("Unauthorized exception: {}", e.getMessage());
-        return ApiResponse.error(401, e.getError());
+    // ── Unhandled Exceptions ────────────────────────────
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ApiResponse<Void> handleUnknown(Exception e) {
+        log.error("Unexpected error", e);
+        return ApiResponse.error(500, Error.INTERNAL_SERVER_ERROR);
     }
+
+    // ── Application errors ──────────────────────────────
 
     @ExceptionHandler(BusinessException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiResponse<Void> handleBusinessException(BusinessException e) {
+    public ApiResponse<Void> handleBusiness(BusinessException e) {
         log.warn("Business exception: {}", e.getMessage());
         return ApiResponse.error(e.getCode(), e.getError());
     }
 
+    @ExceptionHandler(UnauthorizedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ApiResponse<Void> handleUnauthorized(UnauthorizedException e) {
+        log.warn("Unauthorized exception: {}", e.getMessage());
+        return ApiResponse.error(401, e.getError());
+    }
+
     @ExceptionHandler(MaintenanceException.class)
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
-    public ApiResponse<Void> handleMaintenanceException(MaintenanceException e) {
+    public ApiResponse<Void> handleMaintenance(MaintenanceException e) {
         log.info("Request blocked during maintenance");
         return ApiResponse.error(503, e.getError());
     }
 
+    // ── Request validation ──────────────────────────────
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiResponse<Void> handleValidationException(MethodArgumentNotValidException e) {
+    public ApiResponse<Void> handleNotValid(MethodArgumentNotValidException e) {
         String message = e.getBindingResult().getFieldErrors().stream()
                 .map(error -> "Invalid " + error.getField() + ": " + error.getDefaultMessage())
                 .findFirst()
@@ -55,8 +68,10 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
         log.warn("Type mismatch: {}", e.getName());
-        return ApiResponse.error(400, com.zincoid.me.model.Error.INVALID_PARAMETER);
+        return ApiResponse.error(400, Error.INVALID_PARAMETER);
     }
+
+    // ── Client disconnect ───────────────────────────────
 
     @ExceptionHandler(ClientAbortException.class)
     public void handleClientAbort(ClientAbortException e) {
@@ -64,14 +79,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AsyncRequestNotUsableException.class)
-    public void handleAsyncNotUsable(AsyncRequestNotUsableException e) {
+    public void handleAsyncRequestNotUsable(AsyncRequestNotUsableException e) {
         log.debug("Async request not usable (client disconnected): {}", e.getMessage());
-    }
-
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiResponse<Void> handleException(Exception e) {
-        log.error("Unexpected error", e);
-        return ApiResponse.error(500, Error.INTERNAL_SERVER_ERROR);
     }
 }

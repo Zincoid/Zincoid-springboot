@@ -29,7 +29,7 @@ public class ApiResponse<T> {
         return new ApiResponse<>(200, null, "success", null);
     }
 
-    /** Error response: message is the Error's English fallback text. */
+    /** Error response: uses the provided code and error, with fallback message. */
     public static <T> ApiResponse<T> error(int code, Error error) {
         return new ApiResponse<>(code, error.name(), error.getMessage(), null);
     }

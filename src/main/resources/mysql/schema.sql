@@ -130,11 +130,11 @@ CREATE TABLE IF NOT EXISTS `file` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='File record table';
 
 -- =============================================
--- 6. Like Table (for moments, articles and repos)
+-- 6. Like Table (for moments, articles, repos and comments)
 -- =============================================
 CREATE TABLE IF NOT EXISTS `likes` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
-    `target_type`   TINYINT         NOT NULL                 COMMENT 'Target type: 0=MOMENT, 1=ARTICLE, 4=REPO',
+    `target_type`   TINYINT         NOT NULL                 COMMENT 'Target type: 0=MOMENT, 1=ARTICLE, 4=REPO, 6=COMMENT',
     `target_id`     BIGINT          NOT NULL                 COMMENT 'Target record ID',
     `user_id`       BIGINT          NOT NULL                 COMMENT 'User who liked',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Like time',
@@ -143,7 +143,7 @@ CREATE TABLE IF NOT EXISTS `likes` (
     KEY `idx_target` (`target_type`, `target_id`),
     KEY `idx_user_id` (`user_id`),
     CONSTRAINT `fk_likes_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Unified likes table for moments and articles';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Unified likes table for moments, articles, repos and comments';
 
 -- =============================================
 -- 7. Configuration Table

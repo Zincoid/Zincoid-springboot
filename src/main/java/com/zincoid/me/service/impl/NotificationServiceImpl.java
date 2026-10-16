@@ -116,6 +116,9 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                 } else if (targetType == RelatedType.REPO) {
                     Repo repo = repoService.lambdaQuery().select(Repo::getName).eq(Repo::getId, targetId).one();
                     if (repo != null) snippet = repo.getName();
+                } else if (targetType == RelatedType.COMMENT) {
+                    Comment comment = commentService.getById(targetId);
+                    if (comment != null) snippet = comment.getContent();
                 }
                 if (snippet != null && snippet.length() > 80)
                     snippet = snippet.substring(0, 80) + "...";

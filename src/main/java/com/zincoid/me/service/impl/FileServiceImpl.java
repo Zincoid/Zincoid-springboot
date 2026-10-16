@@ -93,7 +93,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
             return userId != null && userId.equals(file.getUserId());
         boolean isAdmin = role == Role.ADMIN;
         return switch (file.getRelatedType()) {
-            case AVATAR, CHAT -> true;
+            case AVATAR, CHAT, COMMENT -> true;
             case MUSIC -> {
                 if (file.getRelatedId() != null && file.getRelatedId() == 1L) yield true;
                 boolean isOwner = userId != null && userId.equals(file.getUserId());
@@ -128,7 +128,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     public boolean cacheable(File file) {
         if (file == null || file.getRelatedType() == null) return false;
         return switch (file.getRelatedType()) {
-            case AVATAR, CHAT -> true;
+            case AVATAR, CHAT, COMMENT -> true;
             case MUSIC -> file.getRelatedId() != null && file.getRelatedId() == 1L;
             case MOMENT -> {
                 Moment moment = momentService.getById(file.getRelatedId());
@@ -360,6 +360,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
             case CHAT -> messageService.getById(id) != null;
             case REPO -> repoService.getById(id) != null;
             case MUSIC -> id == 0 || id == 1;
+            case COMMENT -> false;
         };
     }
 }

@@ -15,16 +15,18 @@ import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.converter.CommentConverter;
+import com.zincoid.me.model.vo.CommentCardVO;
 import com.zincoid.me.model.vo.CommentVO;
-import com.zincoid.me.model.vo.HomeCommentVO;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.service.AiService;
 import com.zincoid.me.service.ArticleService;
 import com.zincoid.me.service.CommentService;
+import com.zincoid.me.service.LikeService;
 import com.zincoid.me.service.MomentService;
 import com.zincoid.me.service.RepoService;
 import com.zincoid.me.service.NotificationService;
 import com.zincoid.me.service.UserService;
+import com.zincoid.me.utils.AuthCtx;
 import com.zincoid.me.utils.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -44,6 +46,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     private final MomentService momentService;
     private final ArticleService articleService;
     private final RepoService repoService;
+    private final LikeService likeService;
     private final NotificationService notificationService;
     private final AiService aiService;
 
@@ -51,12 +54,14 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                               @Lazy MomentService momentService,
                               @Lazy ArticleService articleService,
                               @Lazy RepoService repoService,
+                              LikeService likeService,
                               NotificationService notificationService,
                               AiService aiService) {
         this.userService = userService;
         this.momentService = momentService;
         this.articleService = articleService;
         this.repoService = repoService;
+        this.likeService = likeService;
         this.notificationService = notificationService;
         this.aiService = aiService;
     }
@@ -81,15 +86,15 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     }
 
     @Override
-    public List<HomeCommentVO> home(int size) {
+    public List<CommentCardVO> home(int size) {
         List<Comment> comments = lambdaQuery()
                 .orderByDesc(Comment::getCreatedAt)
                 .last("LIMIT " + size)
                 .list();
-        List<HomeCommentVO> result = new ArrayList<>();
+        List<CommentCardVO> result = new ArrayList<>();
         for (Comment comment : comments) {
             if (!isTargetActive(comment.getTargetType(), comment.getTargetId())) continue;
-            result.add(toHomeCommentVO(comment));
+            result.add(toCommentCardVO(comment));
         }
         return result;
     }
@@ -108,6 +113,14 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 .filter(c -> c.getParentId().equals(parentId))
                 .map(c -> buildReplyTree(c, descendants))
                 .toList();
+    }
+
+    @Override
+    public CommentCardVO get(Long commentId) {
+        Comment comment = getById(commentId);
+        if (comment == null || !isTargetActive(comment.getTargetType(), comment.getTargetId()))
+            throw new BusinessException(404, "Comment not found");
+        return toCommentCardVO(comment);
     }
 
     @Override
@@ -204,6 +217,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         allIds.add(commentId);
         removeBatchByIds(allIds);
         for (Long cid : allIds) {
+            likeService.delete(RelatedType.COMMENT, cid);
             notificationService.deleteAll(NotificationType.COMMENT, cid);
             notificationService.deleteAll(NotificationType.REPLY, cid);
             notificationService.deleteAll(NotificationType.COMMENT_MENTION, cid);
@@ -223,6 +237,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         if (!commentIds.isEmpty()) {
             removeBatchByIds(commentIds);
             for (Long cid : commentIds) {
+                likeService.delete(RelatedType.COMMENT, cid);
                 notificationService.deleteAll(NotificationType.COMMENT, cid);
                 notificationService.deleteAll(NotificationType.REPLY, cid);
                 notificationService.deleteAll(NotificationType.COMMENT_MENTION, cid);
@@ -299,16 +314,19 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
 
     private CommentVO toCommentVO(Comment comment, List<CommentVO> replies, long replyCount) {
         User user = userService.getById(comment.getUserId());
-        return CommentConverter.INSTANCE.toVO(comment, user, replies, replyCount);
+        Long viewerId = AuthCtx.getUserId();
+        return CommentConverter.INSTANCE.toVO(comment, user, replies, replyCount,
+                likeService.count(RelatedType.COMMENT, comment.getId()),
+                likeService.liked(viewerId, RelatedType.COMMENT, comment.getId()));
     }
 
-    private HomeCommentVO toHomeCommentVO(Comment comment) {
+    private CommentCardVO toCommentCardVO(Comment comment) {
         User user = userService.getById(comment.getUserId());
         User parentUser = null;
         if (comment.getParentId() != null) {
             Comment parent = getById(comment.getParentId());
             if (parent != null) parentUser = userService.getById(parent.getUserId());
         }
-        return CommentConverter.INSTANCE.toHomeVO(comment, user, parentUser);
+        return CommentConverter.INSTANCE.toCardVO(comment, user, parentUser);
     }
 }

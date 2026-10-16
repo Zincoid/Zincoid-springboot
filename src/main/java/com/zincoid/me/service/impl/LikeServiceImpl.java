@@ -10,10 +10,12 @@ import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.po.Article;
+import com.zincoid.me.model.po.Comment;
 import com.zincoid.me.model.po.Moment;
 import com.zincoid.me.model.po.Repo;
 import com.zincoid.me.model.vo.LikerVO;
 import com.zincoid.me.service.ArticleService;
+import com.zincoid.me.service.CommentService;
 import com.zincoid.me.service.LikeService;
 import com.zincoid.me.service.MomentService;
 import com.zincoid.me.service.NotificationService;
@@ -36,17 +38,20 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
     private final MomentService momentService;
     private final ArticleService articleService;
     private final RepoService repoService;
+    private final CommentService commentService;
     private final NotificationService notificationService;
 
     public LikeServiceImpl(UserService userService,
                            @Lazy MomentService momentService,
                            @Lazy ArticleService articleService,
                            @Lazy RepoService repoService,
+                           @Lazy CommentService commentService,
                            NotificationService notificationService) {
         this.userService = userService;
         this.momentService = momentService;
         this.articleService = articleService;
         this.repoService = repoService;
+        this.commentService = commentService;
         this.notificationService = notificationService;
     }
 
@@ -74,12 +79,6 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
             log.info("Like removed: user={}, target={}:{}", userId, targetType, targetId);
             return false;
         }
-        Like like = Like.builder()
-                .userId(userId)
-                .targetType(targetType)
-                .targetId(targetId)
-                .build();
-        save(like);
         Long authorId;
         if (targetType == RelatedType.MOMENT) {
             Moment m = momentService.lambdaQuery().select(Moment::getUserId, Moment::getStatus).eq(Moment::getId, targetId).one();
@@ -96,7 +95,18 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
             if (r == null || r.getStatus() == Status.DISABLED)
                 throw new BusinessException(404, "Repo not found");
             authorId = r.getUserId();
+        } else if (targetType == RelatedType.COMMENT) {
+            Comment c = commentService.lambdaQuery().select(Comment::getUserId).eq(Comment::getId, targetId).one();
+            if (c == null)
+                throw new BusinessException(404, "Comment not found");
+            authorId = c.getUserId();
         } else throw new IllegalArgumentException("Invalid target type");
+        Like like = Like.builder()
+                .userId(userId)
+                .targetType(targetType)
+                .targetId(targetId)
+                .build();
+        save(like);
         if (authorId != null && !authorId.equals(userId))
             notificationService.notify(userId, authorId, NotificationType.LIKE, like.getId());
         log.info("Like added: user={}, target={}:{}", userId, targetType, targetId);

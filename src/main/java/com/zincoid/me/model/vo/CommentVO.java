@@ -19,5 +19,7 @@ public class CommentVO {
     private Long parentId;
     private List<CommentVO> replies;
     private long replyCount;
+    private Long likeCount;
+    private Boolean isLiked;
     private LocalDateTime createdAt;
 }

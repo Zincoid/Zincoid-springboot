@@ -4,8 +4,8 @@ import com.zincoid.me.model.dto.CommentCreateRequest;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.ApiResponse;
+import com.zincoid.me.model.vo.CommentCardVO;
 import com.zincoid.me.model.vo.CommentVO;
-import com.zincoid.me.model.vo.HomeCommentVO;
 import com.zincoid.me.model.vo.PageVO;
 
 import java.util.List;
@@ -55,7 +55,7 @@ public class CommentController {
     // ──── Public endpoints ────────────────
 
     @GetMapping("/public/home")
-    public ApiResponse<List<HomeCommentVO>> homeComments(@RequestParam(defaultValue = "10") int size) {
+    public ApiResponse<List<CommentCardVO>> homeComments(@RequestParam(defaultValue = "10") int size) {
         return ApiResponse.success(commentService.home(size));
     }
 
@@ -83,5 +83,10 @@ public class CommentController {
     @GetMapping("/public/replies/{parentId}")
     public ApiResponse<List<CommentVO>> replies(@PathVariable Long parentId) {
         return ApiResponse.success(commentService.replies(parentId));
+    }
+
+    @GetMapping("/public/{commentId}")
+    public ApiResponse<CommentCardVO> detail(@PathVariable Long commentId) {
+        return ApiResponse.success(commentService.get(commentId));
     }
 }

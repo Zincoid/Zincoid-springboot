@@ -122,11 +122,15 @@ public class CleanupServiceImpl implements CleanupService {
         Set<Long> users = userIds();
         Set<Long> moments = momentIds();
         Set<Long> articles = articleIds();
+        Set<Long> repos = repoIds();
+        Set<Long> comments = commentIds();
         List<Long> ids = likeService.lambdaQuery()
                 .select(Like::getId, Like::getTargetType, Like::getTargetId, Like::getUserId).list().stream()
                 .filter(l -> !users.contains(l.getUserId())
                         || l.getTargetType() == RelatedType.MOMENT && !moments.contains(l.getTargetId())
-                        || l.getTargetType() == RelatedType.ARTICLE && !articles.contains(l.getTargetId()))
+                        || l.getTargetType() == RelatedType.ARTICLE && !articles.contains(l.getTargetId())
+                        || l.getTargetType() == RelatedType.REPO && !repos.contains(l.getTargetId())
+                        || l.getTargetType() == RelatedType.COMMENT && !comments.contains(l.getTargetId()))
                 .map(Like::getId).toList();
         if (!ids.isEmpty()) likeService.removeBatchByIds(ids);
         return ids.size();
@@ -136,6 +140,7 @@ public class CleanupServiceImpl implements CleanupService {
         Set<Long> users = userIds();
         Set<Long> moments = momentIds();
         Set<Long> articles = articleIds();
+        Set<Long> repos = repoIds();
         Set<Long> roots = commentIds();
         List<Long> ids = commentService.lambdaQuery()
                 .select(Comment::getId, Comment::getTargetType, Comment::getTargetId,
@@ -143,6 +148,7 @@ public class CleanupServiceImpl implements CleanupService {
                 .filter(c -> !users.contains(c.getUserId())
                         || c.getTargetType() == RelatedType.MOMENT && !moments.contains(c.getTargetId())
                         || c.getTargetType() == RelatedType.ARTICLE && !articles.contains(c.getTargetId())
+                        || c.getTargetType() == RelatedType.REPO && !repos.contains(c.getTargetId())
                         || !roots.contains(c.getRootId()))
                 .map(Comment::getId).toList();
         if (!ids.isEmpty()) commentService.removeBatchByIds(ids);

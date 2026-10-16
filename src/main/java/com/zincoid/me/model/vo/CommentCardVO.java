@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class HomeCommentVO {
+public class CommentCardVO {
 
     private Long id;
     private Long userId;

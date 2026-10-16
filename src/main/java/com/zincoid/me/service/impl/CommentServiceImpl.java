@@ -75,6 +75,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                         .eq(Comment::getTargetType, targetType)
                         .eq(Comment::getTargetId, targetId)
                         .isNull(Comment::getParentId)
+                        .orderByDesc(Comment::getIsPinned)
                         .orderByDesc(Comment::getCreatedAt)
                         .page(Page.of(page, size));
         List<Comment> rootComments = rootPage.getRecords();
@@ -174,6 +175,45 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             });
         log.info("Comment added: user={}, target={}:{}, id={}", userId, targetType, targetId, comment.getId());
         return toCommentVO(comment, List.of(), 0);
+    }
+
+    @Override
+    @Transactional
+    public void pin(Long userId, Long commentId) {
+        Comment comment = getById(commentId);
+        if (comment == null)
+            throw new BusinessException(404, "Comment not found");
+        if (comment.getParentId() != null)
+            throw new BusinessException(400, "Only top-level comments can be pinned");
+        if (!Objects.equals(userId, getAuthor(comment.getTargetType(), comment.getTargetId())))
+            throw new BusinessException(403, "No permission to pin this comment");
+        lambdaUpdate()
+                .eq(Comment::getTargetType, comment.getTargetType())
+                .eq(Comment::getTargetId, comment.getTargetId())
+                .eq(Comment::getIsPinned, true)
+                .ne(Comment::getId, commentId)
+                .set(Comment::getIsPinned, false)
+                .update();
+        lambdaUpdate()
+                .eq(Comment::getId, commentId)
+                .set(Comment::getIsPinned, true)
+                .update();
+        log.info("Comment pinned: user={}, id={}", userId, commentId);
+    }
+
+    @Override
+    @Transactional
+    public void unpin(Long userId, Long commentId) {
+        Comment comment = getById(commentId);
+        if (comment == null)
+            throw new BusinessException(404, "Comment not found");
+        if (!Objects.equals(userId, getAuthor(comment.getTargetType(), comment.getTargetId())))
+            throw new BusinessException(403, "No permission to unpin this comment");
+        lambdaUpdate()
+                .eq(Comment::getId, commentId)
+                .set(Comment::getIsPinned, false)
+                .update();
+        log.info("Comment unpinned: user={}, id={}", userId, commentId);
     }
 
     @Override

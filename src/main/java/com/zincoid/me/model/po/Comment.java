@@ -26,5 +26,6 @@ public class Comment {
     private Long parentId;
     private Long rootId;
     private String content;
+    private Boolean isPinned;
     private LocalDateTime createdAt;
 }

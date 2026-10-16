@@ -46,6 +46,18 @@ public class CommentController {
                 RelatedType.REPO, repoId, request.getContent(), request.getParentId()));
     }
 
+    @PutMapping("/{commentId}/pin")
+    public ApiResponse<Void> pinComment(@PathVariable Long commentId) {
+        commentService.pin(AuthCtx.getUserId(), commentId);
+        return ApiResponse.success();
+    }
+
+    @PutMapping("/{commentId}/unpin")
+    public ApiResponse<Void> unpinComment(@PathVariable Long commentId) {
+        commentService.unpin(AuthCtx.getUserId(), commentId);
+        return ApiResponse.success();
+    }
+
     @DeleteMapping("/{commentId}")
     public ApiResponse<Void> deleteComment(@PathVariable Long commentId) {
         commentService.delete(AuthCtx.getUserId(), commentId, AuthCtx.getRole() == Role.ADMIN);

@@ -23,6 +23,10 @@ public interface CommentService extends IService<Comment> {
 
     CommentVO add(Long userId, RelatedType targetType, Long targetId, String content, Long parentId);
 
+    void pin(Long userId, Long commentId);
+
+    void unpin(Long userId, Long commentId);
+
     void delete(Long userId, Long commentId, boolean isAdmin);
 
     void delete(RelatedType targetType, Long targetId);

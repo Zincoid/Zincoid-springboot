@@ -21,5 +21,6 @@ public class CommentVO {
     private long replyCount;
     private Long likeCount;
     private Boolean isLiked;
+    private Boolean isPinned;
     private LocalDateTime createdAt;
 }

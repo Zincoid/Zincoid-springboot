@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS `comment` (
     `parent_id`     BIGINT          DEFAULT NULL             COMMENT 'Parent comment ID (NULL=top-level, non-null=reply)',
     `root_id`       BIGINT          NOT NULL                 COMMENT 'Top-level root comment ID (self for top-level)',
     `content`       TEXT            NOT NULL                 COMMENT 'Comment content',
+    `is_pinned`     BOOLEAN         NOT NULL DEFAULT FALSE   COMMENT 'Pinned in comment section (single pin per target)',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Comment time',
     PRIMARY KEY (`id`),
     KEY `idx_target` (`target_type`, `target_id`),

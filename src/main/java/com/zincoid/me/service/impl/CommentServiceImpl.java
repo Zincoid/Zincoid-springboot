@@ -75,7 +75,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                         .eq(Comment::getTargetType, targetType)
                         .eq(Comment::getTargetId, targetId)
                         .isNull(Comment::getParentId)
-                        .orderByAsc(Comment::getCreatedAt)
+                        .orderByDesc(Comment::getCreatedAt)
                         .page(Page.of(page, size));
         List<Comment> rootComments = rootPage.getRecords();
         Map<Long, Long> replyCounts = getReplyCounts(targetType, targetId, rootComments);

@@ -25,7 +25,7 @@ import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.LikeService;
 import com.zincoid.me.service.UserPermissionService;
 import com.zincoid.me.service.UserService;
-import com.zincoid.me.utils.MdTool;
+import com.zincoid.me.module.core.MdRenderer;
 import com.zincoid.me.utils.AuthCtx;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +52,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     private final LikeService likeService;
     private final CommentService commentService;
     private final UserPermissionService userPermissionService;
-    private final MdTool mdTool;
+    private final MdRenderer mdRenderer;
 
     @Override
     @Transactional
@@ -62,7 +62,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
                 .userId(userId)
                 .title(request.getTitle())
                 .contentMd(request.getContentMd())
-                .contentHtml(mdTool.renderToHtml(request.getContentMd()))
+                .contentHtml(mdRenderer.toHtml(request.getContentMd()))
                 .summary(request.getSummary())
                 .coverImage(request.getCoverImage())
                 .visibility(request.getVisibility() != null ? request.getVisibility() : Visibility.PUBLIC)
@@ -89,7 +89,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         if (request.getContentMd() != null) {
             Set<String> oldUrls = new HashSet<>(extractUploadUrls(article.getContentMd()));
             article.setContentMd(request.getContentMd());
-            article.setContentHtml(mdTool.renderToHtml(request.getContentMd()));
+            article.setContentHtml(mdRenderer.toHtml(request.getContentMd()));
             Set<String> newUrls = new HashSet<>(extractUploadUrls(article.getContentMd()));
             for (String oldUrl : oldUrls)
                 if (!newUrls.contains(oldUrl)) fileService.delete(oldUrl);

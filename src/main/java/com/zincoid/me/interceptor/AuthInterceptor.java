@@ -6,7 +6,7 @@ import com.zincoid.me.model.Error;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.service.UserService;
-import com.zincoid.me.utils.JwtTool;
+import com.zincoid.me.module.core.JwtTool;
 import com.zincoid.me.utils.AuthCtx;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;

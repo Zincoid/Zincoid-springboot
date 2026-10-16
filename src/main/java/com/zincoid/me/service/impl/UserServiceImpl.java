@@ -28,7 +28,7 @@ import com.zincoid.me.service.UserConfigService;
 import com.zincoid.me.service.UserService;
 
 import com.zincoid.me.utils.JsonUtil;
-import com.zincoid.me.utils.JwtTool;
+import com.zincoid.me.module.core.JwtTool;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

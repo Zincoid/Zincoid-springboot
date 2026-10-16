@@ -1,4 +1,4 @@
-package com.zincoid.me.utils;
+package com.zincoid.me.module.core;
 
 import com.vladsch.flexmark.ext.anchorlink.AnchorLinkExtension;
 import com.vladsch.flexmark.ext.autolink.AutolinkExtension;
@@ -17,12 +17,12 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public final class MdTool {
+public class MdRenderer {
 
     private final Parser parser;
     private final HtmlRenderer renderer;
 
-    public MdTool() {
+    public MdRenderer() {
         MutableDataSet options = new MutableDataSet();
         options.set(AnchorLinkExtension.ANCHORLINKS_SET_ID, true);
         options.set(Parser.EXTENSIONS, List.of(
@@ -40,7 +40,7 @@ public final class MdTool {
         this.renderer = HtmlRenderer.builder(options).build();
     }
 
-    public String renderToHtml(String markdown) {
+    public String toHtml(String markdown) {
         if (markdown == null || markdown.isBlank()) return "";
         return renderer.render(parser.parse(markdown));
     }

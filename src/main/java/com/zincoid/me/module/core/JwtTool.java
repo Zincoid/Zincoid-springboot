@@ -1,4 +1,4 @@
-package com.zincoid.me.utils;
+package com.zincoid.me.module.core;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
-public final class JwtTool {
+public class JwtTool {
 
     @Value("${jwt.secret}")
     private String secret;

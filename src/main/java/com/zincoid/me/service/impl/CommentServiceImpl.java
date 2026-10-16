@@ -68,7 +68,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
 
     @Override
     public PageVO<CommentVO> list(RelatedType targetType, Long targetId, boolean hot, int page, int size) {
-        validateTarget(targetType, targetId);
+        validate(targetType, targetId);
         IPage<Comment> rootPage = hot
                 ? baseMapper.selectRootsByLikes(Page.of(page, size), targetType, targetId, RelatedType.COMMENT)
                 : lambdaQuery()
@@ -95,7 +95,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 .list();
         List<CommentCardVO> result = new ArrayList<>();
         for (Comment comment : comments) {
-            if (!isTargetActive(comment.getTargetType(), comment.getTargetId())) continue;
+            if (!isActive(comment.getTargetType(), comment.getTargetId())) continue;
             result.add(toCommentCardVO(comment));
         }
         return result;
@@ -105,7 +105,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     public List<CommentVO> replies(Long parentId) {
         Comment parent = getById(parentId);
         if (parent == null) return List.of();
-        validateTarget(parent.getTargetType(), parent.getTargetId());
+        validate(parent.getTargetType(), parent.getTargetId());
         List<Comment> descendants = lambdaQuery()
                 .eq(Comment::getRootId, parent.getRootId())
                 .ne(Comment::getId, parentId)
@@ -120,7 +120,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     @Override
     public CommentCardVO card(Long commentId) {
         Comment comment = getById(commentId);
-        if (comment == null || !isTargetActive(comment.getTargetType(), comment.getTargetId()))
+        if (comment == null || !isActive(comment.getTargetType(), comment.getTargetId()))
             throw new BusinessException(404, "Comment not found");
         return toCommentCardVO(comment);
     }
@@ -136,7 +136,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     @Override
     @Transactional
     public CommentVO add(Long userId, RelatedType targetType, Long targetId, String content, Long parentId) {
-        validateTarget(targetType, targetId);
+        validate(targetType, targetId);
         Comment comment = Comment.builder()
                 .targetType(targetType)
                 .targetId(targetId)
@@ -157,17 +157,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             notificationService.notify(userId, parent.getUserId(),
                     NotificationType.REPLY, comment.getId());
         if (parentId == null) {
-            Long authorId = null;
-            if (targetType == RelatedType.MOMENT) {
-                Moment m = momentService.getById(targetId);
-                if (m != null) authorId = m.getUserId();
-            } else if (targetType == RelatedType.ARTICLE) {
-                Article a = articleService.getById(targetId);
-                if (a != null) authorId = a.getUserId();
-            } else if (targetType == RelatedType.REPO) {
-                Repo r = repoService.getById(targetId);
-                if (r != null) authorId = r.getUserId();
-            } else throw new IllegalArgumentException("Invalid target type");
+            Long authorId = getAuthor(targetType, targetId);
             if (authorId != null && !authorId.equals(userId))
                 notificationService.notify(userId, authorId,
                         NotificationType.COMMENT, comment.getId());
@@ -194,7 +184,8 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         Comment comment = getById(commentId);
         if (comment == null)
             throw new BusinessException(404, "Comment not found");
-        if (!isAdmin && !comment.getUserId().equals(userId))
+        if (!isAdmin && !comment.getUserId().equals(userId)
+                && !Objects.equals(userId, getAuthor(comment.getTargetType(), comment.getTargetId())))
             throw new BusinessException(403, "No permission to delete this comment");
         List<Long> allIds;
         if (comment.getId().equals(comment.getRootId())) {
@@ -250,7 +241,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
 
     // ──────── Target validation ───────────────────────────
 
-    private boolean isTargetActive(RelatedType targetType, Long targetId) {
+    private boolean isActive(RelatedType targetType, Long targetId) {
         if (targetType == RelatedType.MOMENT) {
             Moment m = momentService.lambdaQuery().select(Moment::getStatus).eq(Moment::getId, targetId).one();
             return m != null && m.getStatus() == Status.ACTIVE;
@@ -264,7 +255,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         return false;
     }
 
-    private void validateTarget(RelatedType targetType, Long targetId) {
+    private void validate(RelatedType targetType, Long targetId) {
         if (targetType == RelatedType.MOMENT) {
             Moment m = momentService.lambdaQuery().select(Moment::getStatus).eq(Moment::getId, targetId).one();
             if (m == null || m.getStatus() == Status.DISABLED)
@@ -278,6 +269,20 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             if (r == null || r.getStatus() == Status.DISABLED)
                 throw new BusinessException(404, "Repo not found");
         } else throw new IllegalArgumentException("Invalid target type");
+    }
+
+    private Long getAuthor(RelatedType targetType, Long targetId) {
+        if (targetType == RelatedType.MOMENT) {
+            Moment m = momentService.getById(targetId);
+            return m == null ? null : m.getUserId();
+        } else if (targetType == RelatedType.ARTICLE) {
+            Article a = articleService.getById(targetId);
+            return a == null ? null : a.getUserId();
+        } else if (targetType == RelatedType.REPO) {
+            Repo r = repoService.getById(targetId);
+            return r == null ? null : r.getUserId();
+        }
+        return null;
     }
 
     // ──────── Tree builder ────────────────────────────────

@@ -35,14 +35,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleBusiness(BusinessException e) {
-        log.warn("Business exception: {}", e.getMessage());
+        log.info("Business exception: {}", e.getMessage());
         return ApiResponse.error(e.getError());
     }
 
     @ExceptionHandler(UnauthorizedException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ApiResponse<Void> handleUnauthorized(UnauthorizedException e) {
-        log.warn("Unauthorized exception: {}", e.getMessage());
+        log.info("Unauthorized exception: {}", e.getMessage());
         return ApiResponse.error(e.getError());
     }
 

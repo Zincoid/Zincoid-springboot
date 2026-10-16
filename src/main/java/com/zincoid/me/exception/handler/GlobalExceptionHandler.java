@@ -1,5 +1,8 @@
-package com.zincoid.me.exception;
+package com.zincoid.me.exception.handler;
 
+import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.MaintenanceException;
+import com.zincoid.me.exception.UnauthorizedException;
 import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.model.Error;
 import lombok.extern.slf4j.Slf4j;

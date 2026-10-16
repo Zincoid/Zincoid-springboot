@@ -3,7 +3,7 @@ package com.zincoid.me.exception.handler;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.exception.MaintenanceException;
 import com.zincoid.me.exception.UnauthorizedException;
-import com.zincoid.me.model.ApiResponse;
+import com.zincoid.me.model.ApiResp;
 import com.zincoid.me.model.Error;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.ClientAbortException;
@@ -23,52 +23,52 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiResponse<Void> handleUnknown(Exception e) {
+    public ApiResp<Void> handleUnknown(Exception e) {
         log.error("Unexpected error", e);
-        return ApiResponse.error(500, Error.INTERNAL_SERVER_ERROR);
+        return ApiResp.error(500, Error.INTERNAL_SERVER_ERROR);
     }
 
     // ── Application errors ──────────────────────────────
 
     @ExceptionHandler(BusinessException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiResponse<Void> handleBusiness(BusinessException e) {
+    public ApiResp<Void> handleBusiness(BusinessException e) {
         log.warn("Business exception: {}", e.getMessage());
-        return ApiResponse.error(e.getCode(), e.getError());
+        return ApiResp.error(e.getCode(), e.getError());
     }
 
     @ExceptionHandler(UnauthorizedException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ApiResponse<Void> handleUnauthorized(UnauthorizedException e) {
+    public ApiResp<Void> handleUnauthorized(UnauthorizedException e) {
         log.warn("Unauthorized exception: {}", e.getMessage());
-        return ApiResponse.error(401, e.getError());
+        return ApiResp.error(401, e.getError());
     }
 
     @ExceptionHandler(MaintenanceException.class)
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
-    public ApiResponse<Void> handleMaintenance(MaintenanceException e) {
+    public ApiResp<Void> handleMaintenance(MaintenanceException e) {
         log.info("Request blocked during maintenance");
-        return ApiResponse.error(503, e.getError());
+        return ApiResp.error(503, e.getError());
     }
 
     // ── Request validation ──────────────────────────────
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiResponse<Void> handleNotValid(MethodArgumentNotValidException e) {
+    public ApiResp<Void> handleNotValid(MethodArgumentNotValidException e) {
         String message = e.getBindingResult().getFieldErrors().stream()
                 .map(error -> "Invalid " + error.getField() + ": " + error.getDefaultMessage())
                 .findFirst()
                 .orElse("Validation failed");
         log.warn("Validation failed: {}", message);
-        return ApiResponse.error(400, message);
+        return ApiResp.error(400, message);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiResponse<Void> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
+    public ApiResp<Void> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
         log.warn("Type mismatch: {}", e.getName());
-        return ApiResponse.error(400, Error.INVALID_PARAMETER);
+        return ApiResp.error(400, Error.INVALID_PARAMETER);
     }
 
     // ── Client disconnect ───────────────────────────────

@@ -1,6 +1,6 @@
 package com.zincoid.me.controller;
 
-import com.zincoid.me.model.ApiResponse;
+import com.zincoid.me.model.ApiResp;
 import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.vo.MessageVO;
 import com.zincoid.me.model.vo.PageVO;
@@ -23,15 +23,15 @@ public class ChatController {
     // ──── Private endpoints ───────────────
 
     @PostMapping
-    public ApiResponse<MessageVO> send(@RequestParam(required = false) String content,
-                                       @RequestParam(required = false) String file) {
-        return ApiResponse.success(messageService.send(AuthCtx.getUserId(), content, file));
+    public ApiResp<MessageVO> send(@RequestParam(required = false) String content,
+                                   @RequestParam(required = false) String file) {
+        return ApiResp.success(messageService.send(AuthCtx.getUserId(), content, file));
     }
 
     @DeleteMapping("/{messageId}")
-    public ApiResponse<Void> delete(@PathVariable Long messageId) {
+    public ApiResp<Void> delete(@PathVariable Long messageId) {
         messageService.delete(AuthCtx.getUserId(), messageId, AuthCtx.getRole() == Role.ADMIN);
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 
     // ──── Public endpoints ────────────────
@@ -44,8 +44,8 @@ public class ChatController {
     }
 
     @GetMapping("/public")
-    public ApiResponse<PageVO<MessageVO>> list(@RequestParam(defaultValue = "1") int page,
-                                               @RequestParam(defaultValue = "50") int size) {
-        return ApiResponse.success(messageService.list(page, size));
+    public ApiResp<PageVO<MessageVO>> list(@RequestParam(defaultValue = "1") int page,
+                                           @RequestParam(defaultValue = "50") int size) {
+        return ApiResp.success(messageService.list(page, size));
     }
 }

@@ -1,7 +1,7 @@
 package com.zincoid.me.controller;
 
+import com.zincoid.me.model.ApiResp;
 import com.zincoid.me.model.enums.RelatedType;
-import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.service.LikeService;
 import com.zincoid.me.utils.AuthCtx;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +19,9 @@ public class LikeController {
     // ──── Private endpoints ───────────────
 
     @PostMapping("/{targetType}/{targetId}")
-    public ApiResponse<Map<String, Object>> toggle(@PathVariable RelatedType targetType,
-                                                   @PathVariable Long targetId) {
-        return ApiResponse.success(Map.of(
+    public ApiResp<Map<String, Object>> toggle(@PathVariable RelatedType targetType,
+                                               @PathVariable Long targetId) {
+        return ApiResp.success(Map.of(
                 "liked", likeService.toggle(AuthCtx.getUserId(), targetType, targetId),
                 "count", likeService.count(targetType, targetId)
         ));
@@ -30,9 +30,9 @@ public class LikeController {
     // ──── Public endpoints ────────────────
 
     @GetMapping("/public/{targetType}/{targetId}/status")
-    public ApiResponse<Map<String, Object>> status(@PathVariable RelatedType targetType,
-                                                   @PathVariable Long targetId) {
-        return ApiResponse.success(Map.of(
+    public ApiResp<Map<String, Object>> status(@PathVariable RelatedType targetType,
+                                               @PathVariable Long targetId) {
+        return ApiResp.success(Map.of(
                 "liked", likeService.liked(AuthCtx.getUserId(), targetType, targetId),
                 "count", likeService.count(targetType, targetId)
         ));

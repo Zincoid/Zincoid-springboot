@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 @Data
-public class ApiResponse<T> {
+public class ApiResp<T> {
 
     private int code;
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -12,7 +12,7 @@ public class ApiResponse<T> {
     private String message;
     private T data;
 
-    private ApiResponse(int code, String error, String message, T data) {
+    private ApiResp(int code, String error, String message, T data) {
         this.code = code;
         this.error = error;
         this.message = message;
@@ -20,22 +20,22 @@ public class ApiResponse<T> {
     }
 
     /** Success response: with data. **/
-    public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>(200, null, "success", data);
+    public static <T> ApiResp<T> success(T data) {
+        return new ApiResp<>(200, null, "success", data);
     }
 
     /** Success response: no data. **/
-    public static <T> ApiResponse<T> success() {
-        return new ApiResponse<>(200, null, "success", null);
+    public static <T> ApiResp<T> success() {
+        return new ApiResp<>(200, null, "success", null);
     }
 
     /** Error response: uses the provided code and error, with fallback message. */
-    public static <T> ApiResponse<T> error(int code, Error error) {
-        return new ApiResponse<>(code, error.name(), error.getMessage(), null);
+    public static <T> ApiResp<T> error(int code, Error error) {
+        return new ApiResp<>(code, error.name(), error.getMessage(), null);
     }
 
     /** Error response: message-only error (no stable code, e.g. DTO validation detail). */
-    public static <T> ApiResponse<T> error(int code, String message) {
-        return new ApiResponse<>(code, null, message, null);
+    public static <T> ApiResp<T> error(int code, String message) {
+        return new ApiResp<>(code, null, message, null);
     }
 }

@@ -1,6 +1,6 @@
 package com.zincoid.me.controller;
 
-import com.zincoid.me.model.ApiResponse;
+import com.zincoid.me.model.ApiResp;
 import com.zincoid.me.model.dto.RepoCreateRequest;
 import com.zincoid.me.model.dto.RepoUpdateRequest;
 import com.zincoid.me.model.enums.RepoType;
@@ -27,100 +27,100 @@ public class RepoController {
     // ──── Private endpoints ───────────────
 
     @PostMapping
-    public ApiResponse<RepoDetailVO> createRepo(@Valid @RequestBody RepoCreateRequest request) {
-        return ApiResponse.success(repoService.create(AuthCtx.getUserId(), request));
+    public ApiResp<RepoDetailVO> createRepo(@Valid @RequestBody RepoCreateRequest request) {
+        return ApiResp.success(repoService.create(AuthCtx.getUserId(), request));
     }
 
     @PutMapping("/{repoId}")
-    public ApiResponse<RepoDetailVO> updateRepo(@PathVariable Long repoId,
-                                                @Valid @RequestBody RepoUpdateRequest request) {
-        return ApiResponse.success(repoService.update(AuthCtx.getUserId(), repoId, request));
+    public ApiResp<RepoDetailVO> updateRepo(@PathVariable Long repoId,
+                                            @Valid @RequestBody RepoUpdateRequest request) {
+        return ApiResp.success(repoService.update(AuthCtx.getUserId(), repoId, request));
     }
 
     @DeleteMapping("/{repoId}")
-    public ApiResponse<Void> deleteRepo(@PathVariable Long repoId) {
+    public ApiResp<Void> deleteRepo(@PathVariable Long repoId) {
         repoService.delete(AuthCtx.getUserId(), repoId, AuthCtx.getRole() == Role.ADMIN);
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 
     @PutMapping("/{repoId}/pin")
-    public ApiResponse<Void> pinRepo(@PathVariable Long repoId) {
+    public ApiResp<Void> pinRepo(@PathVariable Long repoId) {
         AuthCtx.requireAdmin();
         repoService.pin(repoId);
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 
     @PutMapping("/{repoId}/unpin")
-    public ApiResponse<Void> unpinRepo(@PathVariable Long repoId) {
+    public ApiResp<Void> unpinRepo(@PathVariable Long repoId) {
         AuthCtx.requireAdmin();
         repoService.unpin(repoId);
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 
     @PostMapping("/{repoId}/items")
-    public ApiResponse<RepoItemVO> addRepoItem(@PathVariable Long repoId,
-                                               @RequestParam Long fileId) {
-        return ApiResponse.success(repoService.addItem(AuthCtx.getUserId(), repoId, fileId));
+    public ApiResp<RepoItemVO> addRepoItem(@PathVariable Long repoId,
+                                           @RequestParam Long fileId) {
+        return ApiResp.success(repoService.addItem(AuthCtx.getUserId(), repoId, fileId));
     }
 
     @DeleteMapping("/{repoId}/items/{itemId}")
-    public ApiResponse<Void> deleteRepoItem(@PathVariable Long repoId,
-                                            @PathVariable Long itemId) {
+    public ApiResp<Void> deleteRepoItem(@PathVariable Long repoId,
+                                        @PathVariable Long itemId) {
         repoService.deleteItem(AuthCtx.getUserId(), repoId, itemId);
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 
     @PutMapping("/{repoId}/items/sort")
-    public ApiResponse<Void> sortItems(@PathVariable Long repoId,
-                                       @RequestParam Long from,
-                                       @RequestParam Long to) {
+    public ApiResp<Void> sortItems(@PathVariable Long repoId,
+                                   @RequestParam Long from,
+                                   @RequestParam Long to) {
         repoService.swapItems(AuthCtx.getUserId(), repoId, from, to);
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 
     // ──── Public endpoints ────────────────
 
     @GetMapping("/public/random")
-    public ApiResponse<RepoCardVO> randomRepo() {
-        return ApiResponse.success(repoService.random());
+    public ApiResp<RepoCardVO> randomRepo() {
+        return ApiResp.success(repoService.random());
     }
 
     @GetMapping("/public/home")
-    public ApiResponse<List<RepoCardVO>> homeRepos(@RequestParam(defaultValue = "10") int size) {
-        return ApiResponse.success(repoService.home(size));
+    public ApiResp<List<RepoCardVO>> homeRepos(@RequestParam(defaultValue = "10") int size) {
+        return ApiResp.success(repoService.home(size));
     }
 
     @GetMapping("/public")
-    public ApiResponse<PageVO<RepoCardVO>> listRepos(@RequestParam(defaultValue = "1") int page,
-                                                     @RequestParam(defaultValue = "10") int size,
-                                                     @RequestParam(required = false) RepoType type,
-                                                     @RequestParam(required = false) String keyword,
-                                                     @RequestParam(required = false, defaultValue = "false") boolean tagged,
-                                                     @RequestParam(required = false, defaultValue = "false") boolean updated,
-                                                     @RequestParam(defaultValue = "false") boolean pinned) {
-        return ApiResponse.success(repoService.list(type, keyword, tagged, updated, pinned, page, size));
+    public ApiResp<PageVO<RepoCardVO>> listRepos(@RequestParam(defaultValue = "1") int page,
+                                                 @RequestParam(defaultValue = "10") int size,
+                                                 @RequestParam(required = false) RepoType type,
+                                                 @RequestParam(required = false) String keyword,
+                                                 @RequestParam(required = false, defaultValue = "false") boolean tagged,
+                                                 @RequestParam(required = false, defaultValue = "false") boolean updated,
+                                                 @RequestParam(defaultValue = "false") boolean pinned) {
+        return ApiResp.success(repoService.list(type, keyword, tagged, updated, pinned, page, size));
     }
 
     @GetMapping("/public/user/{userId}")
-    public ApiResponse<PageVO<RepoCardVO>> userRepos(@PathVariable Long userId,
-                                                     @RequestParam(defaultValue = "1") int page,
-                                                     @RequestParam(defaultValue = "10") int size,
-                                                     @RequestParam(required = false) RepoType type,
-                                                     @RequestParam(required = false, defaultValue = "false") boolean updated,
-                                                     @RequestParam(defaultValue = "false") boolean pinned) {
-        return ApiResponse.success(repoService.list(type, userId, updated, pinned, page, size));
+    public ApiResp<PageVO<RepoCardVO>> userRepos(@PathVariable Long userId,
+                                                 @RequestParam(defaultValue = "1") int page,
+                                                 @RequestParam(defaultValue = "10") int size,
+                                                 @RequestParam(required = false) RepoType type,
+                                                 @RequestParam(required = false, defaultValue = "false") boolean updated,
+                                                 @RequestParam(defaultValue = "false") boolean pinned) {
+        return ApiResp.success(repoService.list(type, userId, updated, pinned, page, size));
     }
 
     @GetMapping("/public/{repoId}")
-    public ApiResponse<RepoDetailVO> repoDetail(@PathVariable Long repoId) {
-        return ApiResponse.success(repoService.get(repoId));
+    public ApiResp<RepoDetailVO> repoDetail(@PathVariable Long repoId) {
+        return ApiResp.success(repoService.get(repoId));
     }
 
     @GetMapping("/public/{repoId}/items")
-    public ApiResponse<PageVO<RepoItemVO>> repoItems(@PathVariable Long repoId,
-                                                     @RequestParam(defaultValue = "1") int page,
-                                                     @RequestParam(defaultValue = "10") int size,
-                                                     @RequestParam(defaultValue = "false") boolean latest) {
-        return ApiResponse.success(repoService.items(repoId, latest, page, size));
+    public ApiResp<PageVO<RepoItemVO>> repoItems(@PathVariable Long repoId,
+                                                 @RequestParam(defaultValue = "1") int page,
+                                                 @RequestParam(defaultValue = "10") int size,
+                                                 @RequestParam(defaultValue = "false") boolean latest) {
+        return ApiResp.success(repoService.items(repoId, latest, page, size));
     }
 }

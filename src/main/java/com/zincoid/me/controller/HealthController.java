@@ -1,6 +1,6 @@
 package com.zincoid.me.controller;
 
-import com.zincoid.me.model.ApiResponse;
+import com.zincoid.me.model.ApiResp;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.info.BuildProperties;
@@ -19,12 +19,12 @@ public class HealthController {
     // ──── Public endpoints ────────────────
 
     @GetMapping
-    public ApiResponse<String> health() {
-        return ApiResponse.success("ok");
+    public ApiResp<String> health() {
+        return ApiResp.success("ok");
     }
 
     @GetMapping("/version")
-    public ApiResponse<Map<String, String>> version() {
+    public ApiResp<Map<String, String>> version() {
         BuildProperties build = buildPropertiesProvider.getIfAvailable();
         Map<String, String> info = new LinkedHashMap<>();
         info.put("version", build != null ? build.getVersion() : "dev");
@@ -32,6 +32,6 @@ public class HealthController {
                 ? Long.toString(build.getTime().toEpochMilli(), 36) : null);
         info.put("time", build != null && build.getTime() != null
                 ? build.getTime().toString() : null);
-        return ApiResponse.success(info);
+        return ApiResp.success(info);
     }
 }

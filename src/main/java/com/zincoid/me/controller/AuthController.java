@@ -1,9 +1,9 @@
 package com.zincoid.me.controller;
 
+import com.zincoid.me.model.ApiResp;
 import com.zincoid.me.model.dto.ForgotPasswordRequest;
 import com.zincoid.me.model.dto.LoginRequest;
 import com.zincoid.me.model.dto.RegisterRequest;
-import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.model.vo.LoginVO;
 import com.zincoid.me.service.EmailService;
 import com.zincoid.me.service.UserService;
@@ -42,15 +42,15 @@ public class AuthController {
     // ──── Public endpoints ────────────────
 
     @PostMapping("/login")
-    public ApiResponse<LoginVO> login(@Valid @RequestBody LoginRequest request,
-                                      HttpServletResponse response) {
+    public ApiResp<LoginVO> login(@Valid @RequestBody LoginRequest request,
+                                  HttpServletResponse response) {
         LoginVO vo = userService.login(request);
         issueCookie(response, vo.getToken());
-        return ApiResponse.success(vo);
+        return ApiResp.success(vo);
     }
 
     @PostMapping("/logout")
-    public ApiResponse<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ApiResp<Void> logout(HttpServletRequest request, HttpServletResponse response) {
         String token = null;
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
@@ -62,51 +62,51 @@ public class AuthController {
         }
         if (token != null) userService.logout(token);
         clearCookie(response);
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 
     @PostMapping("/register/send-code")
-    public ApiResponse<Void> sendRegisterCode(@RequestBody Map<String, String> body) {
+    public ApiResp<Void> sendRegisterCode(@RequestBody Map<String, String> body) {
         emailService.sendRegisterCode(body.get("email"));
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 
     @PostMapping("/register")
-    public ApiResponse<LoginVO> register(@Valid @RequestBody RegisterRequest request,
-                                         HttpServletResponse response) {
+    public ApiResp<LoginVO> register(@Valid @RequestBody RegisterRequest request,
+                                     HttpServletResponse response) {
         LoginVO vo = userService.register(request);
         issueCookie(response, vo.getToken());
-        return ApiResponse.success(vo);
+        return ApiResp.success(vo);
     }
 
     @PostMapping("/reset-password/send-code")
-    public ApiResponse<Void> sendResetCode(@RequestBody Map<String, String> body) {
+    public ApiResp<Void> sendResetCode(@RequestBody Map<String, String> body) {
         emailService.sendResetCode(body.get("email"));
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 
     @PutMapping("/reset-password")
-    public ApiResponse<Void> reset(@Valid @RequestBody ForgotPasswordRequest request) {
+    public ApiResp<Void> reset(@Valid @RequestBody ForgotPasswordRequest request) {
         userService.resetPassword(request);
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 
     @PostMapping("/change-email/send-new-code")
-    public ApiResponse<Void> sendChangeCode(@RequestBody Map<String, String> body) {
+    public ApiResp<Void> sendChangeCode(@RequestBody Map<String, String> body) {
         emailService.sendChangeCode(body.get("email"));
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 
     @PostMapping("/change-email/send-old-code")
-    public ApiResponse<Void> sendChangeCode() {
+    public ApiResp<Void> sendChangeCode() {
         emailService.sendChangeCode(AuthCtx.getUserId());
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 
     @PutMapping("/change-email")
-    public ApiResponse<Void> change(@RequestBody Map<String, String> body) {
+    public ApiResp<Void> change(@RequestBody Map<String, String> body) {
         userService.changeEmail(AuthCtx.getUserId(), body.get("email"), body.get("newCode"), body.get("oldCode"));
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 
     // ──────── Private tool ────────────────────────────────

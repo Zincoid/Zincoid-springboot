@@ -1,9 +1,9 @@
 package com.zincoid.me.controller;
 
+import com.zincoid.me.model.ApiResp;
 import com.zincoid.me.model.dto.MomentCreateRequest;
 import com.zincoid.me.model.dto.MomentUpdateRequest;
 import com.zincoid.me.model.enums.Role;
-import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.model.vo.MomentDetailVO;
 import com.zincoid.me.model.vo.MomentCardVO;
 import com.zincoid.me.model.vo.PageVO;
@@ -25,71 +25,71 @@ public class MomentController {
     // ──── Private endpoints ───────────────
 
     @PostMapping
-    public ApiResponse<MomentCardVO> createMoment(@Valid @RequestBody MomentCreateRequest request) {
-        return ApiResponse.success(momentService.create(AuthCtx.getUserId(), request));
+    public ApiResp<MomentCardVO> createMoment(@Valid @RequestBody MomentCreateRequest request) {
+        return ApiResp.success(momentService.create(AuthCtx.getUserId(), request));
     }
 
     @PutMapping("/{momentId}")
-    public ApiResponse<MomentCardVO> updateMoment(@PathVariable Long momentId,
-                                            @Valid @RequestBody MomentUpdateRequest request) {
-        return ApiResponse.success(momentService.update(AuthCtx.getUserId(), momentId, request));
+    public ApiResp<MomentCardVO> updateMoment(@PathVariable Long momentId,
+                                              @Valid @RequestBody MomentUpdateRequest request) {
+        return ApiResp.success(momentService.update(AuthCtx.getUserId(), momentId, request));
     }
 
     @DeleteMapping("/{momentId}")
-    public ApiResponse<Void> deleteMoment(@PathVariable Long momentId) {
+    public ApiResp<Void> deleteMoment(@PathVariable Long momentId) {
         momentService.delete(AuthCtx.getUserId(), momentId, AuthCtx.getRole() == Role.ADMIN);
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 
     @PutMapping("/{momentId}/pin")
-    public ApiResponse<Void> pinMoment(@PathVariable Long momentId) {
+    public ApiResp<Void> pinMoment(@PathVariable Long momentId) {
         AuthCtx.requireAdmin();
         momentService.pin(momentId);
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 
     @PutMapping("/{momentId}/unpin")
-    public ApiResponse<Void> unpinMoment(@PathVariable Long momentId) {
+    public ApiResp<Void> unpinMoment(@PathVariable Long momentId) {
         AuthCtx.requireAdmin();
         momentService.unpin(momentId);
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 
     // ──── Public endpoints ────────────────
 
     @GetMapping("/public/random")
-    public ApiResponse<MomentCardVO> randomMoment() {
-        return ApiResponse.success(momentService.random());
+    public ApiResp<MomentCardVO> randomMoment() {
+        return ApiResp.success(momentService.random());
     }
 
     @GetMapping("/public/home")
-    public ApiResponse<List<MomentCardVO>> homeMoments(@RequestParam(defaultValue = "10") int size) {
-        return ApiResponse.success(momentService.home(size));
+    public ApiResp<List<MomentCardVO>> homeMoments(@RequestParam(defaultValue = "10") int size) {
+        return ApiResp.success(momentService.home(size));
     }
 
     @GetMapping("/public")
-    public ApiResponse<PageVO<MomentCardVO>> listMoments(@RequestParam(defaultValue = "1") int page,
-                                                         @RequestParam(defaultValue = "10") int size,
-                                                         @RequestParam(defaultValue = "false") boolean pinned) {
-        return ApiResponse.success(momentService.list(page, size, pinned));
+    public ApiResp<PageVO<MomentCardVO>> listMoments(@RequestParam(defaultValue = "1") int page,
+                                                     @RequestParam(defaultValue = "10") int size,
+                                                     @RequestParam(defaultValue = "false") boolean pinned) {
+        return ApiResp.success(momentService.list(page, size, pinned));
     }
 
     @GetMapping("/public/user/{userId}")
-    public ApiResponse<PageVO<MomentCardVO>> userMoments(@PathVariable Long userId,
-                                                         @RequestParam(defaultValue = "1") int page,
-                                                         @RequestParam(defaultValue = "10") int size,
-                                                         @RequestParam(defaultValue = "false") boolean pinned) {
-        return ApiResponse.success(momentService.list(userId, page, size, pinned));
+    public ApiResp<PageVO<MomentCardVO>> userMoments(@PathVariable Long userId,
+                                                     @RequestParam(defaultValue = "1") int page,
+                                                     @RequestParam(defaultValue = "10") int size,
+                                                     @RequestParam(defaultValue = "false") boolean pinned) {
+        return ApiResp.success(momentService.list(userId, page, size, pinned));
     }
 
     @GetMapping("/public/{momentId}")
-    public ApiResponse<MomentDetailVO> momentDetail(@PathVariable Long momentId) {
-        return ApiResponse.success(momentService.get(momentId));
+    public ApiResp<MomentDetailVO> momentDetail(@PathVariable Long momentId) {
+        return ApiResp.success(momentService.get(momentId));
     }
 
     @PostMapping("/public/{momentId}/view")
-    public ApiResponse<Void> momentView(@PathVariable Long momentId) {
+    public ApiResp<Void> momentView(@PathVariable Long momentId) {
         momentService.view(momentId);
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 }

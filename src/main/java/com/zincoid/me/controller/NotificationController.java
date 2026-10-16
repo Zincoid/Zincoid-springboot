@@ -1,6 +1,6 @@
 package com.zincoid.me.controller;
 
-import com.zincoid.me.model.ApiResponse;
+import com.zincoid.me.model.ApiResp;
 import com.zincoid.me.model.dto.EmailBroadcastRequest;
 import com.zincoid.me.model.vo.NotificationVO;
 import com.zincoid.me.model.vo.PageVO;
@@ -24,52 +24,52 @@ public class NotificationController {
     // ──── Private endpoints ───────────────
 
     @GetMapping("/count")
-    public ApiResponse<Long> countUnreadNotifications() {
-        return ApiResponse.success(notificationService.countUnread(AuthCtx.getUserId()));
+    public ApiResp<Long> countUnreadNotifications() {
+        return ApiResp.success(notificationService.countUnread(AuthCtx.getUserId()));
     }
 
     @GetMapping
-    public ApiResponse<PageVO<NotificationVO>> listNotifications(@RequestParam(defaultValue = "1") int page,
-                                                                 @RequestParam(defaultValue = "5") int size) {
-        return ApiResponse.success(notificationService.list(AuthCtx.getUserId(), page, size));
+    public ApiResp<PageVO<NotificationVO>> listNotifications(@RequestParam(defaultValue = "1") int page,
+                                                             @RequestParam(defaultValue = "5") int size) {
+        return ApiResp.success(notificationService.list(AuthCtx.getUserId(), page, size));
     }
 
     @DeleteMapping("/{id}")
-    public ApiResponse<Void> deleteNotification(@PathVariable Long id) {
+    public ApiResp<Void> deleteNotification(@PathVariable Long id) {
         notificationService.deleteOne(id, AuthCtx.getUserId());
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 
     @DeleteMapping
-    public ApiResponse<Void> deleteAllNotifications() {
+    public ApiResp<Void> deleteAllNotifications() {
         notificationService.deleteAll(AuthCtx.getUserId());
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 
     @PutMapping("/{id}/read")
-    public ApiResponse<Void> readOneNotification(@PathVariable Long id) {
+    public ApiResp<Void> readOneNotification(@PathVariable Long id) {
         notificationService.readOne(id, AuthCtx.getUserId());
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 
     @PutMapping("/read")
-    public ApiResponse<Void> readAllNotifications() {
+    public ApiResp<Void> readAllNotifications() {
         notificationService.readAll(AuthCtx.getUserId());
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 
     @PostMapping("/broadcast")
-    public ApiResponse<Void> broadcast(@RequestBody Map<String, String> body) {
+    public ApiResp<Void> broadcast(@RequestBody Map<String, String> body) {
         AuthCtx.requireAdmin();
         notificationService.broadcast(AuthCtx.getUserId(), body.get("content"));
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 
     @PostMapping("/broadcast/email")
-    public ApiResponse<Void> broadcast(@Valid @RequestBody EmailBroadcastRequest request) {
+    public ApiResp<Void> broadcast(@Valid @RequestBody EmailBroadcastRequest request) {
         AuthCtx.requireAdmin();
         emailService.sendBroadcast(request.getSubject().trim(), request.getContent().trim(),
                 Boolean.TRUE.equals(request.getForce()));
-        return ApiResponse.success();
+        return ApiResp.success();
     }
 }

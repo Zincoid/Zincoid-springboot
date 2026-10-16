@@ -2,7 +2,7 @@ package com.zincoid.me.interceptor;
 
 import com.zincoid.me.controller.AuthController;
 import com.zincoid.me.exception.UnauthorizedException;
-import com.zincoid.me.exception.Error;
+import com.zincoid.me.model.Error;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.service.UserService;

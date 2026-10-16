@@ -5,7 +5,7 @@ import com.zincoid.me.ai.client.AiClient;
 import com.zincoid.me.ai.message.AiMessage;
 import com.zincoid.me.configuration.DataInitializer;
 import com.zincoid.me.exception.BusinessException;
-import com.zincoid.me.exception.Error;
+import com.zincoid.me.model.Error;
 import com.zincoid.me.ai.client.AiTask;
 import com.zincoid.me.model.po.Comment;
 import com.zincoid.me.model.po.Message;

@@ -1,6 +1,7 @@
 package com.zincoid.me.exception;
 
 import com.zincoid.me.model.ApiResponse;
+import com.zincoid.me.model.Error;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.ClientAbortException;
 import org.springframework.http.HttpStatus;
@@ -51,7 +52,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
         log.warn("Type mismatch: {}", e.getName());
-        return ApiResponse.error(400, Error.INVALID_PARAMETER);
+        return ApiResponse.error(400, com.zincoid.me.model.Error.INVALID_PARAMETER);
     }
 
     @ExceptionHandler(ClientAbortException.class)

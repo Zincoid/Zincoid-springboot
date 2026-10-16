@@ -1,7 +1,7 @@
 package com.zincoid.me.interceptor;
 
 import com.zincoid.me.exception.BusinessException;
-import com.zincoid.me.exception.Error;
+import com.zincoid.me.model.Error;
 import com.zincoid.me.model.enums.FileType;
 import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.po.File;

@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.converter.RepoConverter;
 import com.zincoid.me.exception.BusinessException;
-import com.zincoid.me.exception.Error;
+import com.zincoid.me.model.Error;
 import com.zincoid.me.mapper.RepoItemMapper;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.po.File;

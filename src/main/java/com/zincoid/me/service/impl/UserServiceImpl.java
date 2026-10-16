@@ -6,7 +6,7 @@ import com.zincoid.me.model.enums.*;
 import com.zincoid.me.model.po.*;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.exception.BusinessException;
-import com.zincoid.me.exception.Error;
+import com.zincoid.me.model.Error;
 import com.zincoid.me.mapper.UserMapper;
 import com.zincoid.me.converter.UserConverter;
 import com.zincoid.me.model.dto.ForgotPasswordRequest;

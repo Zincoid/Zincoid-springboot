@@ -3,7 +3,7 @@ package com.zincoid.me.service.impl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.exception.BusinessException;
-import com.zincoid.me.exception.Error;
+import com.zincoid.me.model.Error;
 import com.zincoid.me.mapper.NotificationMapper;
 import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.RelatedType;

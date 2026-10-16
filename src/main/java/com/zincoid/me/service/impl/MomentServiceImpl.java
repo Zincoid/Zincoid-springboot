@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.converter.MomentConverter;
 import com.zincoid.me.exception.BusinessException;
-import com.zincoid.me.exception.Error;
+import com.zincoid.me.model.Error;
 import com.zincoid.me.mapper.MomentMapper;
 import com.zincoid.me.model.dto.MomentCreateRequest;
 import com.zincoid.me.model.dto.MomentUpdateRequest;

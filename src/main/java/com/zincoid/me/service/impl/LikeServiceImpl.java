@@ -9,7 +9,7 @@ import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.exception.BusinessException;
-import com.zincoid.me.exception.Error;
+import com.zincoid.me.model.Error;
 import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.Comment;
 import com.zincoid.me.model.po.Moment;

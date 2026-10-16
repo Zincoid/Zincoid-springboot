@@ -1,4 +1,4 @@
-package com.zincoid.me.exception;
+package com.zincoid.me.model;
 
 import lombok.Getter;
 

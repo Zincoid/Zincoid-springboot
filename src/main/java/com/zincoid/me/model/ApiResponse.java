@@ -1,7 +1,6 @@
 package com.zincoid.me.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.zincoid.me.exception.Error;
 import lombok.Data;
 
 @Data

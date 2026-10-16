@@ -1,7 +1,7 @@
 package com.zincoid.me.service.impl;
 
 import com.zincoid.me.exception.BusinessException;
-import com.zincoid.me.exception.Error;
+import com.zincoid.me.model.Error;
 import com.zincoid.me.model.enums.AccessRole;
 import com.zincoid.me.model.enums.CodeType;
 import com.zincoid.me.model.po.User;

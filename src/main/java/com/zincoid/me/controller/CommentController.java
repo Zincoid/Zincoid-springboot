@@ -59,6 +59,11 @@ public class CommentController {
         return ApiResponse.success(commentService.home(size));
     }
 
+    @GetMapping("/public/count/{targetType}/{targetId}")
+    public ApiResponse<Long> countComments(@PathVariable RelatedType targetType, @PathVariable Long targetId) {
+        return ApiResponse.success(commentService.count(targetType, targetId));
+    }
+
     @GetMapping("/public/moment/{momentId}")
     public ApiResponse<PageVO<CommentVO>> momentComments(@PathVariable Long momentId,
                                                          @RequestParam(defaultValue = "1") int page,

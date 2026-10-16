@@ -1,9 +1,9 @@
 package com.zincoid.me.service.impl;
 
-import com.zincoid.me.ai.client.AiState;
-import com.zincoid.me.ai.client.AiTask;
-import com.zincoid.me.ai.tool.ToolCall;
-import com.zincoid.me.ai.tool.ToolRes;
+import com.zincoid.me.module.ai.client.AiState;
+import com.zincoid.me.module.ai.client.AiTask;
+import com.zincoid.me.module.ai.tool.ToolCall;
+import com.zincoid.me.module.ai.tool.ToolRes;
 import com.zincoid.me.model.vo.MessageVO;
 import com.zincoid.me.model.vo.ToolEventVO;
 import com.zincoid.me.service.MessageStreamService;

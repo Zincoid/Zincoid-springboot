@@ -1,12 +1,12 @@
 package com.zincoid.me.service.impl;
 
-import com.zincoid.me.ai.AiChatProperties;
-import com.zincoid.me.ai.client.AiClient;
-import com.zincoid.me.ai.message.AiMessage;
-import com.zincoid.me.configuration.DataInitializer;
+import com.zincoid.me.module.ai.AiChatProperties;
+import com.zincoid.me.module.ai.client.AiClient;
+import com.zincoid.me.module.ai.message.AiMessage;
+import com.zincoid.me.module.core.DataInitializer;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.Error;
-import com.zincoid.me.ai.client.AiTask;
+import com.zincoid.me.module.ai.client.AiTask;
 import com.zincoid.me.model.po.Comment;
 import com.zincoid.me.model.po.Message;
 import com.zincoid.me.model.po.User;

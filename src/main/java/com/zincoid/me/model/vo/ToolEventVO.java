@@ -1,7 +1,7 @@
 package com.zincoid.me.model.vo;
 
-import com.zincoid.me.ai.client.AiTask;
-import com.zincoid.me.ai.client.AiState;
+import com.zincoid.me.module.ai.client.AiTask;
+import com.zincoid.me.module.ai.client.AiState;
 import lombok.Builder;
 import lombok.Data;
 

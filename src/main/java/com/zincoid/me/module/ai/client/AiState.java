@@ -1,0 +1,23 @@
+package com.zincoid.me.module.ai.client;
+
+import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Getter;
+
+@Getter
+public enum AiState {
+
+    RUNNING("running"),
+    DONE("done"),
+    ERROR("error");
+
+    private final String value;
+
+    AiState(String value) {
+        this.value = value;
+    }
+
+    @JsonValue
+    public String getValue() {
+        return value;
+    }
+}

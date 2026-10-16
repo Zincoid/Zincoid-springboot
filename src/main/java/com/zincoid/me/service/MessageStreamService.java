@@ -1,8 +1,8 @@
 package com.zincoid.me.service;
 
-import com.zincoid.me.ai.client.AiTask;
-import com.zincoid.me.ai.tool.ToolCall;
-import com.zincoid.me.ai.tool.ToolRes;
+import com.zincoid.me.module.ai.client.AiTask;
+import com.zincoid.me.module.ai.tool.ToolCall;
+import com.zincoid.me.module.ai.tool.ToolRes;
 import com.zincoid.me.model.vo.MessageVO;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 

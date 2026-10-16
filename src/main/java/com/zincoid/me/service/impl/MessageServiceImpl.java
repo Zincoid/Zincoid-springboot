@@ -2,7 +2,7 @@ package com.zincoid.me.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.zincoid.me.configuration.DataInitializer;
+import com.zincoid.me.module.core.DataInitializer;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.Error;
 import com.zincoid.me.mapper.MessageMapper;

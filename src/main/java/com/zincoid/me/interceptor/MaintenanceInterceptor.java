@@ -1,6 +1,6 @@
 package com.zincoid.me.interceptor;
 
-import com.zincoid.me.configuration.Maintainer;
+import com.zincoid.me.module.core.Maintainer;
 import com.zincoid.me.exception.MaintenanceException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

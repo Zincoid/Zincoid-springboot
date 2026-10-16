@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.mapper.RequestMapper;
 import com.zincoid.me.model.enums.Access;
 import com.zincoid.me.model.enums.NotificationType;
@@ -59,30 +60,30 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
     @Transactional
     public RequestVO create(Long senderId, Long receiverId, RequestType type, String meta) {
         if (type == null)
-            throw new BusinessException(400, "Request type is invalid");
+            throw new BusinessException(Error.REQUEST_TYPE_INVALID);
         if (ADMIN_ONLY.contains(type)) {
             receiverId = ADMIN_UNHANDLED;
         } else if (senderId.equals(receiverId)) {
-            throw new BusinessException(400, "Sender and receiver cannot be the same");
+            throw new BusinessException(Error.SENDER_RECEIVER_SAME);
         } else if (userService.getById(receiverId) == null) {
-            throw new BusinessException(404, "User not found");
+            throw new BusinessException(Error.USER_NOT_FOUND);
         }
         JsonNode node = parseMeta(meta);
         switch (type) {
             case STORAGE_EXTENSION -> {
                 if (fieldLong(node, "expansion") == null)
-                    throw new BusinessException(400, "Invalid request meta");
+                    throw new BusinessException(Error.INVALID_REQUEST_META);
             }
             case REPORT -> {
                 if (fieldText(node, "title") == null
                         || fieldText(node, "content") == null)
-                    throw new BusinessException(400, "Invalid request meta");
+                    throw new BusinessException(Error.INVALID_REQUEST_META);
             }
             case REPO_TRANSFER -> {
                 Long repoId = fieldLong(node, "repo");
                 Repo repo = repoId == null ? null : repoService.getById(repoId);
                 if (repo == null || !repo.getUserId().equals(senderId))
-                    throw new BusinessException(400, "Invalid request meta");
+                    throw new BusinessException(Error.INVALID_REQUEST_META);
             }
         }
         Request request = Request.builder()
@@ -135,13 +136,13 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
     @Transactional
     public RequestVO handle(Long userId, Long requestId, Access access, boolean isAdmin) {
         if (access == null || access == Access.PENDING)
-            throw new BusinessException(400, "Invalid handle status");
+            throw new BusinessException(Error.INVALID_HANDLE_STATUS);
         Request request = getById(requestId);
         if (request == null)
-            throw new BusinessException(404, "Request not found");
+            throw new BusinessException(Error.REQUEST_NOT_FOUND);
         if ((ADMIN_ONLY.contains(request.getType()) && !isAdmin)
                 || (!request.getReceiverId().equals(userId) && request.getReceiverId() != ADMIN_UNHANDLED))
-            throw new BusinessException(403, "No permission to handle this request");
+            throw new BusinessException(Error.NO_PERMISSION_HANDLE_REQUEST);
         boolean updated = lambdaUpdate()
                 .eq(Request::getId, requestId)
                 .eq(Request::getAccess, Access.PENDING)
@@ -150,7 +151,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                 .set(ADMIN_ONLY.contains(request.getType()), Request::getReceiverId, userId)
                 .update();
         if (!updated)
-            throw new BusinessException(400, "Request already handled");
+            throw new BusinessException(Error.REQUEST_ALREADY_HANDLED);
         if (access == Access.APPROVED) apply(request);
         if (!request.getSenderId().equals(userId))
             notificationService.notifyReq(
@@ -169,12 +170,12 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
     public void delete(Long userId, Long requestId, boolean isAdmin) {
         Request request = getById(requestId);
         if (request == null)
-            throw new BusinessException(404, "Request not found");
+            throw new BusinessException(Error.REQUEST_NOT_FOUND);
         boolean canDelete = request.getSenderId().equals(userId)
                 || request.getReceiverId().equals(userId)
                 || (isAdmin && ADMIN_ONLY.contains(request.getType()) && request.getReceiverId() == ADMIN_UNHANDLED);
         if (!canDelete)
-            throw new BusinessException(403, "No permission to delete this request");
+            throw new BusinessException(Error.NO_PERMISSION_DELETE_REQUEST);
         removeById(requestId);
         notificationService.deleteAll(NotificationType.REQUEST, requestId);
         log.info("Request deleted: id={}, by={}", requestId, userId);
@@ -223,7 +224,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
             case STORAGE_EXTENSION -> {
                 Long expansion = fieldLong(parseMeta(request.getMeta()), "expansion");
                 if (expansion == null || expansion < 0)
-                    throw new BusinessException(400, "Invalid request meta");
+                    throw new BusinessException(Error.INVALID_REQUEST_META);
                 storageService.expandCapacity(request.getSenderId(), expansion);
                 log.info("Storage expansion applied: user={}, expansion={}", request.getSenderId(), expansion);
             }
@@ -251,7 +252,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                             .update();
                     request.setMeta(meta);
                 } catch (Exception e) {
-                    throw new BusinessException(400, "Invalid request meta");
+                    throw new BusinessException(Error.INVALID_REQUEST_META);
                 }
                 log.info("Music share granted: user={}, music={}", request.getSenderId(),
                         original != null ? original.getId() : "none");
@@ -260,7 +261,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                 Long repoId = fieldLong(parseMeta(request.getMeta()), "repo");
                 Repo repo = repoId == null ? null : repoService.getById(repoId);
                 if (repo == null || !repo.getUserId().equals(request.getSenderId()))
-                    throw new BusinessException(400, "Repo is no longer transferable");
+                    throw new BusinessException(Error.REPO_NOT_TRANSFERABLE);
                 repo.setUserId(request.getReceiverId());
                 repoService.updateById(repo);
                 fileService.lambdaUpdate()

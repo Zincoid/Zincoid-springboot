@@ -9,6 +9,7 @@ import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.Comment;
 import com.zincoid.me.model.po.Moment;
@@ -83,22 +84,22 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
         if (targetType == RelatedType.MOMENT) {
             Moment m = momentService.lambdaQuery().select(Moment::getUserId, Moment::getStatus).eq(Moment::getId, targetId).one();
             if (m == null || m.getStatus() == Status.DISABLED)
-                throw new BusinessException(404, "Moment not found");
+                throw new BusinessException(Error.MOMENT_NOT_FOUND);
             authorId = m.getUserId();
         } else if (targetType == RelatedType.ARTICLE) {
             Article a = articleService.lambdaQuery().select(Article::getUserId, Article::getStatus).eq(Article::getId, targetId).one();
             if (a == null || a.getStatus() == Status.DISABLED)
-                throw new BusinessException(404, "Article not found");
+                throw new BusinessException(Error.ARTICLE_NOT_FOUND);
             authorId = a.getUserId();
         } else if (targetType == RelatedType.REPO) {
             Repo r = repoService.lambdaQuery().select(Repo::getUserId, Repo::getStatus).eq(Repo::getId, targetId).one();
             if (r == null || r.getStatus() == Status.DISABLED)
-                throw new BusinessException(404, "Repo not found");
+                throw new BusinessException(Error.REPO_NOT_FOUND);
             authorId = r.getUserId();
         } else if (targetType == RelatedType.COMMENT) {
             Comment c = commentService.lambdaQuery().select(Comment::getUserId).eq(Comment::getId, targetId).one();
             if (c == null)
-                throw new BusinessException(404, "Comment not found");
+                throw new BusinessException(Error.COMMENT_NOT_FOUND);
             authorId = c.getUserId();
         } else throw new IllegalArgumentException("Invalid target type");
         Like like = Like.builder()

@@ -1,6 +1,8 @@
 package com.zincoid.me.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.mapper.StatMapper;
 import com.zincoid.me.model.po.Stat;
 import com.zincoid.me.service.StatService;
@@ -59,6 +61,11 @@ public class StatServiceImpl extends ServiceImpl<StatMapper, Stat> implements St
 
     @Override
     public Map<String, Object> stats(int days, int top) {
+        if (days <= 0 || days > 365)
+            throw new BusinessException(Error.INVALID_DAYS_RANGE);
+        if (top < 0 || top > 500)
+            throw new BusinessException(Error.INVALID_TOP_RANGE);
+
         LocalDate today = LocalDate.now();
         LocalDate start = today.minusDays(days - 1L);
         List<Stat> list = lambdaQuery().between(Stat::getStatDate, start, today).list();

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.converter.MomentConverter;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.mapper.MomentMapper;
 import com.zincoid.me.model.dto.MomentCreateRequest;
 import com.zincoid.me.model.dto.MomentUpdateRequest;
@@ -72,9 +73,9 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
     public MomentCardVO update(Long userId, Long momentId, MomentUpdateRequest request) {
         Moment moment = getById(momentId);
         if (moment == null || moment.getStatus() == Status.DISABLED)
-            throw new BusinessException(404, "Moment not found");
+            throw new BusinessException(Error.MOMENT_NOT_FOUND);
         if (!moment.getUserId().equals(userId))
-            throw new BusinessException(403, "You can only edit your own moments");
+            throw new BusinessException(Error.ONLY_EDIT_OWN_MOMENTS);
         if (request.getContent() != null) {
             moment.setContent(request.getContent());
             notificationService.deleteAll(NotificationType.MOMENT_MENTION, momentId);
@@ -107,9 +108,9 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
     public void delete(Long userId, Long momentId, boolean isAdmin) {
         Moment moment = getById(momentId);
         if (moment == null)
-            throw new BusinessException(404, "Moment not found");
+            throw new BusinessException(Error.MOMENT_NOT_FOUND);
         if (!isAdmin && !moment.getUserId().equals(userId))
-            throw new BusinessException(403, "No permission to delete this moment");
+            throw new BusinessException(Error.NO_PERMISSION_DELETE_MOMENT);
         likeService.delete(RelatedType.MOMENT, momentId);
         commentService.delete(RelatedType.MOMENT, momentId);
         fileService.delete(RelatedType.MOMENT, momentId);
@@ -122,7 +123,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
     public void pin(Long momentId) {
         Moment moment = getById(momentId);
         if (moment == null || moment.getStatus() == Status.DISABLED)
-            throw new BusinessException(404, "Moment not found");
+            throw new BusinessException(Error.MOMENT_NOT_FOUND);
         moment.setIsPinned(true);
         updateById(moment);
         log.info("Moment pinned: id={}", momentId);
@@ -132,7 +133,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
     public void unpin(Long momentId) {
         Moment moment = getById(momentId);
         if (moment == null)
-            throw new BusinessException(404, "Moment not found");
+            throw new BusinessException(Error.MOMENT_NOT_FOUND);
         moment.setIsPinned(false);
         updateById(moment);
         log.info("Moment unpinned: id={}", momentId);
@@ -199,13 +200,13 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
     public MomentDetailVO get(Long momentId) {
         Moment moment = getById(momentId);
         if (moment == null || moment.getStatus() == Status.DISABLED)
-            throw new BusinessException(404, "Moment not found");
+            throw new BusinessException(Error.MOMENT_NOT_FOUND);
         Long viewerId = AuthCtx.getUserId();
         boolean isAdmin = viewerId != null && AuthCtx.getRole() == Role.ADMIN;
         if (moment.getVisibility() == Visibility.PRIVATE
                 && !isAdmin
                 && (viewerId == null || !viewerId.equals(moment.getUserId())))
-            throw new BusinessException(404, "Moment is private");
+            throw new BusinessException(Error.MOMENT_IS_PRIVATE);
         User user = userService.getById(moment.getUserId());
         long likeCount = likeService.count(RelatedType.MOMENT, momentId);
         boolean isLiked = likeService.liked(AuthCtx.getUserId(), RelatedType.MOMENT, momentId);

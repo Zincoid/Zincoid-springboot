@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.converter.RepoConverter;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.mapper.RepoItemMapper;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.po.File;
@@ -50,9 +51,9 @@ public class RepoItemServiceImpl extends ServiceImpl<RepoItemMapper, RepoItem> i
     public RepoItemVO add(Long userId, Long repoId, Long fileId) {
         File file = fileService.getById(fileId);
         if (file == null)
-            throw new BusinessException(404, "File not found");
+            throw new BusinessException(Error.FILE_NOT_FOUND);
         if (userId == null || !userId.equals(file.getUserId()))
-            throw new BusinessException(403, "Permission denied");
+            throw new BusinessException(Error.PERMISSION_DENIED);
         RepoItem item = RepoItem.builder()
                 .repoId(repoId)
                 .fileId(fileId)
@@ -93,7 +94,7 @@ public class RepoItemServiceImpl extends ServiceImpl<RepoItemMapper, RepoItem> i
         RepoItem itemB = getById(itemIdB);
         if (itemA == null || itemB == null
                 || !itemA.getRepoId().equals(repoId) || !itemB.getRepoId().equals(repoId))
-            throw new BusinessException(400, "Invalid Item Sort");
+            throw new BusinessException(Error.INVALID_ITEM_SORT);
         int orderA = itemA.getSortOrder();
         itemA.setSortOrder(itemB.getSortOrder());
         itemB.setSortOrder(orderA);

@@ -105,12 +105,7 @@ public class AuthController {
 
     @PutMapping("/change-email")
     public ApiResponse<Void> change(@RequestBody Map<String, String> body) {
-        String email = body.get("email");
-        String newCode = body.get("newCode");
-        String oldCode = body.get("oldCode");
-        if (email == null || email.isBlank() || newCode == null || newCode.isBlank())
-            return ApiResponse.badRequest("Email and newCode are required");
-        userService.changeEmail(AuthCtx.getUserId(), email, newCode, oldCode);
+        userService.changeEmail(AuthCtx.getUserId(), body.get("email"), body.get("newCode"), body.get("oldCode"));
         return ApiResponse.success();
     }
 

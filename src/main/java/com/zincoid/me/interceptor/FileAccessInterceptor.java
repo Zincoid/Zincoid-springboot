@@ -1,6 +1,7 @@
 package com.zincoid.me.interceptor;
 
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.model.enums.FileType;
 import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.po.File;
@@ -32,15 +33,15 @@ public class FileAccessInterceptor implements HandlerInterceptor {
                              @NonNull Object handler) {
         String path = extractPath(request.getRequestURI());
         if (path == null)
-            throw new BusinessException(404, "Path is invalid");
+            throw new BusinessException(Error.PATH_INVALID);
 
         Long userId = AuthCtx.getUserId();
         Role role = AuthCtx.isAuthed() ? AuthCtx.getRole() : null;
         File file = fileService.get(path);
         if (file == null)
-            throw new BusinessException(404, "File not found");
+            throw new BusinessException(Error.FILE_NOT_FOUND);
         if (!fileService.accessible(file, userId, role))
-            throw new BusinessException(403, "Permission denied");
+            throw new BusinessException(Error.PERMISSION_DENIED);
 
         boolean cacheable = fileService.cacheable(file);
         response.setHeader("Cache-Control",

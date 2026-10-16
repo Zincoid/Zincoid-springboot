@@ -61,10 +61,7 @@ public class NotificationController {
     @PostMapping("/broadcast")
     public ApiResponse<Void> broadcast(@RequestBody Map<String, String> body) {
         AuthCtx.requireAdmin();
-        String content = body.get("content");
-        if (content == null || content.isBlank())
-            return ApiResponse.error(400, "Content is required");
-        notificationService.broadcast(AuthCtx.getUserId(), content.trim());
+        notificationService.broadcast(AuthCtx.getUserId(), body.get("content"));
         return ApiResponse.success();
     }
 

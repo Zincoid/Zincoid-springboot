@@ -41,10 +41,7 @@ public class UserController {
 
     @PutMapping("/avatar")
     public ApiResponse<UserDetailVO> updateUserAvatar(@RequestBody Map<String, String> body) {
-        String avatar = body.get("avatar");
-        if (avatar == null || avatar.isBlank())
-            return ApiResponse.badRequest("Avatar is required");
-        return ApiResponse.success(userService.updateAvatar(AuthCtx.getUserId(), avatar));
+        return ApiResponse.success(userService.updateAvatar(AuthCtx.getUserId(), body.get("avatar")));
     }
 
     @DeleteMapping
@@ -77,11 +74,7 @@ public class UserController {
     @PutMapping("/password/force")
     public ApiResponse<Void> changeUserPassword(@RequestBody Map<String, String> body) {
         AuthCtx.requireAdmin();
-        String username = body.get("username");
-        String password = body.get("password");
-        if (username == null || username.isBlank() || password == null || password.isBlank())
-            return ApiResponse.badRequest("Username and password are required");
-        userService.changePasswordByForce(username, password);
+        userService.changePasswordByForce(body.get("username"), body.get("password"));
         return ApiResponse.success();
     }
 

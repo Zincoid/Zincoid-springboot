@@ -6,6 +6,7 @@ import com.zincoid.me.model.enums.*;
 import com.zincoid.me.model.po.*;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.mapper.UserMapper;
 import com.zincoid.me.converter.UserConverter;
 import com.zincoid.me.model.dto.ForgotPasswordRequest;
@@ -86,11 +87,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Transactional
     public LoginVO register(RegisterRequest request) {
         if (lambdaQuery().eq(User::getUsername, request.getUsername()).exists())
-            throw new BusinessException("Username already exists");
+            throw new BusinessException(Error.USERNAME_ALREADY_EXISTS);
         if (lambdaQuery().eq(User::getEmail, request.getEmail()).exists())
-            throw new BusinessException("Email already registered");
+            throw new BusinessException(Error.EMAIL_ALREADY_REGISTERED);
         if (!emailService.verifyCode(request.getEmail(), request.getCode(), CodeType.REGISTER, true))
-            throw new BusinessException("Invalid or expired verification code");
+            throw new BusinessException(Error.VERIFICATION_CODE_INVALID);
         User user = User.builder()
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -117,9 +118,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public LoginVO login(LoginRequest request) {
         User user = lambdaQuery().eq(User::getUsername, request.getUsername()).one();
         if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPassword()))
-            throw new BusinessException("Invalid username or password");
+            throw new BusinessException(Error.INVALID_CREDENTIALS);
         if (user.getStatus() == Status.DISABLED)
-            throw new BusinessException("Account is disabled");
+            throw new BusinessException(Error.ACCOUNT_DISABLED);
         String token = jwtTool.generate(user.getId());
         log.info("User logged in: id={}, username={}", user.getId(), user.getUsername());
         return LoginVO.builder()
@@ -156,7 +157,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public void updateStatus(Long userId, Status status) {
         User user = getOrThrowExById(userId);
         if (status == Status.DISABLED && user.getRole() == Role.ADMIN)
-            throw new BusinessException(403, "Cannot disable an admin account");
+            throw new BusinessException(Error.CANNOT_DISABLE_ADMIN);
         user.setStatus(status);
         updateById(user);
         momentService.lambdaUpdate()
@@ -178,7 +179,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public UserDetailVO get(Long userId) {
         User user = getOrThrowExById(userId);
         if (user.getStatus() == Status.DISABLED)
-            throw new BusinessException(403, "User is disabled");
+            throw new BusinessException(Error.USER_DISABLED);
         return UserConverter.INSTANCE.toDetailVO(user);
     }
 
@@ -186,9 +187,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public UserDetailVO get(String username) {
         User user = lambdaQuery().eq(User::getUsername, username).one();
         if (user == null)
-            throw new BusinessException(404, "User not found");
+            throw new BusinessException(Error.USER_NOT_FOUND);
         if (user.getStatus() == Status.DISABLED)
-            throw new BusinessException(403, "User is disabled");
+            throw new BusinessException(Error.USER_DISABLED);
         return UserConverter.INSTANCE.toDetailVO(user);
     }
 
@@ -199,11 +200,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (request.getUsername() != null) {
             String newUsername = request.getUsername().trim();
             if (newUsername.isEmpty())
-                throw new BusinessException(400, "Username cannot be empty");
+                throw new BusinessException(Error.USERNAME_CANNOT_BE_EMPTY);
             if (!newUsername.equals(user.getUsername())) {
                 User existing = lambdaQuery().eq(User::getUsername, newUsername).one();
                 if (existing != null && !existing.getId().equals(userId))
-                    throw new BusinessException(409, "Username already taken");
+                    throw new BusinessException(Error.USERNAME_ALREADY_TAKEN);
                 user.setUsername(newUsername);
             }
         }
@@ -230,6 +231,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     @Transactional
     public UserDetailVO updateAvatar(Long userId, String avatar) {
+        if (avatar == null || avatar.isBlank())
+            throw new BusinessException(Error.AVATAR_REQUIRED);
         User user = getOrThrowExById(userId);
         if (user.getAvatar() != null && !user.getAvatar().equals(avatar))
             fileService.delete(user.getAvatar());
@@ -265,16 +268,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public void changeEmail(Long userId, String email, String newCode, String oldCode) {
+        if (email == null || email.isBlank() || newCode == null || newCode.isBlank())
+            throw new BusinessException(Error.EMAIL_NEW_CODE_REQUIRED);
         User user = getOrThrowExById(userId);
         if (user.getEmail() != null && !user.getEmail().isBlank())
             if (!emailService.verifyCode(user.getEmail(), oldCode, CodeType.CHANGE_EMAIL_OLD, false))
-                throw new BusinessException("Invalid or expired old email verification code");
+                throw new BusinessException(Error.OLD_EMAIL_CODE_INVALID);
         if (email.equals(user.getEmail()))
-            throw new BusinessException("New email is the same as current email");
+            throw new BusinessException(Error.NEW_EMAIL_SAME);
         if (lambdaQuery().eq(User::getEmail, email).exists())
-            throw new BusinessException("Email already registered");
+            throw new BusinessException(Error.EMAIL_ALREADY_REGISTERED);
         if (!emailService.verifyCode(email, newCode, CodeType.CHANGE_EMAIL_NEW, true))
-            throw new BusinessException("Invalid or expired new email verification code");
+            throw new BusinessException(Error.NEW_EMAIL_CODE_INVALID);
         if (user.getEmail() != null && !user.getEmail().isBlank())
             emailService.removeCode(user.getEmail(), CodeType.CHANGE_EMAIL_OLD);
         user.setEmail(email);
@@ -287,18 +292,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public void changePassword(Long userId, String oldPassword, String newPassword) {
         User user = getOrThrowExById(userId);
         if (!passwordEncoder.matches(oldPassword, user.getPassword()))
-            throw new BusinessException("Old password is incorrect");
+            throw new BusinessException(Error.OLD_PASSWORD_INCORRECT);
         user.setPassword(passwordEncoder.encode(newPassword));
         updateById(user);
         log.info("User password changed: id={}, username={}", userId, user.getUsername());
     }
 
     @Override
-    public void changePasswordByForce(String username, String newPassword) {
+    public void changePasswordByForce(String username, String password) {
+        if (username == null || username.isBlank() || password == null || password.isBlank())
+            throw new BusinessException(Error.USERNAME_PASSWORD_REQUIRED);
         User user = lambdaQuery().eq(User::getUsername, username).one();
         if (user == null)
-            throw new BusinessException(404, "User not found");
-        user.setPassword(passwordEncoder.encode(newPassword));
+            throw new BusinessException(Error.USER_NOT_FOUND);
+        user.setPassword(passwordEncoder.encode(password));
         updateById(user);
         log.info("Force password reset: id={}, username={}", user.getId(), username);
     }
@@ -306,10 +313,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public void resetPassword(ForgotPasswordRequest request) {
         if (!emailService.verifyCode(request.getEmail(), request.getCode(), CodeType.RESET_PASSWORD, true))
-            throw new BusinessException("Invalid or expired verification code");
+            throw new BusinessException(Error.VERIFICATION_CODE_INVALID);
         User user = lambdaQuery().eq(User::getEmail, request.getEmail()).one();
         if (user == null)
-            throw new BusinessException(404, "Email not registered");
+            throw new BusinessException(Error.EMAIL_NOT_REGISTERED);
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         updateById(user);
         log.info("Password reset via email: id={}, username={}", user.getId(), user.getUsername());
@@ -333,7 +340,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     private User getOrThrowExById(Long userId) {
         User user = getById(userId);
-        if (user == null) throw new BusinessException(404, "User not found");
+        if (user == null) throw new BusinessException(Error.USER_NOT_FOUND);
         return user;
     }
 

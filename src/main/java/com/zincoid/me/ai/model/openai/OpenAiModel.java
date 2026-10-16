@@ -4,6 +4,7 @@ import com.zincoid.me.ai.model.Model;
 import com.zincoid.me.ai.model.ModelReq;
 import com.zincoid.me.ai.model.ModelRes;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -50,12 +51,12 @@ public class OpenAiModel implements Model {
                             || body.contains("余额"));
             if (insufficient) {
                 log.warn("AI API insufficient balance ({}): {}", provider.getName(), body);
-                throw new BusinessException(502, "Model API has insufficient balance");
+                throw new BusinessException(Error.AI_INSUFFICIENT_BALANCE);
             }
             throw e;
         }
         if (apiRes == null)
-            throw new BusinessException(502, "Empty response from AI model API");
+            throw new BusinessException(Error.AI_EMPTY_RESPONSE);
         return apiRes.toModelRes();
     }
 

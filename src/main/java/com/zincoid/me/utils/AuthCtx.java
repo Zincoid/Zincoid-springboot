@@ -1,6 +1,7 @@
 package com.zincoid.me.utils;
 
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.po.User;
 
@@ -36,12 +37,12 @@ public final class AuthCtx {
 
     public static void requireLogin() {
         if (!AUTHED.get())
-            throw new BusinessException(401, "Login required");
+            throw new BusinessException(Error.LOGIN_REQUIRED);
     }
 
     public static void requireAdmin() {
         requireLogin();
         if (getRole() != Role.ADMIN)
-            throw new BusinessException(403, "Admin permission required");
+            throw new BusinessException(Error.ADMIN_REQUIRED);
     }
 }

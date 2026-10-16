@@ -3,6 +3,7 @@ package com.zincoid.me.service.impl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.mapper.NotificationMapper;
 import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.RelatedType;
@@ -150,9 +151,9 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
     @Transactional
     public void notify(Long senderId, Long receiverId, NotificationType type, Long relatedId) {
         if (senderId.equals(receiverId))
-            throw new BusinessException(400, "Sender and receiver cannot be the same");
+            throw new BusinessException(Error.SENDER_RECEIVER_SAME);
         if (userService.getById(receiverId) == null)
-            throw new BusinessException("User not found");
+            throw new BusinessException(Error.USER_NOT_FOUND);
         Notification notification = Notification.builder()
                 .senderId(senderId)
                 .receiverId(receiverId)
@@ -179,10 +180,10 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
     @Transactional
     public void notifyReq(Long senderId, Long receiverId, String message, Long requestId, boolean isAdminOnly) {
         if (senderId.equals(receiverId))
-            throw new BusinessException(400, "Sender and receiver cannot be the same");
+            throw new BusinessException(Error.SENDER_RECEIVER_SAME);
         if (!isAdminOnly) {
             if (userService.getById(receiverId) == null)
-                throw new BusinessException("User not found");
+                throw new BusinessException(Error.USER_NOT_FOUND);
             Notification notification = Notification.builder()
                     .senderId(senderId)
                     .receiverId(receiverId)
@@ -219,6 +220,8 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
     @Override
     @Transactional
     public void broadcast(Long senderId, String message) {
+        if (message == null || message.isBlank())
+            throw new BusinessException(Error.CONTENT_REQUIRED);
         List<User> users = userService.lambdaQuery()
                 .eq(User::getStatus, Status.ACTIVE)
                 .list();
@@ -230,7 +233,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                     .receiverId(user.getId())
                     .relatedType(NotificationType.SYSTEM)
                     .relatedId(-1L)
-                    .message(message)
+                    .message(message.trim())
                     .isRead(false)
                     .build();
             batch.add(notification);
@@ -245,9 +248,9 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
     public void deleteOne(Long notificationId, Long userId) {
         Notification notification = getById(notificationId);
         if (notification == null)
-            throw new BusinessException(404, "Notification not found");
+            throw new BusinessException(Error.NOTIFICATION_NOT_FOUND);
         if (!notification.getReceiverId().equals(userId))
-            throw new BusinessException(403, "No permission to delete this notification");
+            throw new BusinessException(Error.NO_PERMISSION_DELETE_NOTIFICATION);
         removeById(notificationId);
         log.info("Notification deleted: user={}, id={}", userId, notificationId);
     }

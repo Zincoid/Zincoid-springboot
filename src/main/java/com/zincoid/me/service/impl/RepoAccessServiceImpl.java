@@ -3,6 +3,7 @@ package com.zincoid.me.service.impl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.mapper.RepoAccessMapper;
 import com.zincoid.me.model.enums.Access;
@@ -57,22 +58,22 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
     public void view(Long userId, Long repoId) {
         Repo repo = repoService.getById(repoId);
         if (repo == null)
-            throw new BusinessException(404, "Repo not found");
+            throw new BusinessException(Error.REPO_NOT_FOUND);
         if (repo.getUserId().equals(userId))
-            throw new BusinessException(400, "You are the owner");
+            throw new BusinessException(Error.YOU_ARE_THE_OWNER);
         if (repo.getVisibility() != Visibility.RESTRICTED)
-            throw new BusinessException(403, "Repo is not restricted");
+            throw new BusinessException(Error.REPO_NOT_RESTRICTED);
         RepoAccess existing = lambdaQuery()
                 .eq(RepoAccess::getRepoId, repoId)
                 .eq(RepoAccess::getUserId, userId)
                 .eq(RepoAccess::getRole, AccessRole.VIEWER)
                 .one();
         if (existing != null && existing.getAccess() == Access.PENDING)
-            throw new BusinessException(400, "Access already requested");
+            throw new BusinessException(Error.ACCESS_ALREADY_REQUESTED);
         if (existing != null && existing.getAccess() == Access.APPROVED)
-            throw new BusinessException(400, "Access already approved");
+            throw new BusinessException(Error.ACCESS_ALREADY_APPROVED);
         if (existing != null && existing.getAccess() == Access.REJECTED)
-            throw new BusinessException(400, "Access already rejected");
+            throw new BusinessException(Error.ACCESS_ALREADY_REJECTED);
         RepoAccess access = RepoAccess.builder()
                 .repoId(repoId)
                 .userId(userId)
@@ -89,26 +90,26 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
     public void contribute(Long userId, Long repoId) {
         Repo repo = repoService.getById(repoId);
         if (repo == null)
-            throw new BusinessException(404, "Repo not found");
+            throw new BusinessException(Error.REPO_NOT_FOUND);
         if (repo.getType() == RepoType.CODE)
-            throw new BusinessException(403, "Repo is code type");
+            throw new BusinessException(Error.REPO_IS_CODE_TYPE);
         if (repo.getUserId().equals(userId))
-            throw new BusinessException(400, "You are the owner");
+            throw new BusinessException(Error.YOU_ARE_THE_OWNER);
         if (repo.getVisibility() == Visibility.PRIVATE)
-            throw new BusinessException(403, "Repo is private");
+            throw new BusinessException(Error.REPO_IS_PRIVATE);
         if (repo.getVisibility() == Visibility.RESTRICTED && !authorize(userId, repoId, AccessRole.VIEWER))
-            throw new BusinessException(403, "Repo is restricted and you need viewer access first");
+            throw new BusinessException(Error.REPO_RESTRICTED_NEED_VIEWER);
         RepoAccess existing = lambdaQuery()
                 .eq(RepoAccess::getRepoId, repoId)
                 .eq(RepoAccess::getUserId, userId)
                 .eq(RepoAccess::getRole, AccessRole.CONTRIBUTOR)
                 .one();
         if (existing != null && existing.getAccess() == Access.PENDING)
-            throw new BusinessException(400, "Access already requested");
+            throw new BusinessException(Error.ACCESS_ALREADY_REQUESTED);
         if (existing != null && existing.getAccess() == Access.APPROVED)
-            throw new BusinessException(400, "Access already approved");
+            throw new BusinessException(Error.ACCESS_ALREADY_APPROVED);
         if (existing != null && existing.getAccess() == Access.REJECTED)
-            throw new BusinessException(400, "Access already rejected");
+            throw new BusinessException(Error.ACCESS_ALREADY_REJECTED);
         RepoAccess access = RepoAccess.builder()
                 .repoId(repoId)
                 .userId(userId)
@@ -129,7 +130,7 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
                 .eq(RepoAccess::getRole, AccessRole.CONTRIBUTOR)
                 .one();
         if (existing == null || existing.getAccess() != Access.APPROVED)
-            throw new BusinessException(404, "You are not a contributor");
+            throw new BusinessException(Error.NOT_A_CONTRIBUTOR);
         removeById(existing.getId());
         log.info("Contributor left: user={}, repo={}", userId, repoId);
     }
@@ -139,7 +140,7 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
     public void approve(Long userId, Long accessId) {
         RepoAccess access = getOrThrow(accessId);
         if (access.getAccess() != Access.PENDING)
-            throw new BusinessException(400, "Access already resolved");
+            throw new BusinessException(Error.ACCESS_ALREADY_RESOLVED);
         Repo repo = verifyOwner(userId, access);
         access.setAccess(Access.APPROVED);
         updateById(access);
@@ -154,7 +155,7 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
     public void reject(Long userId, Long accessId) {
         RepoAccess access = getOrThrow(accessId);
         if (access.getAccess() != Access.PENDING)
-            throw new BusinessException(400, "Access already resolved");
+            throw new BusinessException(Error.ACCESS_ALREADY_RESOLVED);
         verifyOwner(userId, access);
         access.setAccess(Access.REJECTED);
         updateById(access);
@@ -252,12 +253,12 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
     public List<ContributorVO> recentContributors(Long repoId, int limit) {
         Repo repo = repoService.getById(repoId);
         if (repo == null || repo.getStatus() == Status.DISABLED)
-            throw new BusinessException(404, "Repo not found");
+            throw new BusinessException(Error.REPO_NOT_FOUND);
         Long viewerId = AuthCtx.getUserId();
         boolean isAdmin = viewerId != null && AuthCtx.getRole() == Role.ADMIN;
         if (repo.getVisibility() == Visibility.PRIVATE && !isAdmin
                 && (viewerId == null || !viewerId.equals(repo.getUserId())))
-            throw new BusinessException(403, "Repo is private");
+            throw new BusinessException(Error.REPO_IS_PRIVATE);
         return lambdaQuery()
                 .eq(RepoAccess::getRepoId, repoId)
                 .eq(RepoAccess::getRole, AccessRole.CONTRIBUTOR)
@@ -301,14 +302,14 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
 
     private RepoAccess getOrThrow(Long id) {
         RepoAccess a = getById(id);
-        if (a == null) throw new BusinessException(404, "Access record not found");
+        if (a == null) throw new BusinessException(Error.ACCESS_RECORD_NOT_FOUND);
         return a;
     }
 
     private Repo verifyOwner(Long ownerId, RepoAccess access) {
         Repo repo = repoService.getById(access.getRepoId());
         if (repo == null || !repo.getUserId().equals(ownerId))
-            throw new BusinessException(403, "Only repo owner can manage access");
+            throw new BusinessException(Error.ONLY_OWNER_MANAGE_ACCESS);
         return repo;
     }
 }

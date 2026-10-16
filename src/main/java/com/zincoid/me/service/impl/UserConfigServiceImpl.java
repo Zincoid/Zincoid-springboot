@@ -3,6 +3,7 @@ package com.zincoid.me.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.converter.UserConfigConverter;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.mapper.UserConfigMapper;
 import com.zincoid.me.model.dto.UserConfigUpdateRequest;
 import com.zincoid.me.model.po.UserConfig;
@@ -19,7 +20,7 @@ public class UserConfigServiceImpl extends ServiceImpl<UserConfigMapper, UserCon
     @Override
     public UserConfig create(Long userId) {
         if (lambdaQuery().eq(UserConfig::getUserId, userId).exists())
-            throw new BusinessException("User config already exists");
+            throw new BusinessException(Error.USER_CONFIG_ALREADY_EXISTS);
         UserConfig config = UserConfig.builder()
                 .userId(userId)
                 .receiveEmail(true)

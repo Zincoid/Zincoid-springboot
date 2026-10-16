@@ -3,6 +3,7 @@ package com.zincoid.me.service.impl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.mapper.UserPermissionMapper;
 import com.zincoid.me.model.enums.Perm;
 import com.zincoid.me.model.enums.Role;
@@ -41,8 +42,10 @@ public class UserPermissionServiceImpl extends ServiceImpl<UserPermissionMapper,
     @Override
     public void require(Perm perm) {
         if (AuthCtx.getRole() == Role.ADMIN) return;
-        if (!has(AuthCtx.getUserId(), perm))
-            throw new BusinessException(403, "Permission required: " + perm);
+        if (!has(AuthCtx.getUserId(), perm)) {
+            log.warn("Permission required: {}", perm);
+            throw new BusinessException(Error.PERMISSION_REQUIRED);
+        }
     }
 
     @Override
@@ -50,9 +53,9 @@ public class UserPermissionServiceImpl extends ServiceImpl<UserPermissionMapper,
     public void grant(Long userId, Perm perm, Long operatorId) {
         User user = userService.getById(userId);
         if (user == null)
-            throw new BusinessException(404, "User not found");
+            throw new BusinessException(Error.USER_NOT_FOUND);
         if (has(userId, perm))
-            throw new BusinessException(400, "Permission already granted");
+            throw new BusinessException(Error.PERMISSION_ALREADY_GRANTED);
         save(UserPermission.builder()
                 .userId(userId)
                 .perm(perm)
@@ -66,7 +69,7 @@ public class UserPermissionServiceImpl extends ServiceImpl<UserPermissionMapper,
     public void revoke(Long id, Long operatorId) {
         UserPermission existing = getById(id);
         if (existing == null)
-            throw new BusinessException(404, "Permission not found");
+            throw new BusinessException(Error.PERMISSION_NOT_FOUND);
         removeById(id);
         log.info("Permission revoked: id={}, user={}, perm={}, by={}", id, existing.getUserId(), existing.getPerm(), operatorId);
     }

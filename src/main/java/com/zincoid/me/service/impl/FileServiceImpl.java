@@ -2,6 +2,7 @@ package com.zincoid.me.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.mapper.FileMapper;
 import com.zincoid.me.model.enums.*;
 import com.zincoid.me.model.po.File;
@@ -152,12 +153,12 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     @Transactional
     public FileVO upload(Long userId, MultipartFile file) {
         User user = userService.getById(userId);
-        if (user == null) throw new BusinessException(404, "User not found");
+        if (user == null) throw new BusinessException(Error.USER_NOT_FOUND);
         long available = Math.max(user.getCapacity() - totalSize(userId), 0L);
         if (file.getSize() > available)
-            throw new BusinessException(400, "Insufficient personal storage space");
+            throw new BusinessException(Error.INSUFFICIENT_PERSONAL_STORAGE);
         if (file.getSize() > FileUtil.usableSpace(uploadPath))
-            throw new BusinessException(500, "Insufficient server disk space");
+            throw new BusinessException(Error.INSUFFICIENT_SERVER_DISK);
         String filePath = FileUtil.save(file, uploadPath);
         String ext = FileUtil.getExt(file.getOriginalFilename());
         FileType fileType = FileUtil.getType(ext);
@@ -339,7 +340,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     private void claimUnbound(List<File> unbound, RelatedType relatedType, Long relatedId, Long userId) {
         for (File file : unbound)
             if (userId == null || !userId.equals(file.getUserId()))
-                throw new BusinessException(403, "Permission denied");
+                throw new BusinessException(Error.PERMISSION_DENIED);
         if (unbound.isEmpty()) return;
         lambdaUpdate()
                 .isNull(File::getRelatedType)

@@ -3,6 +3,7 @@ package com.zincoid.me.service.impl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.mapper.RepoMapper;
 import com.zincoid.me.converter.RepoConverter;
 import com.zincoid.me.model.dto.RepoCreateRequest;
@@ -74,9 +75,9 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     public RepoDetailVO update(Long userId, Long repoId, RepoUpdateRequest request) {
         Repo repo = getById(repoId);
         if (repo == null)
-            throw new BusinessException(404, "Repo not found");
+            throw new BusinessException(Error.REPO_NOT_FOUND);
         if (!repo.getUserId().equals(userId))
-            throw new BusinessException(403, "You can only edit your own repos");
+            throw new BusinessException(Error.ONLY_EDIT_OWN_REPOS);
         if (request.getName() != null) repo.setName(request.getName());
         if (request.getDescription() != null) repo.setDescription(request.getDescription());
         if (request.getUrl() != null) repo.setUrl(request.getUrl());
@@ -113,9 +114,9 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     public void delete(Long userId, Long repoId, boolean isAdmin) {
         Repo repo = getById(repoId);
         if (repo == null)
-            throw new BusinessException(404, "Repo not found");
+            throw new BusinessException(Error.REPO_NOT_FOUND);
         if (!isAdmin && !repo.getUserId().equals(userId))
-            throw new BusinessException(403, "No permission to delete this repo");
+            throw new BusinessException(Error.NO_PERMISSION_DELETE_REPO);
         repoItemService.deleteByRepoId(repoId);
         likeService.delete(RelatedType.REPO, repoId);
         commentService.delete(RelatedType.REPO, repoId);
@@ -133,7 +134,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     public void pin(Long repoId) {
         Repo repo = getById(repoId);
         if (repo == null || repo.getStatus() == Status.DISABLED)
-            throw new BusinessException(404, "Repo not found");
+            throw new BusinessException(Error.REPO_NOT_FOUND);
         repo.setIsPinned(true);
         updateById(repo);
         log.info("Repo pinned: id={}", repoId);
@@ -143,7 +144,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     public void unpin(Long repoId) {
         Repo repo = getById(repoId);
         if (repo == null)
-            throw new BusinessException(404, "Repo not found");
+            throw new BusinessException(Error.REPO_NOT_FOUND);
         repo.setIsPinned(false);
         updateById(repo);
         log.info("Repo unpinned: id={}", repoId);
@@ -154,11 +155,11 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     public RepoItemVO addItem(Long userId, Long repoId, Long fileId) {
         Repo repo = getById(repoId);
         if (repo == null || repo.getStatus() == Status.DISABLED)
-            throw new BusinessException(404, "Repo not found");
+            throw new BusinessException(Error.REPO_NOT_FOUND);
         if (repo.getVisibility() == Visibility.PRIVATE && !repo.getUserId().equals(userId))
-            throw new BusinessException(403, "Repo is private");
+            throw new BusinessException(Error.REPO_IS_PRIVATE);
         if (!repo.getUserId().equals(userId) && !isContributed(repo, userId))
-            throw new BusinessException(403, "No permission to add item");
+            throw new BusinessException(Error.NO_PERMISSION_ADD_ITEM);
         updateById(repo);
         return repoItemService.add(userId, repoId, fileId);
     }
@@ -168,16 +169,16 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     public void deleteItem(Long userId, Long repoId, Long itemId) {
         Repo repo = getById(repoId);
         if (repo == null || repo.getStatus() == Status.DISABLED)
-            throw new BusinessException(404, "Repo not found");
+            throw new BusinessException(Error.REPO_NOT_FOUND);
         if (repo.getVisibility() == Visibility.PRIVATE && !repo.getUserId().equals(userId))
-            throw new BusinessException(403, "Repo is private");
+            throw new BusinessException(Error.REPO_IS_PRIVATE);
         if (!repo.getUserId().equals(userId) && !isContributed(repo, userId))
-            throw new BusinessException(403, "No permission to delete item");
+            throw new BusinessException(Error.NO_PERMISSION_DELETE_ITEM);
         RepoItem item = repoItemService.getById(itemId);
         if (item == null || !item.getRepoId().equals(repoId))
-            throw new BusinessException(404, "Item not found");
+            throw new BusinessException(Error.ITEM_NOT_FOUND);
         if (!repo.getUserId().equals(userId) && !fileService.getById(item.getFileId()).getUserId().equals(userId))
-            throw new BusinessException(403, "You can only delete your own items");
+            throw new BusinessException(Error.ONLY_DELETE_OWN_ITEMS);
         repoItemService.delete(itemId);
         log.info("Repo item deleted: repo={}, item={}", repoId, itemId);
     }
@@ -187,11 +188,11 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     public void swapItems(Long userId, Long repoId, Long itemIdA, Long itemIdB) {
         Repo repo = getById(repoId);
         if (repo == null || repo.getStatus() == Status.DISABLED)
-            throw new BusinessException(404, "Repo not found");
+            throw new BusinessException(Error.REPO_NOT_FOUND);
         if (repo.getVisibility() == Visibility.PRIVATE && !repo.getUserId().equals(userId))
-            throw new BusinessException(403, "Repo is private");
+            throw new BusinessException(Error.REPO_IS_PRIVATE);
         if (!repo.getUserId().equals(userId) && !isContributed(repo, userId))
-            throw new BusinessException(403, "No permission to swap item");
+            throw new BusinessException(Error.NO_PERMISSION_SWAP_ITEM);
         repoItemService.swap(repoId, itemIdA, itemIdB);
     }
 
@@ -263,13 +264,13 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     public RepoDetailVO get(Long repoId) {
         Repo repo = getById(repoId);
         if (repo == null || repo.getStatus() == Status.DISABLED)
-            throw new BusinessException(404, "Repo not found");
+            throw new BusinessException(Error.REPO_NOT_FOUND);
         Long viewerId = AuthCtx.getUserId();
         boolean isAdmin = viewerId != null && AuthCtx.getRole() == Role.ADMIN;
         if (repo.getVisibility() == Visibility.PRIVATE
                 && !isAdmin
                 && (viewerId == null || !viewerId.equals(repo.getUserId())))
-            throw new BusinessException(403, "Repo is private");
+            throw new BusinessException(Error.REPO_IS_PRIVATE);
         RepoDetailVO vo = buildDetailVO(repo);
         if (vo.getRestricted()) {
             vo.setUrl(null);
@@ -287,17 +288,17 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     public PageVO<RepoItemVO> items(Long repoId, boolean latest, int page, int size) {
         Repo repo = getById(repoId);
         if (repo == null || repo.getStatus() == Status.DISABLED)
-            throw new BusinessException(404, "Repo not found");
+            throw new BusinessException(Error.REPO_NOT_FOUND);
         Long viewerId = AuthCtx.getUserId();
         boolean isAdmin = viewerId != null && AuthCtx.getRole() == Role.ADMIN;
         if (repo.getVisibility() == Visibility.PRIVATE
                 && !isAdmin
                 && (viewerId == null || !viewerId.equals(repo.getUserId())))
-            throw new BusinessException(403, "Repo is private");
+            throw new BusinessException(Error.REPO_IS_PRIVATE);
         if (isRestricted(repo, viewerId))
-            throw new BusinessException(403, "Repo is restricted");
+            throw new BusinessException(Error.REPO_IS_RESTRICTED);
         if (repo.getType() == RepoType.CODE)
-            throw new BusinessException(403, "Repo is code type");
+            throw new BusinessException(Error.REPO_IS_CODE_TYPE);
         return repoItemService.list(repoId, latest, page, size);
     }
 

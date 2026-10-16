@@ -5,6 +5,7 @@ import com.zincoid.me.ai.client.AiClient;
 import com.zincoid.me.ai.message.AiMessage;
 import com.zincoid.me.configuration.DataInitializer;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.ai.client.AiTask;
 import com.zincoid.me.model.po.Comment;
 import com.zincoid.me.model.po.Message;
@@ -105,7 +106,7 @@ public class AiServiceImpl implements AiService {
         User ai = userService.lambdaQuery()
                 .eq(User::getUsername, DataInitializer.AI_USERNAME).one();
         if (ai == null)
-            throw new BusinessException(500, "AI user not initialized");
+            throw new BusinessException(Error.AI_USER_NOT_INITIALIZED);
         return ai;
     }
 

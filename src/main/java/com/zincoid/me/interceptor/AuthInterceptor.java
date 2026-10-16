@@ -2,6 +2,7 @@ package com.zincoid.me.interceptor;
 
 import com.zincoid.me.controller.AuthController;
 import com.zincoid.me.exception.UnauthorizedException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.service.UserService;
@@ -60,9 +61,9 @@ public class AuthInterceptor implements HandlerInterceptor {
             boolean valid = jwtTool.validate(token);
             boolean revoked = valid && userService.isTokenRevoked(token);
             if (!isPublic && !valid)
-                throw new UnauthorizedException("Token is invalid");
+                throw new UnauthorizedException(Error.TOKEN_INVALID);
             if (!isPublic && revoked)
-                throw new UnauthorizedException("Token is revoked");
+                throw new UnauthorizedException(Error.TOKEN_REVOKED);
             if (valid && !revoked)
                 user = userService.getById(jwtTool.getUserId(token));
         }
@@ -75,9 +76,9 @@ public class AuthInterceptor implements HandlerInterceptor {
         } else {
             // Other paths require auth
             if (user == null)
-                throw new UnauthorizedException("Account not found");
+                throw new UnauthorizedException(Error.ACCOUNT_NOT_FOUND);
             if (user.getStatus() == Status.DISABLED)
-                throw new UnauthorizedException("Account is disabled");
+                throw new UnauthorizedException(Error.ACCOUNT_DISABLED);
             // Update user last active time
             userService.updateActiveAt(user.getId());
             // Required AuthCtx initialize

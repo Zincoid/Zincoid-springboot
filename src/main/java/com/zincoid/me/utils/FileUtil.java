@@ -1,6 +1,7 @@
 package com.zincoid.me.utils;
 
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.model.enums.FileType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,7 +41,7 @@ public final class FileUtil {
             return getFileStore(path).getTotalSpace();
         } catch (IOException e) {
             log.warn("Failed to get total space of: {}", path, e);
-            throw new BusinessException(500, "Failed to get storage space");
+            throw new BusinessException(Error.STORAGE_SPACE_FAILED);
         }
     }
 
@@ -49,7 +50,7 @@ public final class FileUtil {
             return getFileStore(path).getUsableSpace();
         } catch (IOException e) {
             log.warn("Failed to get usable space of: {}", path, e);
-            throw new BusinessException(500, "Failed to get storage space");
+            throw new BusinessException(Error.STORAGE_SPACE_FAILED);
         }
     }
 
@@ -117,12 +118,14 @@ public final class FileUtil {
 
     public static String save(MultipartFile file, String path) {
         if (file.isEmpty())
-            throw new BusinessException("File is empty");
+            throw new BusinessException(Error.FILE_EMPTY);
         String extension = getExt(file.getOriginalFilename());
-        if (!isAllowed(extension))
+        if (!isAllowed(extension)) {
+            log.warn("Rejected file type: {}", extension);
             throw new BusinessException(isForbidden(extension)
-                    ? "Forbidden file type: " + extension
-                    : "Unsupported file type: " + extension);
+                    ? Error.FILE_TYPE_FORBIDDEN
+                    : Error.FILE_TYPE_UNSUPPORTED);
+        }
         String filename = UUID.randomUUID() + "." + extension;
         Path targetPath = Paths.get(path, filename);
         try {
@@ -132,7 +135,7 @@ public final class FileUtil {
             return filename;
         } catch (IOException e) {
             log.error("File save failed", e);
-            throw new BusinessException("File save failed");
+            throw new BusinessException(Error.FILE_SAVE_FAILED);
         }
     }
 

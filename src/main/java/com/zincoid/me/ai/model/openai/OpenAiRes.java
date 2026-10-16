@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.zincoid.me.ai.model.ModelRes;
 import com.zincoid.me.ai.tool.ToolCall;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,12 +24,12 @@ public record OpenAiRes(List<Choice> choices) {
                 .map(c -> c.getFirst().message)
                 .orElse(null);
         if (msg == null)
-            throw new BusinessException(502, "No available message in AI response");
+            throw new BusinessException(Error.AI_NO_MESSAGE);
         String content = msg.content != null ? msg.content : "";
         String reasoning = msg.reasoning != null ? msg.reasoning : "";
         if (msg.tcs == null || msg.tcs.isEmpty()) {
             if (content.isBlank() && !reasoning.isBlank())
-                throw new BusinessException(502, "Request too complex, reasoning was interrupted");
+                throw new BusinessException(Error.AI_REASONING_TRUNCATED);
             return ModelRes.of(content, reasoning);
         }
         List<ToolCall> calls = msg.tcs.stream()

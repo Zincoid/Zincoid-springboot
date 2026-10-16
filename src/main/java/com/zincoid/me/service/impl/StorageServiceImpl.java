@@ -1,6 +1,7 @@
 package com.zincoid.me.service.impl;
 
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.service.FileService;
 import com.zincoid.me.service.StorageService;
@@ -45,7 +46,7 @@ public class StorageServiceImpl implements StorageService {
     public Map<String, Long> userStorage(Long userId) {
         User user = userService.getById(userId);
         if (user == null)
-            throw new BusinessException(404, "User not found");
+            throw new BusinessException(Error.USER_NOT_FOUND);
         long used = fileService.totalSize(userId);
         long capacity = user.getCapacity();
         Map<String, Long> result = new LinkedHashMap<>();
@@ -58,7 +59,7 @@ public class StorageServiceImpl implements StorageService {
     @Override
     public void expandCapacity(Long userId, Long capacity) {
         User user = userService.getById(userId);
-        if (user == null) throw new BusinessException(404, "User not found");
+        if (user == null) throw new BusinessException(Error.USER_NOT_FOUND);
         user.setCapacity(user.getCapacity() + capacity);
         userService.updateById(user);
         log.info("User capacity expanded: user={}, capacity={}", user.getId(), user.getCapacity());
@@ -67,9 +68,9 @@ public class StorageServiceImpl implements StorageService {
     @Override
     public void updateCapacity(String username, Long capacity) {
         if (capacity == null || capacity < 0)
-            throw new BusinessException(400, "Capacity must be a non-negative number");
+            throw new BusinessException(Error.CAPACITY_INVALID);
         User user = userService.lambdaQuery().eq(User::getUsername, username).one();
-        if (user == null) throw new BusinessException(404, "User not found");
+        if (user == null) throw new BusinessException(Error.USER_NOT_FOUND);
         user.setCapacity(capacity);
         userService.updateById(user);
         log.info("User capacity updated: user={}, capacity={}", user.getId(), capacity);

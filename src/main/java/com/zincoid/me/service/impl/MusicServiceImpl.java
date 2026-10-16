@@ -2,6 +2,7 @@ package com.zincoid.me.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.po.User;
@@ -29,7 +30,7 @@ public class MusicServiceImpl implements MusicService {
     @Override
     public FileVO upload(Long userId, MultipartFile file, boolean isPublic, boolean isAdmin) {
         if (isPublic && !isAdmin)
-            throw new BusinessException(403, "No permission to upload public music");
+            throw new BusinessException(Error.NO_PERMISSION_UPLOAD_MUSIC);
         FileVO vo = fileService.upload(userId, file);
         fileService._link(List.of(vo.getId()), RelatedType.MUSIC, isPublic ? 1L : 0L, userId);
         return vo;
@@ -39,13 +40,13 @@ public class MusicServiceImpl implements MusicService {
     @Transactional
     public void delete(Long userId, Long fileId) {
         User user = userService.getById(userId);
-        if (user == null) throw new BusinessException(404, "User not found");
+        if (user == null) throw new BusinessException(Error.USER_NOT_FOUND);
         File file = fileService.getById(fileId);
-        if (file == null) throw new BusinessException(404, "File not found");
+        if (file == null) throw new BusinessException(Error.FILE_NOT_FOUND);
         if (file.getRelatedType() != RelatedType.MUSIC)
-            throw new BusinessException(400, "Not a music file");
+            throw new BusinessException(Error.NOT_A_MUSIC_FILE);
         if (!file.getUserId().equals(userId))
-            throw new BusinessException(403, "No permission to delete this music");
+            throw new BusinessException(Error.NO_PERMISSION_DELETE_MUSIC);
         fileService.delete(fileId);
         log.info("Music deleted: id={}", fileId);
     }

@@ -2,6 +2,7 @@ package com.zincoid.me.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.mapper.ConfigMapper;
 import com.zincoid.me.model.po.Config;
 import com.zincoid.me.service.ConfigService;
@@ -35,7 +36,10 @@ public class ConfigServiceImpl extends ServiceImpl<ConfigMapper, Config> impleme
     @Transactional
     public void update(String key, String value) {
         Config config = lambdaQuery().eq(Config::getConfigKey, key).one();
-        if (config == null) throw new BusinessException(404, "Config key not found: " + key);
+        if (config == null) {
+            log.warn("Config key not found: {}", key);
+            throw new BusinessException(Error.CONFIG_KEY_NOT_FOUND);
+        }
         config.setConfigValue(value);
         updateById(config);
         log.info("Config updated: {}={}", key, value);

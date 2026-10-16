@@ -1,6 +1,7 @@
 package com.zincoid.me.service.impl;
 
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.model.enums.AccessRole;
 import com.zincoid.me.model.enums.CodeType;
 import com.zincoid.me.model.po.User;
@@ -47,25 +48,25 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendRegisterCode(String email) {
         if (email == null || email.isBlank())
-            throw new BusinessException(400, "Email is required");
+            throw new BusinessException(Error.EMAIL_REQUIRED);
         if (userService.lambdaQuery().eq(User::getEmail, email).exists())
-            throw new BusinessException("Email already registered");
+            throw new BusinessException(Error.EMAIL_ALREADY_REGISTERED);
         sendCode(email, CodeType.REGISTER);
     }
 
     @Override
     public void sendResetCode(String email) {
         if (!userService.lambdaQuery().eq(User::getEmail, email).exists())
-            throw new BusinessException(404, "Email not registered");
+            throw new BusinessException(Error.EMAIL_NOT_REGISTERED);
         sendCode(email, CodeType.RESET_PASSWORD);
     }
 
     @Override
     public void sendChangeCode(String email) {
         if (email == null || email.isBlank())
-            throw new BusinessException(400, "Email is required");
+            throw new BusinessException(Error.EMAIL_REQUIRED);
         if (userService.lambdaQuery().eq(User::getEmail, email).exists())
-            throw new BusinessException("Email already registered");
+            throw new BusinessException(Error.EMAIL_ALREADY_REGISTERED);
         sendCode(email, CodeType.CHANGE_EMAIL_NEW);
     }
 
@@ -73,9 +74,9 @@ public class EmailServiceImpl implements EmailService {
     public void sendChangeCode(Long userId) {
         User user = userService.getById(userId);
         if (user == null)
-            throw new BusinessException(404, "Account not found");
+            throw new BusinessException(Error.ACCOUNT_NOT_FOUND);
         if (user.getEmail() == null || user.getEmail().isBlank())
-            throw new BusinessException(400, "No email set");
+            throw new BusinessException(Error.NO_EMAIL_SET);
         sendCode(user.getEmail(), CodeType.CHANGE_EMAIL_OLD);
     }
 
@@ -157,7 +158,7 @@ public class EmailServiceImpl implements EmailService {
     private void sendCode(String email, CodeType type) {
         CodeEntry existing = codes.get(email);
         if (existing != null && existing.type == type && existing.expiresAt > System.currentTimeMillis())
-            throw new BusinessException(429, "Verification code already requested, please wait");
+            throw new BusinessException(Error.VERIFICATION_CODE_RESEND_LIMIT);
         String code = String.format("%06d", RANDOM.nextInt(1_000_000));
         codes.put(email, new CodeEntry(code, System.currentTimeMillis() + CODE_TTL, type));
         log.info("Verification code generated for {} (type={})", email, type);

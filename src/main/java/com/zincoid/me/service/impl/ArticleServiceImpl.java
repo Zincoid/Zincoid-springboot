@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.converter.ArticleConverter;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.mapper.ArticleMapper;
 import com.zincoid.me.model.dto.ArticleCreateRequest;
 import com.zincoid.me.model.dto.ArticleUpdateRequest;
@@ -81,9 +82,9 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         userPermissionService.require(Perm.ARTICLE_OP);
         Article article = getById(articleId);
         if (article == null)
-            throw new BusinessException(404, "Article not found");
+            throw new BusinessException(Error.ARTICLE_NOT_FOUND);
         if (!article.getUserId().equals(userId))
-            throw new BusinessException(403, "You can only edit your own articles");
+            throw new BusinessException(Error.ONLY_EDIT_OWN_ARTICLES);
         if (request.getTitle() != null) article.setTitle(request.getTitle());
         if (request.getContentMd() != null) {
             Set<String> oldUrls = new HashSet<>(extractUploadUrls(article.getContentMd()));
@@ -121,9 +122,9 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         userPermissionService.require(Perm.ARTICLE_OP);
         Article article = getById(articleId);
         if (article == null)
-            throw new BusinessException(404, "Article not found");
+            throw new BusinessException(Error.ARTICLE_NOT_FOUND);
         if (!isAdmin && !article.getUserId().equals(userId))
-            throw new BusinessException(403, "No permission to delete this article");
+            throw new BusinessException(Error.NO_PERMISSION_DELETE_ARTICLE);
         likeService.delete(RelatedType.ARTICLE, articleId);
         commentService.delete(RelatedType.ARTICLE, articleId);
         fileService.delete(RelatedType.ARTICLE, articleId);
@@ -135,7 +136,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     public void pin(Long articleId) {
         Article article = getById(articleId);
         if (article == null)
-            throw new BusinessException(404, "Article not found");
+            throw new BusinessException(Error.ARTICLE_NOT_FOUND);
         article.setIsPinned(true);
         updateById(article);
         log.info("Article pinned: id={}", articleId);
@@ -145,7 +146,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     public void unpin(Long articleId) {
         Article article = getById(articleId);
         if (article == null)
-            throw new BusinessException(404, "Article not found");
+            throw new BusinessException(Error.ARTICLE_NOT_FOUND);
         article.setIsPinned(false);
         updateById(article);
         log.info("Article unpinned: id={}", articleId);
@@ -212,13 +213,13 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     public ArticleDetailVO get(Long articleId) {
         Article article = getById(articleId);
         if (article == null || article.getStatus() == Status.DISABLED)
-            throw new BusinessException(404, "Article not found");
+            throw new BusinessException(Error.ARTICLE_NOT_FOUND);
         Long viewerId = AuthCtx.getUserId();
         boolean isAdmin = viewerId != null && AuthCtx.getRole() == Role.ADMIN;
         if (article.getVisibility() == Visibility.PRIVATE
                 && !isAdmin
                 && (viewerId == null || !viewerId.equals(article.getUserId())))
-            throw new BusinessException(404, "Article is private");
+            throw new BusinessException(Error.ARTICLE_IS_PRIVATE);
         baseMapper.addViewCount(articleId);
         article.setViewCount(article.getViewCount() + 1);
         return buildDetailVO(article);

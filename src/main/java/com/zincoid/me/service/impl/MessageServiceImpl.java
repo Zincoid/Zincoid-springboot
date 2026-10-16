@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.configuration.DataInitializer;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.mapper.MessageMapper;
 import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.RelatedType;
@@ -46,7 +47,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     @Transactional
     public MessageVO send(Long userId, String content, String file) {
         if ((content == null || content.isBlank()) && (file == null || file.isBlank()))
-            throw new BusinessException(400, "Content or file is required");
+            throw new BusinessException(Error.CONTENT_OR_FILE_REQUIRED);
         Message msg = Message.builder()
                 .userId(userId)
                 .content(content != null && !content.isBlank() ? content : null)
@@ -85,9 +86,9 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     @Transactional
     public void delete(Long userId, Long messageId, boolean isAdmin) {
         Message msg = getById(messageId);
-        if (msg == null) throw new BusinessException(404, "Message not found");
+        if (msg == null) throw new BusinessException(Error.MESSAGE_NOT_FOUND);
         if (!isAdmin && !msg.getUserId().equals(userId))
-            throw new BusinessException(403, "You can only delete your own messages");
+            throw new BusinessException(Error.ONLY_DELETE_OWN_MESSAGES);
         if (msg.getFile() != null)
             fileService.delete(RelatedType.CHAT, msg.getId());
         removeById(msg.getId());

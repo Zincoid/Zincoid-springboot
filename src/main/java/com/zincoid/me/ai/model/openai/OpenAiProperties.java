@@ -1,6 +1,7 @@
 package com.zincoid.me.ai.model.openai;
 
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -33,7 +34,7 @@ public class OpenAiProperties {
         if (p == null || p.getApiUrl() == null || p.getApiUrl().isBlank()
                 || p.getApiKey() == null || p.getApiKey().isBlank()
                 || p.getModel() == null || p.getModel().isBlank())
-            throw new BusinessException("AI provider not configured (ai.openai.providers)");
+            throw new BusinessException(Error.AI_PROVIDER_NOT_CONFIGURED);
         return p;
     }
 }

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.configuration.DataInitializer;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.exception.Error;
 import com.zincoid.me.mapper.CommentMapper;
 import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.Comment;
@@ -120,7 +121,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     public CommentCardVO card(Long commentId) {
         Comment comment = getById(commentId);
         if (comment == null || !isActive(comment.getTargetType(), comment.getTargetId()))
-            throw new BusinessException(404, "Comment not found");
+            throw new BusinessException(Error.COMMENT_NOT_FOUND);
         return toCommentCardVO(comment);
     }
 
@@ -182,11 +183,11 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     public void pin(Long userId, Long commentId) {
         Comment comment = getById(commentId);
         if (comment == null)
-            throw new BusinessException(404, "Comment not found");
+            throw new BusinessException(Error.COMMENT_NOT_FOUND);
         if (comment.getParentId() != null)
-            throw new BusinessException(400, "Only top-level comments can be pinned");
+            throw new BusinessException(Error.PIN_ROOT_COMMENT_ONLY);
         if (!Objects.equals(userId, getAuthor(comment.getTargetType(), comment.getTargetId())))
-            throw new BusinessException(403, "No permission to pin this comment");
+            throw new BusinessException(Error.NO_PERMISSION_PIN_COMMENT);
         lambdaUpdate()
                 .eq(Comment::getTargetType, comment.getTargetType())
                 .eq(Comment::getTargetId, comment.getTargetId())
@@ -206,9 +207,9 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     public void unpin(Long userId, Long commentId) {
         Comment comment = getById(commentId);
         if (comment == null)
-            throw new BusinessException(404, "Comment not found");
+            throw new BusinessException(Error.COMMENT_NOT_FOUND);
         if (!Objects.equals(userId, getAuthor(comment.getTargetType(), comment.getTargetId())))
-            throw new BusinessException(403, "No permission to unpin this comment");
+            throw new BusinessException(Error.NO_PERMISSION_UNPIN_COMMENT);
         lambdaUpdate()
                 .eq(Comment::getId, commentId)
                 .set(Comment::getIsPinned, false)
@@ -221,10 +222,10 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     public void delete(Long userId, Long commentId, boolean isAdmin) {
         Comment comment = getById(commentId);
         if (comment == null)
-            throw new BusinessException(404, "Comment not found");
+            throw new BusinessException(Error.COMMENT_NOT_FOUND);
         if (!isAdmin && !comment.getUserId().equals(userId)
                 && !Objects.equals(userId, getAuthor(comment.getTargetType(), comment.getTargetId())))
-            throw new BusinessException(403, "No permission to delete this comment");
+            throw new BusinessException(Error.NO_PERMISSION_DELETE_COMMENT);
         List<Long> allIds;
         if (comment.getId().equals(comment.getRootId())) {
             allIds = lambdaQuery()
@@ -297,15 +298,15 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         if (targetType == RelatedType.MOMENT) {
             Moment m = momentService.lambdaQuery().select(Moment::getStatus).eq(Moment::getId, targetId).one();
             if (m == null || m.getStatus() == Status.DISABLED)
-                throw new BusinessException(404, "Moment not found");
+                throw new BusinessException(Error.MOMENT_NOT_FOUND);
         } else if (targetType == RelatedType.ARTICLE) {
             Article a = articleService.lambdaQuery().select(Article::getStatus).eq(Article::getId, targetId).one();
             if (a == null || a.getStatus() == Status.DISABLED)
-                throw new BusinessException(404, "Article not found");
+                throw new BusinessException(Error.ARTICLE_NOT_FOUND);
         } else if (targetType == RelatedType.REPO) {
             Repo r = repoService.lambdaQuery().select(Repo::getStatus).eq(Repo::getId, targetId).one();
             if (r == null || r.getStatus() == Status.DISABLED)
-                throw new BusinessException(404, "Repo not found");
+                throw new BusinessException(Error.REPO_NOT_FOUND);
         } else throw new IllegalArgumentException("Invalid target type");
     }
 

@@ -1,6 +1,6 @@
 package com.zincoid.me.controller;
 
-import com.zincoid.me.model.ApiResp;
+import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.service.CleanupService;
 import com.zincoid.me.service.StorageService;
 import com.zincoid.me.utils.AuthCtx;
@@ -20,44 +20,44 @@ public class StorageController {
     // ──── Private endpoints ───────────────
 
     @GetMapping
-    public ApiResp<Map<String, Long>> storageSpace() {
+    public ApiResponse<Map<String, Long>> storageSpace() {
         AuthCtx.requireAdmin();
-        return ApiResp.success(storageService.storageSpace());
+        return ApiResponse.success(storageService.storageSpace());
     }
 
     @DeleteMapping("/cache")
-    public ApiResp<Integer> clearCache() {
+    public ApiResponse<Integer> clearCache() {
         AuthCtx.requireAdmin();
-        return ApiResp.success(cleanupService.cleanupCacheFiles());
+        return ApiResponse.success(cleanupService.cleanupCacheFiles());
     }
 
     @GetMapping("/user")
-    public ApiResp<Map<String, Long>> userStorage() {
-        return ApiResp.success(storageService.userStorage(AuthCtx.getUserId()));
+    public ApiResponse<Map<String, Long>> userStorage() {
+        return ApiResponse.success(storageService.userStorage(AuthCtx.getUserId()));
     }
 
     @PutMapping("/{username}/capacity")
-    public ApiResp<Void> updateCapacity(@PathVariable String username,
-                                        @RequestParam Long capacity) {
+    public ApiResponse<Void> updateCapacity(@PathVariable String username,
+                                            @RequestParam Long capacity) {
         AuthCtx.requireAdmin();
         storageService.updateCapacity(username, capacity);
-        return ApiResp.success();
+        return ApiResponse.success();
     }
 
     @PostMapping("/cleanup")
-    public ApiResp<Map<String, Integer>> cleanupRecords() {
+    public ApiResponse<Map<String, Integer>> cleanupRecords() {
         AuthCtx.requireAdmin();
-        return ApiResp.success(cleanupService.cleanupRecords());
+        return ApiResponse.success(cleanupService.cleanupRecords());
     }
 
     @DeleteMapping("/cleanup")
-    public ApiResp<Map<String, Integer>> cleanupFiles(@RequestParam(defaultValue = "false") boolean isLogic) {
+    public ApiResponse<Map<String, Integer>> cleanupFiles(@RequestParam(defaultValue = "false") boolean isLogic) {
         AuthCtx.requireAdmin();
-        return ApiResp.success(cleanupService.cleanupFiles(isLogic));
+        return ApiResponse.success(cleanupService.cleanupFiles(isLogic));
     }
 
     @DeleteMapping("/unlinked")
-    public ApiResp<Integer> cleanupUnlinkedFiles() {
-        return ApiResp.success(cleanupService.cleanupUnlinkedFiles(AuthCtx.getUserId()));
+    public ApiResponse<Integer> cleanupUnlinkedFiles() {
+        return ApiResponse.success(cleanupService.cleanupUnlinkedFiles(AuthCtx.getUserId()));
     }
 }

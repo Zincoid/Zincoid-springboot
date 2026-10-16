@@ -1,6 +1,6 @@
 package com.zincoid.me.controller;
 
-import com.zincoid.me.model.ApiResp;
+import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.model.vo.FileVO;
 import com.zincoid.me.service.FileService;
 import com.zincoid.me.utils.AuthCtx;
@@ -18,7 +18,7 @@ public class FileController {
     // ──── Private endpoints ───────────────
 
     @PostMapping("/upload")
-    public ApiResp<FileVO> uploadFile(@RequestParam("file") MultipartFile file) {
-        return ApiResp.success(fileService.upload(AuthCtx.getUserId(), file));
+    public ApiResponse<FileVO> uploadFile(@RequestParam("file") MultipartFile file) {
+        return ApiResponse.success(fileService.upload(AuthCtx.getUserId(), file));
     }
 }

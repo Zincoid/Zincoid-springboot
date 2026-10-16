@@ -1,6 +1,6 @@
 package com.zincoid.me.controller;
 
-import com.zincoid.me.model.ApiResp;
+import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.model.enums.Perm;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.UserPermissionVO;
@@ -21,30 +21,30 @@ public class UserPermissionController {
     // ──── Private endpoints ───────────────
 
     @PostMapping("/{userId}/{perm}")
-    public ApiResp<Void> grantPermission(@PathVariable Long userId, @PathVariable Perm perm) {
+    public ApiResponse<Void> grantPermission(@PathVariable Long userId, @PathVariable Perm perm) {
         AuthCtx.requireAdmin();
         userPermissionService.grant(userId, perm, AuthCtx.getUserId());
-        return ApiResp.success();
+        return ApiResponse.success();
     }
 
     @DeleteMapping("/{id}")
-    public ApiResp<Void> revokePermission(@PathVariable Long id) {
+    public ApiResponse<Void> revokePermission(@PathVariable Long id) {
         AuthCtx.requireAdmin();
         userPermissionService.revoke(id, AuthCtx.getUserId());
-        return ApiResp.success();
+        return ApiResponse.success();
     }
 
     @GetMapping("/my")
-    public ApiResp<List<Perm>> myPermissions() {
-        return ApiResp.success(userPermissionService.get(AuthCtx.getUserId()));
+    public ApiResponse<List<Perm>> myPermissions() {
+        return ApiResponse.success(userPermissionService.get(AuthCtx.getUserId()));
     }
 
     @GetMapping
-    public ApiResp<PageVO<UserPermissionVO>> listPermissions(@RequestParam(required = false) Long userId,
-                                                             @RequestParam(required = false) Perm perm,
-                                                             @RequestParam(defaultValue = "1") int page,
-                                                             @RequestParam(defaultValue = "10") int size) {
+    public ApiResponse<PageVO<UserPermissionVO>> listPermissions(@RequestParam(required = false) Long userId,
+                                                                @RequestParam(required = false) Perm perm,
+                                                                @RequestParam(defaultValue = "1") int page,
+                                                                @RequestParam(defaultValue = "10") int size) {
         AuthCtx.requireAdmin();
-        return ApiResp.success(userPermissionService.list(userId, perm, page, size));
+        return ApiResponse.success(userPermissionService.list(userId, perm, page, size));
     }
 }

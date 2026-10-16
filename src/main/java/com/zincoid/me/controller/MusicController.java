@@ -1,6 +1,6 @@
 package com.zincoid.me.controller;
 
-import com.zincoid.me.model.ApiResp;
+import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.vo.FileVO;
 import com.zincoid.me.model.vo.PageVO;
@@ -20,26 +20,26 @@ public class MusicController {
     // ──── Private endpoints ───────────────
 
     @PostMapping
-    public ApiResp<FileVO> upload(@RequestParam("file") MultipartFile file,
-                                  @RequestParam(defaultValue = "false") boolean isPublic) {
-        return ApiResp.success(musicService.upload(AuthCtx.getUserId(), file, isPublic, AuthCtx.getRole() == Role.ADMIN));
+    public ApiResponse<FileVO> upload(@RequestParam("file") MultipartFile file,
+                                      @RequestParam(defaultValue = "false") boolean isPublic) {
+        return ApiResponse.success(musicService.upload(AuthCtx.getUserId(), file, isPublic, AuthCtx.getRole() == Role.ADMIN));
     }
 
     @DeleteMapping("/{fileId}")
-    public ApiResp<Void> delete(@PathVariable Long fileId) {
+    public ApiResponse<Void> delete(@PathVariable Long fileId) {
         musicService.delete(AuthCtx.getUserId(), fileId);
-        return ApiResp.success();
+        return ApiResponse.success();
     }
 
     @GetMapping
-    public ApiResp<PageVO<FileVO>> listPub(@RequestParam(defaultValue = "1") int page,
-                                           @RequestParam(defaultValue = "10") int size) {
-        return ApiResp.success(musicService.list(page, size));
+    public ApiResponse<PageVO<FileVO>> listPub(@RequestParam(defaultValue = "1") int page,
+                                               @RequestParam(defaultValue = "10") int size) {
+        return ApiResponse.success(musicService.list(page, size));
     }
 
     @GetMapping("/user")
-    public ApiResp<PageVO<FileVO>> listPri(@RequestParam(defaultValue = "1") int page,
-                                           @RequestParam(defaultValue = "10") int size) {
-        return ApiResp.success(musicService.list(AuthCtx.getUserId(), page, size));
+    public ApiResponse<PageVO<FileVO>> listPri(@RequestParam(defaultValue = "1") int page,
+                                               @RequestParam(defaultValue = "10") int size) {
+        return ApiResponse.success(musicService.list(AuthCtx.getUserId(), page, size));
     }
 }

@@ -1,6 +1,6 @@
 package com.zincoid.me.controller;
 
-import com.zincoid.me.model.ApiResp;
+import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.service.StatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -15,8 +15,8 @@ public class StatController {
     private final StatService statService;
 
     @GetMapping
-    public ApiResp<Map<String, Object>> stats(@RequestParam(defaultValue = "30") int days,
-                                              @RequestParam(defaultValue = "50") int top) {
-        return ApiResp.success(statService.stats(days, top));
+    public ApiResponse<Map<String, Object>> stats(@RequestParam(defaultValue = "30") int days,
+                                                  @RequestParam(defaultValue = "50") int top) {
+        return ApiResponse.success(statService.stats(days, top));
     }
 }

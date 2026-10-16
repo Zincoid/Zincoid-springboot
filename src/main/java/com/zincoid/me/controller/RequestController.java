@@ -1,6 +1,6 @@
 package com.zincoid.me.controller;
 
-import com.zincoid.me.model.ApiResp;
+import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.model.enums.Access;
 import com.zincoid.me.model.enums.RequestType;
 import com.zincoid.me.model.enums.Role;
@@ -21,33 +21,33 @@ public class RequestController {
     // ──── Private endpoints ───────────────
 
     @PostMapping("/{receiverId}")
-    public ApiResp<RequestVO> create(@PathVariable Long receiverId,
-                                     @RequestParam RequestType type,
-                                     @RequestParam(required = false) String meta) {
-        return ApiResp.success(requestService.create(AuthCtx.getUserId(), receiverId, type, meta));
+    public ApiResponse<RequestVO> create(@PathVariable Long receiverId,
+                                         @RequestParam RequestType type,
+                                         @RequestParam(required = false) String meta) {
+        return ApiResponse.success(requestService.create(AuthCtx.getUserId(), receiverId, type, meta));
     }
 
     @GetMapping("/sent")
-    public ApiResp<PageVO<RequestVO>> sent(@RequestParam(defaultValue = "1") int page,
-                                           @RequestParam(defaultValue = "10") int size) {
-        return ApiResp.success(requestService.sent(AuthCtx.getUserId(), page, size));
+    public ApiResponse<PageVO<RequestVO>> sent(@RequestParam(defaultValue = "1") int page,
+                                               @RequestParam(defaultValue = "10") int size) {
+        return ApiResponse.success(requestService.sent(AuthCtx.getUserId(), page, size));
     }
 
     @GetMapping("/received")
-    public ApiResp<PageVO<RequestVO>> received(@RequestParam(defaultValue = "1") int page,
-                                               @RequestParam(defaultValue = "10") int size) {
-        return ApiResp.success(requestService.received(AuthCtx.getUserId(), page, size, AuthCtx.getRole() == Role.ADMIN));
+    public ApiResponse<PageVO<RequestVO>> received(@RequestParam(defaultValue = "1") int page,
+                                                   @RequestParam(defaultValue = "10") int size) {
+        return ApiResponse.success(requestService.received(AuthCtx.getUserId(), page, size, AuthCtx.getRole() == Role.ADMIN));
     }
 
     @PutMapping("/{requestId}")
-    public ApiResp<RequestVO> handle(@PathVariable Long requestId,
-                                     @RequestParam Access access) {
-        return ApiResp.success(requestService.handle(AuthCtx.getUserId(), requestId, access, AuthCtx.getRole() == Role.ADMIN));
+    public ApiResponse<RequestVO> handle(@PathVariable Long requestId,
+                                         @RequestParam Access access) {
+        return ApiResponse.success(requestService.handle(AuthCtx.getUserId(), requestId, access, AuthCtx.getRole() == Role.ADMIN));
     }
 
     @DeleteMapping("/{requestId}")
-    public ApiResp<Void> delete(@PathVariable Long requestId) {
+    public ApiResponse<Void> delete(@PathVariable Long requestId) {
         requestService.delete(AuthCtx.getUserId(), requestId, AuthCtx.getRole() == Role.ADMIN);
-        return ApiResp.success();
+        return ApiResponse.success();
     }
 }

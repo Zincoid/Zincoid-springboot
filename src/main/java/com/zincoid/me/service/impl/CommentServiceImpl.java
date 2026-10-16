@@ -82,9 +82,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         List<CommentVO> roots = rootComments.stream()
                 .map(c -> toCommentVO(c, List.of(), replyCounts.getOrDefault(c.getId(), 0L)))
                 .toList();
-        PageVO<CommentVO> result = PageVO.of(rootPage, roots);
-        result.setTotal(count(targetType, targetId));
-        return result;
+        return PageVO.of(rootPage, roots);
     }
 
     @Override

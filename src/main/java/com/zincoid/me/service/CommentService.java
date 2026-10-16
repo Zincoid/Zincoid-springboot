@@ -17,7 +17,7 @@ public interface CommentService extends IService<Comment> {
 
     List<CommentVO> replies(Long parentId);
 
-    CommentCardVO get(Long commentId);
+    CommentCardVO card(Long commentId);
 
     long count(RelatedType targetType, Long targetId);
 

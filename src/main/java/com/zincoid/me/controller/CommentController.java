@@ -86,7 +86,7 @@ public class CommentController {
     }
 
     @GetMapping("/public/{commentId}")
-    public ApiResponse<CommentCardVO> detail(@PathVariable Long commentId) {
-        return ApiResponse.success(commentService.get(commentId));
+    public ApiResponse<CommentCardVO> card(@PathVariable Long commentId) {
+        return ApiResponse.success(commentService.card(commentId));
     }
 }

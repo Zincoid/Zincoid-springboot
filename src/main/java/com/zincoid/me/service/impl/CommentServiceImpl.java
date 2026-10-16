@@ -116,7 +116,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     }
 
     @Override
-    public CommentCardVO get(Long commentId) {
+    public CommentCardVO card(Long commentId) {
         Comment comment = getById(commentId);
         if (comment == null || !isTargetActive(comment.getTargetType(), comment.getTargetId()))
             throw new BusinessException(404, "Comment not found");

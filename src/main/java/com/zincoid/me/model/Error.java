@@ -5,7 +5,8 @@ import lombok.Getter;
 /**
  * Stable error identifiers returned as ApiResponse.error.
  * The frontend translates via en.js/zh.js keys matching the enum name;
- * {@code message} is the English fallback when no translation exists.
+ * {@code code} is useless in the frontend now;
+ * {@code message} is the fallback when no translation exists.
  */
 @Getter
 public enum Error {

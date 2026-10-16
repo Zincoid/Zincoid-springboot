@@ -1,8 +1,8 @@
 package com.zincoid.me.exception;
 
-public class MaintenanceException extends RuntimeException {
+public class MaintenanceException extends ApplicationException {
 
     public MaintenanceException() {
-        super("Server is under maintenance");
+        super(Error.SERVER_UNDER_MAINTENANCE);
     }
 }

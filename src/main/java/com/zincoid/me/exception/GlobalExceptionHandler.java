@@ -19,21 +19,21 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ApiResponse<Void> handleUnauthorizedException(UnauthorizedException e) {
         log.warn("Unauthorized exception: {}", e.getMessage());
-        return ApiResponse.unauthorized(e.getMessage());
+        return ApiResponse.error(401, e.getError());
     }
 
     @ExceptionHandler(BusinessException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleBusinessException(BusinessException e) {
         log.warn("Business exception: {}", e.getMessage());
-        return ApiResponse.error(e.getCode(), e.getMessage());
+        return ApiResponse.error(e.getCode(), e.getError());
     }
 
     @ExceptionHandler(MaintenanceException.class)
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     public ApiResponse<Void> handleMaintenanceException(MaintenanceException e) {
         log.info("Request blocked during maintenance");
-        return ApiResponse.error(503, e.getMessage());
+        return ApiResponse.error(503, e.getError());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -44,14 +44,14 @@ public class GlobalExceptionHandler {
                 .findFirst()
                 .orElse("Validation failed");
         log.warn("Validation failed: {}", message);
-        return ApiResponse.badRequest(message);
+        return ApiResponse.error(400, message);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
         log.warn("Type mismatch: {}", e.getName());
-        return ApiResponse.badRequest("Invalid parameter: " + e.getName());
+        return ApiResponse.error(400, Error.INVALID_PARAMETER);
     }
 
     @ExceptionHandler(ClientAbortException.class)
@@ -68,6 +68,6 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiResponse<Void> handleException(Exception e) {
         log.error("Unexpected error", e);
-        return ApiResponse.error("Internal server error");
+        return ApiResponse.error(500, Error.INTERNAL_SERVER_ERROR);
     }
 }

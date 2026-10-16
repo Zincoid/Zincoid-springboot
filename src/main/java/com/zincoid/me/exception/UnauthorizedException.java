@@ -1,8 +1,8 @@
 package com.zincoid.me.exception;
 
-public class UnauthorizedException extends RuntimeException {
+public class UnauthorizedException extends ApplicationException {
 
-    public UnauthorizedException(String message) {
-        super(message);
+    public UnauthorizedException(Error error) {
+        super(error);
     }
 }

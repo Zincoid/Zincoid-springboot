@@ -9,6 +9,8 @@ public interface ConfigService extends IService<Config> {
 
     String get(String key);
 
+    String get(String key, String fallback);
+
     Map<String, String> map();
 
     void update(String key, String value);

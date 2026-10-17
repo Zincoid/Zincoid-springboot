@@ -26,6 +26,12 @@ public class ConfigServiceImpl extends ServiceImpl<ConfigMapper, Config> impleme
     }
 
     @Override
+    public String get(String key, String fallback) {
+        String value = get(key);
+        return value == null ? fallback : value;
+    }
+
+    @Override
     public Map<String, String> map() {
         Map<String, String> map = new LinkedHashMap<>();
         for (Config config : list()) map.put(config.getConfigKey(), config.getConfigValue());

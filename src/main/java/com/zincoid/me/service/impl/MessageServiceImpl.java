@@ -37,6 +37,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> implements MessageService {
 
+    private static final String MESSAGE_MAX_COUNT_CONF_KEY = "message_max_count";
+    private static final String MESSAGE_MAX_COUNT_CONF_FALLBACK = "200";
+
     private final ConfigService configService;
     private final FileService fileService;
     private final UserService userService;
@@ -129,12 +132,11 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     // ──────── Private tool ────────────────────────────────
 
     private List<Long> trim() {
-        String maxStr = configService.get("message_max_count");
+        String maxStr = configService.get(MESSAGE_MAX_COUNT_CONF_KEY, MESSAGE_MAX_COUNT_CONF_FALLBACK);
         int max = 200;
         try {
             if (maxStr != null) max = Integer.parseInt(maxStr);
-        } catch (NumberFormatException ignored) {
-        }
+        } catch (NumberFormatException ignored) {}
         long total = count();
         if (total <= max) return List.of();
         int toDelete = (int) (total - max);

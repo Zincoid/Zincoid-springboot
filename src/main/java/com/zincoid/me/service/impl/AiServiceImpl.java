@@ -32,6 +32,10 @@ import java.util.stream.Collectors;
 @Service
 public class AiServiceImpl implements AiService {
 
+    private static final String AI_CHAT_PROMPT_CONF_KEY = "ai_chat_prompt";
+    private static final String AI_CHAT_PROMPT_CONF_FALLBACK = "There is something wrong with your configuration.";
+    private static final String AI_COMMENT_PROMPT_CONF_KEY = "ai_comment_prompt";
+    private static final String AI_COMMENT_PROMPT_CONF_FALLBACK = "There is something wrong with your configuration.";
     private static final boolean thinking = true;
 
     private final ConfigService configService;
@@ -70,10 +74,10 @@ public class AiServiceImpl implements AiService {
         User ai = getAiUser();
         if (ai.getId().equals(userId)) return;
         List<AiMessage> history = buildHistory(ai.getId());
-        String prompt = configService.get("ai_chat_prompt");
+        String prompt = configService.get(AI_CHAT_PROMPT_CONF_KEY, AI_CHAT_PROMPT_CONF_FALLBACK);
         if (messageId != null) {
             String note = "The mention is in message id=%d.".formatted(messageId);
-            prompt = (prompt == null || prompt.isBlank()) ? note : prompt + "\n\n" + note;
+            prompt = prompt + "\n\n" + note;
         }
         try {
             String reply = aiClient.invoke(history, prompt, thinking, AiTask.CHAT);
@@ -92,7 +96,7 @@ public class AiServiceImpl implements AiService {
         Comment trigger = commentService.getById(commentId);
         if (trigger == null) return;
         List<AiMessage> history = buildComments(trigger);
-        String prompt = configService.get("ai_comment_prompt");
+        String prompt = configService.get(AI_COMMENT_PROMPT_CONF_KEY, AI_COMMENT_PROMPT_CONF_FALLBACK);
         try {
             String reply = aiClient.invoke(history, prompt, thinking, AiTask.COMMENT);
             commentService.add(ai.getId(), trigger.getTargetType(),

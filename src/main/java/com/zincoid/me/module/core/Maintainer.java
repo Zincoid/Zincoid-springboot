@@ -13,7 +13,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class Maintainer {
 
-    private static final String CONFIG_KEY = "maintenance_enabled";
+    private static final String ENABLED_CONF_KEY = "maintenance_enabled";
+    private static final String ENABLED_CONF_FALLBACK = "false";
     private static final int AUTO_CLEANUP_REQUEST_RETENTION_DAYS = 7;
 
     private final ConfigService configService;
@@ -50,7 +51,7 @@ public class Maintainer {
     }
 
     private boolean isEnabled() {
-        String value = configService.get(CONFIG_KEY);
+        String value = configService.get(ENABLED_CONF_KEY, ENABLED_CONF_FALLBACK);
         return "true".equalsIgnoreCase(value);
     }
 }

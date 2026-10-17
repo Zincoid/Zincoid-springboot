@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.stream.Collectors;
@@ -28,6 +29,15 @@ public class GlobalExceptionHandler {
     public ApiResponse<Void> handleUnknown(Exception e) {
         log.error("Unexpected error", e);
         return ApiResponse.error(Error.INTERNAL_SERVER_ERROR);
+    }
+
+    // ── Resource not found ──────────────────────────────
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiResponse<Void> handleNoResourceFound(NoResourceFoundException e) {
+        log.debug("Resource not found: {}", e.getMessage());
+        return ApiResponse.error(Error.RESOURCE_NOT_FOUND);
     }
 
     // ── Application errors ──────────────────────────────

@@ -141,6 +141,7 @@ public enum Error {
     AI_REASONING_TRUNCATED(502, "Request too complex, reasoning was interrupted"),
 
     // ── System ────────────────────────────────────────────
+    RESOURCE_NOT_FOUND(404, "Resource not found"),
     INTERNAL_SERVER_ERROR(500, "Internal server error"),
     SERVER_UNDER_MAINTENANCE(503, "Server is under maintenance");
 

@@ -67,6 +67,18 @@ public class MessageStreamServiceImpl implements MessageStreamService {
     }
 
     @Override
+    public void trim(Long messageId) {
+        if (emitters.isEmpty()) return;
+        emitters.forEach((id, emitter) -> {
+            try {
+                emitter.send(SseEmitter.event().name("trim").data(messageId));
+            } catch (IOException e) {
+                remove(id);
+            }
+        });
+    }
+
+    @Override
     public void tool(AiTask task, ToolCall tc) {
         tool(task, tc, null);
     }

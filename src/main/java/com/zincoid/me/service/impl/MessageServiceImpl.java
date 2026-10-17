@@ -83,7 +83,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                trimmed.forEach(messageStreamService::delete);
+                trimmed.forEach(messageStreamService::trim);
                 messageStreamService.broadcast(vo);
             }
         });

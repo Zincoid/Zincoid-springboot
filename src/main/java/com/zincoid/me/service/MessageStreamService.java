@@ -14,6 +14,8 @@ public interface MessageStreamService {
 
     void delete(Long messageId);
 
+    void trim(Long messageId);
+
     void tool(AiTask task, ToolCall tc);
 
     void tool(AiTask task, ToolCall tc, ToolRes tr);

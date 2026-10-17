@@ -50,12 +50,11 @@ public class Get implements Tool {
     @Override
     public ToolDef def() {
         return ToolDef.builder("get", """
-                        Get the full content of a moment, article, repository or chat message by type and id \
-                        (as returned by search or chat history). Use type=message to look up a message \
-                        referenced as "reply to id=N" in chat history. Attached images are listed as URLs; \
+                        Get the full content of a moment, article, repository or message by type and id \
+                        (as returned by search or in history). Attached images are listed as URLs; \
                         use view to look at them selectively.""")
                 .addEnum("type", "Content type: moment, article, repo or message.", TYPES, true)
-                .addInteger("id", "Content id, as returned by search or chat history.", true)
+                .addInteger("id", "Content id, as returned by search or in history.", true)
                 .build();
     }
 
@@ -124,10 +123,10 @@ public class Get implements Tool {
         Message m = messageService.getById(id);
         if (m == null)
             return ToolRes.of("Not found: message id=%d does not exist or has been deleted".formatted(id));
-        StringBuilder sb = new StringBuilder("[message id=%d]".formatted(m.getId()));
+        StringBuilder sb = new StringBuilder("[id=%d]".formatted(m.getId()));
         sb.append(" ").append(author(userService.getById(m.getUserId())));
         if (m.getReplyId() != null)
-            sb.append(" (reply to id=%d)".formatted(m.getReplyId()));
+            sb.append(" (reply_to_id=%d)".formatted(m.getReplyId()));
         if (m.getCreatedAt() != null)
             sb.append(" (%s)".formatted(m.getCreatedAt().toLocalDate()));
         sb.append(":\n");

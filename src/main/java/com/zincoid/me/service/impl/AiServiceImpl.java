@@ -139,7 +139,7 @@ public class AiServiceImpl implements AiService {
             sb.repeat("  ", depth(byId, c));
             sb.append("[comment id=%d]".formatted(c.getId()));
             if (c.getParentId() != null)
-                sb.append(" (reply to id=%d)".formatted(c.getParentId()));
+                sb.append(" (reply_to_id=%d)".formatted(c.getParentId()));
             sb.append(" %s: %s\n".formatted(author(users.get(c.getUserId())), text(c.getContent())));
         }
         sb.append("The mention is in comment id=%d.".formatted(trigger.getId()));
@@ -158,7 +158,7 @@ public class AiServiceImpl implements AiService {
         List<AiMessage> messages = new ArrayList<>();
         for (Message m : rows) {
             String replyTag = m.getReplyId() != null
-                    ? " (reply to id=%d)".formatted(m.getReplyId()) : "";
+                    ? " (reply_to_id=%d)".formatted(m.getReplyId()) : "";
             if (aiId.equals(m.getUserId())) {
                 String content = m.getContent() != null ? m.getContent() : "";
                 messages.add(AiMessage.assistant("[id=%d] (AI)%s: %s".formatted(

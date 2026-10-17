@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class Send implements Tool {
 
-    private record Args(String content, String image, Long replyId) {}
+    private record Args(String content, String image, Long reply) {}
 
     private final MessageService messageService;
     private final UserService userService;
@@ -39,7 +39,7 @@ public class Send implements Tool {
                         Use it for intermediate output before your final answer.""")
                 .addString("content", "Message text. Optional if image is given.")
                 .addString("image", "Image URL as listed by other tools. Optional if content is given.")
-                .addInteger("replyId", "Optional id of the message being replied to (the \"id=\" shown in chat history).")
+                .addInteger("reply", "Optional id of the message being replied to.")
                 .build();
     }
 
@@ -63,7 +63,7 @@ public class Send implements Tool {
         }
         if (content == null && file == null)
             return ToolRes.error("content or image is required");
-        Long replyId = args.replyId();
+        Long replyId = args.reply();
         if (replyId != null && messageService.getById(replyId) == null)
             return ToolRes.error("message id=%d not found or no longer available".formatted(replyId));
         User ai = userService.lambdaQuery()
@@ -71,6 +71,6 @@ public class Send implements Tool {
         if (ai == null)
             return ToolRes.error("AI user not initialized");
         MessageVO vo = messageService.send(ai.getId(), content, file, replyId);
-        return ToolRes.of("Sent message id=%d.".formatted(vo.getId()));
+        return ToolRes.of("Sent message id=%d".formatted(vo.getId()));
     }
 }

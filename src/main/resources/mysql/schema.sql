@@ -200,6 +200,7 @@ CREATE TABLE IF NOT EXISTS `notification` (
 -- =============================================
 CREATE TABLE IF NOT EXISTS `message` (
     `id`            BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
+    `reply_id`      BIGINT      DEFAULT NULL             COMMENT 'Replied message ID',
     `user_id`       BIGINT      NOT NULL                 COMMENT 'Sender user ID',
     `content`       TEXT        DEFAULT NULL             COMMENT 'Text content (nullable if file)',
     `file`          VARCHAR(500) DEFAULT NULL            COMMENT 'Attached file path',

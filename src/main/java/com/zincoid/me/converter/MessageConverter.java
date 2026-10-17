@@ -20,6 +20,7 @@ public interface MessageConverter {
     @Mapping(target = "userNickname", source = "user.nickname")
     @Mapping(target = "userAvatar", source = "user.avatar", qualifiedByName = "thumbAvatar")
     @Mapping(target = "thumb", source = "message.file", qualifiedByName = "thumbFile")
+    @Mapping(target = "reply", ignore = true)
     MessageVO toVO(Message message, User user);
 
     @Named("thumbAvatar")

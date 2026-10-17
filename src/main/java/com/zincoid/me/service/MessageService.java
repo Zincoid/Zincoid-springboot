@@ -7,6 +7,8 @@ import com.zincoid.me.model.vo.PageVO;
 
 public interface MessageService extends IService<Message> {
 
+    MessageVO send(Long userId, String content, String file, Long replyId);
+
     MessageVO send(Long userId, String content, String file);
 
     PageVO<MessageVO> list(int page, int size);

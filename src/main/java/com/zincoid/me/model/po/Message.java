@@ -19,6 +19,7 @@ public class Message {
 
     @TableId(type = IdType.AUTO)
     private Long id;
+    private Long replyId;
     private Long userId;
     private String content;
     private String file;

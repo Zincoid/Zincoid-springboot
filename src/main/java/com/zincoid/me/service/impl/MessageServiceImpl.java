@@ -30,6 +30,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -45,17 +46,24 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     @Override
     @Transactional
-    public MessageVO send(Long userId, String content, String file) {
+    public MessageVO send(Long userId, String content, String file, Long replyId) {
         if ((content == null || content.isBlank()) && (file == null || file.isBlank()))
             throw new BusinessException(Error.CONTENT_OR_FILE_REQUIRED);
+        Message reply = null;
+        if (replyId != null) {
+            reply = getById(replyId);
+            if (reply == null)
+                throw new BusinessException(Error.MESSAGE_NOT_FOUND);
+        }
         Message msg = Message.builder()
                 .userId(userId)
+                .replyId(replyId)
                 .content(content != null && !content.isBlank() ? content : null)
                 .file(file != null && !file.isBlank() ? file : null)
-                .createdAt(LocalDateTime.now())  // 无法回填需手动设置
+                .createdAt(LocalDateTime.now())  // can't fill back, set manually
                 .build();
         save(msg);
-        if (msg.getFile() != null && !aiService.isAi(userId))  // AI 仅引用图片
+        if (msg.getFile() != null && !aiService.isAi(userId))  // AI ignore link
             fileService.link(List.of(msg.getFile()), RelatedType.CHAT, msg.getId(), userId);
         List<Long> trimmed = trim();
         boolean isAiMentioned = false;
@@ -71,7 +79,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
                 }
             });
         log.info("Message sent: user={}, id={}", userId, msg.getId());
-        MessageVO vo = buildVO(msg);
+        MessageVO vo = buildVO(msg, reply);
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
@@ -80,6 +88,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
             }
         });
         return vo;
+    }
+
+    @Override
+    @Transactional
+    public MessageVO send(Long userId, String content, String file) {
+        return send(userId, content, file, null);
     }
 
     @Override
@@ -107,7 +121,9 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         Page<Message> msgPage = lambdaQuery()
                 .orderByAsc(Message::getCreatedAt)
                 .page(Page.of(page, size));
-        return PageVO.of(msgPage, this::buildVO);
+        Map<Long, Message> replies = getReplies(msgPage.getRecords());
+        return PageVO.of(msgPage, m -> buildVO(m, m.getReplyId() != null
+                ? replies.get(m.getReplyId()) : null));
     }
 
     // ──────── Private tool ────────────────────────────────
@@ -137,7 +153,24 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         return deleted;
     }
 
-    private MessageVO buildVO(Message msg) {
+    private Map<Long, Message> getReplies(List<Message> messages) {
+        Set<Long> ids = messages.stream()
+                .map(Message::getReplyId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        if (ids.isEmpty()) return Map.of();
+        return listByIds(ids).stream().collect(Collectors.toMap(Message::getId, m -> m));
+    }
+
+    private MessageVO buildVO(Message msg, Message reply) {
+        User user = userService.getById(msg.getUserId());
+        MessageVO vo = MessageConverter.INSTANCE.toVO(msg, user);
+        if (msg.getReplyId() != null)
+            vo.setReply(reply != null ? buildReplyVO(reply) : null);
+        return vo;
+    }
+
+    private MessageVO buildReplyVO(Message msg) {
         User user = userService.getById(msg.getUserId());
         return MessageConverter.INSTANCE.toVO(msg, user);
     }

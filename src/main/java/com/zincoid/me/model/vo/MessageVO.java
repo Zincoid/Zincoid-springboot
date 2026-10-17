@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 public class MessageVO {
 
     private Long id;
+    private Long replyId;
     private Long userId;
     private String username;
     private String userNickname;
@@ -18,4 +19,5 @@ public class MessageVO {
     private String thumb;
     private String file;
     private LocalDateTime createdAt;
+    private MessageVO reply;
 }

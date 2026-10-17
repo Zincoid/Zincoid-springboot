@@ -24,8 +24,9 @@ public class ChatController {
 
     @PostMapping
     public ApiResponse<MessageVO> send(@RequestParam(required = false) String content,
-                                       @RequestParam(required = false) String file) {
-        return ApiResponse.success(messageService.send(AuthCtx.getUserId(), content, file));
+                                       @RequestParam(required = false) String file,
+                                       @RequestParam(required = false) Long replyId) {
+        return ApiResponse.success(messageService.send(AuthCtx.getUserId(), content, file, replyId));
     }
 
     @DeleteMapping("/{messageId}")

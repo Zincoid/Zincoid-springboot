@@ -7,10 +7,12 @@ import com.zincoid.me.model.enums.RepoType;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.enums.Visibility;
 import com.zincoid.me.model.po.Article;
+import com.zincoid.me.model.po.Message;
 import com.zincoid.me.model.po.Moment;
 import com.zincoid.me.model.po.Repo;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.service.ArticleService;
+import com.zincoid.me.service.MessageService;
 import com.zincoid.me.service.MomentService;
 import com.zincoid.me.service.RepoService;
 import com.zincoid.me.service.UserService;
@@ -34,11 +36,12 @@ public class Get implements Tool {
     private record Args(String type, Long id) {}
 
     private static final int MAX_CONTENT_LENGTH = 8192;
-    private static final Set<String> TYPES = Set.of("moment", "article", "repo");
+    private static final Set<String> TYPES = Set.of("moment", "article", "repo", "message");
 
     private final MomentService momentService;
     private final ArticleService articleService;
     private final RepoService repoService;
+    private final MessageService messageService;
     private final UserService userService;
 
     @Value("${site.url}")
@@ -47,11 +50,12 @@ public class Get implements Tool {
     @Override
     public ToolDef def() {
         return ToolDef.builder("get", """
-                        Get the full content of a moment, article or repository by type and id \
-                        (as returned by search). Attached images are listed as URLs; \
+                        Get the full content of a moment, article, repository or chat message by type and id \
+                        (as returned by search or chat history). Use type=message to look up a message \
+                        referenced as "reply to id=N" in chat history. Attached images are listed as URLs; \
                         use view to look at them selectively.""")
-                .addEnum("type", "Content type: moment, article or repo.", TYPES, true)
-                .addInteger("id", "Content id, as returned by search.", true)
+                .addEnum("type", "Content type: moment, article, repo or message.", TYPES, true)
+                .addInteger("id", "Content id, as returned by search or chat history.", true)
                 .build();
     }
 
@@ -66,6 +70,7 @@ public class Get implements Tool {
         return switch (type) {
             case "moment" -> renderMoment(args.id());
             case "article" -> renderArticle(args.id());
+            case "message" -> renderMessage(args.id());
             default -> renderRepo(args.id());
         };
     }
@@ -112,6 +117,22 @@ public class Get implements Tool {
             sb.append(truncate(r.getDescription())).append("\n");
         if (!restricted)
             appendAttachments(sb, Collections.singletonList(r.getCoverImage()));
+        return ToolRes.of(sb.toString());
+    }
+
+    private ToolRes renderMessage(Long id) {
+        Message m = messageService.getById(id);
+        if (m == null)
+            return ToolRes.of("Not found: message id=%d does not exist or has been deleted".formatted(id));
+        StringBuilder sb = new StringBuilder("[message id=%d]".formatted(m.getId()));
+        sb.append(" ").append(author(userService.getById(m.getUserId())));
+        if (m.getReplyId() != null)
+            sb.append(" (reply to id=%d)".formatted(m.getReplyId()));
+        if (m.getCreatedAt() != null)
+            sb.append(" (%s)".formatted(m.getCreatedAt().toLocalDate()));
+        sb.append(":\n");
+        sb.append(truncate(m.getContent())).append("\n");
+        appendAttachments(sb, m.getFile() != null ? List.of(m.getFile()) : List.of());
         return ToolRes.of(sb.toString());
     }
 

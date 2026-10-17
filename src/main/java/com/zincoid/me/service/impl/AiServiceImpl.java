@@ -66,11 +66,15 @@ public class AiServiceImpl implements AiService {
 
     @Override
     @Async("AsyncRunner")
-    public void chat(Long userId) {
+    public void chat(Long userId, Long messageId) {
         User ai = getAiUser();
         if (ai.getId().equals(userId)) return;
         List<AiMessage> history = buildHistory(ai.getId());
         String prompt = configService.get("ai_chat_prompt");
+        if (messageId != null) {
+            String note = "The mention is in message id=%d.".formatted(messageId);
+            prompt = (prompt == null || prompt.isBlank()) ? note : prompt + "\n\n" + note;
+        }
         try {
             String reply = aiClient.invoke(history, prompt, thinking, AiTask.CHAT);
             messageService.send(ai.getId(), reply, null);
@@ -138,6 +142,36 @@ public class AiServiceImpl implements AiService {
         return List.of(AiMessage.user(sb.toString()));
     }
 
+    private List<AiMessage> buildHistory(Long aiId) {
+        List<Message> rows = messageService.lambdaQuery()
+                .orderByDesc(Message::getId)
+                .last("LIMIT " + aiChatProperties.getMaxLength())
+                .list();
+        Collections.reverse(rows);
+        Map<Long, User> users = userService.listByIds(
+                        rows.stream().map(Message::getUserId).distinct().toList())
+                .stream().collect(Collectors.toMap(User::getId, u -> u));
+        List<AiMessage> messages = new ArrayList<>();
+        for (Message m : rows) {
+            String replyTag = m.getReplyId() != null
+                    ? " (reply to id=%d)".formatted(m.getReplyId()) : "";
+            if (aiId.equals(m.getUserId())) {
+                String content = m.getContent() != null ? m.getContent() : "";
+                messages.add(AiMessage.assistant("[id=%d] (AI)%s: %s".formatted(
+                        m.getId(), replyTag, content.isBlank() ? "(sent an image)" : content)));
+                continue;
+            }
+            List<String> images = url(m.getFile());
+            String text = m.getContent() != null ? m.getContent() : "";
+            if (text.isBlank() && images.isEmpty()) continue;
+            User user = users.get(m.getUserId());
+            String name = user != null ? user.getUsername() : null;
+            messages.add(AiMessage.user(name, "[id=%d] %s%s: %s".formatted(
+                    m.getId(), author(user), replyTag, text), images));
+        }
+        return messages;
+    }
+
     private int depth(Map<Long, Comment> byId, Comment comment) {
         int depth = 0;
         Long parentId = comment.getParentId();
@@ -150,6 +184,11 @@ public class AiServiceImpl implements AiService {
         return depth;
     }
 
+    private String text(String content) {
+        if (content == null) return "";
+        return content.length() > 2048 ? "%s...(truncated)".formatted(content.substring(0, 2048)) : content;
+    }
+
     private String author(User user) {
         if (user == null) return "unknown";
         if (user.getNickname() != null && !user.getNickname().isBlank())
@@ -157,41 +196,7 @@ public class AiServiceImpl implements AiService {
         return user.getUsername();
     }
 
-    private String text(String content) {
-        if (content == null) return "";
-        return content.length() > 2048 ? "%s...(truncated)".formatted(content.substring(0, 2048)) : content;
-    }
-
-    private List<AiMessage> buildHistory(Long aiId) {
-        List<Message> rows = messageService.lambdaQuery()
-                .orderByDesc(Message::getId)
-                .last("LIMIT " + aiChatProperties.getMaxLength())
-                .list();
-        Collections.reverse(rows);
-        Map<Long, User> users = userService.listByIds(
-                        rows.stream().map(Message::getUserId).distinct().toList())
-                .stream().collect(Collectors.toMap(User::getId, u -> u));
-        List<AiMessage> messages = new ArrayList<>();
-        for (Message m : rows) {
-            if (aiId.equals(m.getUserId())) {
-                String content = m.getContent() != null ? m.getContent() : "";
-                messages.add(AiMessage.assistant(content.isBlank() ? "(sent an image)" : content));
-                continue;
-            }
-            List<String> images = buildImageUrls(m.getFile());
-            String text = m.getContent() != null ? m.getContent() : "";
-            if (text.isBlank() && images.isEmpty()) continue;
-            User user = users.get(m.getUserId());
-            String name = user != null ? user.getUsername() : null;
-            String label = name;
-            if (user != null && user.getNickname() != null && !user.getNickname().isBlank())
-                label = user.getNickname() + "@" + name;
-            messages.add(AiMessage.user(name, label != null ? label + ": " + text : text, images));
-        }
-        return messages;
-    }
-
-    private List<String> buildImageUrls(String file) {
+    private List<String> url(String file) {
         if (!FileUtil.isImage(FileUtil.getExt(file))) return List.of();
         return List.of(siteUrl + file);
     }

@@ -165,12 +165,11 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     private MessageVO buildVO(Message msg, Message reply) {
         User user = userService.getById(msg.getUserId());
         MessageVO vo = MessageConverter.INSTANCE.toVO(msg, user);
-        if (msg.getReplyId() != null)
-            vo.setReply(reply != null ? buildReplyVO(reply) : null);
+        if (reply != null) vo.setReply(buildVO(reply));
         return vo;
     }
 
-    private MessageVO buildReplyVO(Message msg) {
+    private MessageVO buildVO(Message msg) {
         User user = userService.getById(msg.getUserId());
         return MessageConverter.INSTANCE.toVO(msg, user);
     }

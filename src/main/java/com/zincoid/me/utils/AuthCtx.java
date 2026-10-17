@@ -4,6 +4,7 @@ import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.Error;
 import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.po.User;
+import org.slf4j.MDC;
 
 public final class AuthCtx {
 
@@ -15,6 +16,7 @@ public final class AuthCtx {
         AUTHED.set(true);
         USER_ID.set(user.getId());
         ROLE.set(user.getRole());
+        MDC.put("user", user.getId() + "@" + user.getUsername());
     }
 
     public static void clear() {

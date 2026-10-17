@@ -8,7 +8,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 public record LogEntryVO(String timestamp, String level, String logger, String thread,
-                         String message, String stackTrace) {
+                         String ip, String user, String message, String stackTrace) {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
@@ -20,6 +20,8 @@ public record LogEntryVO(String timestamp, String level, String logger, String t
                 event.getLevel().toString(),
                 event.getLoggerName(),
                 event.getThreadName(),
+                event.getMDCPropertyMap().get("ip"),
+                event.getMDCPropertyMap().get("user"),
                 event.getFormattedMessage(),
                 stack);
     }

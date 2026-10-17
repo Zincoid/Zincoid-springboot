@@ -76,7 +76,10 @@ public class AiServiceImpl implements AiService {
         List<AiMessage> history = buildHistory(ai.getId());
         String prompt = configService.get(AI_CHAT_PROMPT_CONF_KEY, AI_CHAT_PROMPT_CONF_FALLBACK);
         if (messageId != null) {
-            String note = "The mention is in message id=%d.".formatted(messageId);
+            String note = """
+                    The mention is in message id=%d.
+                    And if it contains a reply message, you need to check it first."""
+                    .formatted(messageId);
             prompt = prompt + "\n\n" + note;
         }
         try {
@@ -137,7 +140,7 @@ public class AiServiceImpl implements AiService {
         sb.append("Comment thread:\n");
         for (Comment c : thread) {
             sb.repeat("  ", depth(byId, c));
-            sb.append("[comment id=%d]".formatted(c.getId()));
+            sb.append("[id=%d]".formatted(c.getId()));
             if (c.getParentId() != null)
                 sb.append(" (reply_to_id=%d)".formatted(c.getParentId()));
             sb.append(" %s: %s\n".formatted(author(users.get(c.getUserId())), text(c.getContent())));

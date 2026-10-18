@@ -7,7 +7,7 @@ import com.zincoid.me.model.Error;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.mapper.RepoAccessMapper;
 import com.zincoid.me.model.enums.Approval;
-import com.zincoid.me.model.enums.AccessType;
+import com.zincoid.me.model.enums.RepoAccessType;
 import com.zincoid.me.model.enums.RepoType;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.enums.Visibility;
@@ -66,7 +66,7 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
         RepoAccess existing = lambdaQuery()
                 .eq(RepoAccess::getRepoId, repoId)
                 .eq(RepoAccess::getUserId, userId)
-                .eq(RepoAccess::getType, AccessType.VIEWER)
+                .eq(RepoAccess::getType, RepoAccessType.VIEWER)
                 .one();
         if (existing != null && existing.getApproval() == Approval.PENDING)
             throw new BusinessException(Error.ACCESS_ALREADY_REQUESTED);
@@ -77,7 +77,7 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
         RepoAccess access = RepoAccess.builder()
                 .repoId(repoId)
                 .userId(userId)
-                .type(AccessType.VIEWER)
+                .type(RepoAccessType.VIEWER)
                 .approval(Approval.PENDING)
                 .build();
         save(access);
@@ -97,12 +97,12 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
             throw new BusinessException(Error.YOU_ARE_THE_OWNER);
         if (repo.getVisibility() == Visibility.PRIVATE)
             throw new BusinessException(Error.REPO_IS_PRIVATE);
-        if (repo.getVisibility() == Visibility.RESTRICTED && !authorize(userId, repoId, AccessType.VIEWER))
+        if (repo.getVisibility() == Visibility.RESTRICTED && !authorize(userId, repoId, RepoAccessType.VIEWER))
             throw new BusinessException(Error.REPO_RESTRICTED_NEED_VIEWER);
         RepoAccess existing = lambdaQuery()
                 .eq(RepoAccess::getRepoId, repoId)
                 .eq(RepoAccess::getUserId, userId)
-                .eq(RepoAccess::getType, AccessType.CONTRIBUTOR)
+                .eq(RepoAccess::getType, RepoAccessType.CONTRIBUTOR)
                 .one();
         if (existing != null && existing.getApproval() == Approval.PENDING)
             throw new BusinessException(Error.ACCESS_ALREADY_REQUESTED);
@@ -113,7 +113,7 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
         RepoAccess access = RepoAccess.builder()
                 .repoId(repoId)
                 .userId(userId)
-                .type(AccessType.CONTRIBUTOR)
+                .type(RepoAccessType.CONTRIBUTOR)
                 .approval(Approval.PENDING)
                 .build();
         save(access);
@@ -127,7 +127,7 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
         RepoAccess existing = lambdaQuery()
                 .eq(RepoAccess::getRepoId, repoId)
                 .eq(RepoAccess::getUserId, userId)
-                .eq(RepoAccess::getType, AccessType.CONTRIBUTOR)
+                .eq(RepoAccess::getType, RepoAccessType.CONTRIBUTOR)
                 .one();
         if (existing == null || existing.getApproval() != Approval.APPROVED)
             throw new BusinessException(Error.NOT_A_CONTRIBUTOR);
@@ -144,7 +144,7 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
         Repo repo = verifyOwner(userId, access);
         access.setApproval(Approval.APPROVED);
         updateById(access);
-        notificationService.notify(userId, access.getUserId(), access.getType() == AccessType.CONTRIBUTOR
+        notificationService.notify(userId, access.getUserId(), access.getType() == RepoAccessType.CONTRIBUTOR
                 ? NotificationType.REPO_CONTRIBUTOR_ACCESS_APPROVED : NotificationType.REPO_VIEWER_ACCESS_APPROVED, access.getRepoId());
         emailService.sendAccessApproved(access.getUserId(), repo.getName(), access.getType());
         log.info("Access approved: id={}, user={}, repo={}, type={}", accessId, access.getUserId(), access.getRepoId(), access.getType());
@@ -159,7 +159,7 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
         verifyOwner(userId, access);
         access.setApproval(Approval.REJECTED);
         updateById(access);
-        notificationService.notify(userId, access.getUserId(), access.getType() == AccessType.CONTRIBUTOR
+        notificationService.notify(userId, access.getUserId(), access.getType() == RepoAccessType.CONTRIBUTOR
                 ? NotificationType.REPO_CONTRIBUTOR_ACCESS_REJECTED : NotificationType.REPO_VIEWER_ACCESS_REJECTED, access.getRepoId());
         log.info("Access rejected: id={}, user={}, repo={}, type={}", accessId, access.getUserId(), access.getRepoId(), access.getType());
     }
@@ -170,17 +170,17 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
         RepoAccess access = getOrThrow(accessId);
         verifyOwner(userId, access);
         removeById(accessId);
-        if (access.getType() == AccessType.VIEWER)
+        if (access.getType() == RepoAccessType.VIEWER)
             lambdaUpdate()
                     .eq(RepoAccess::getRepoId, access.getRepoId())
                     .eq(RepoAccess::getUserId, access.getUserId())
-                    .eq(RepoAccess::getType, AccessType.CONTRIBUTOR)
+                    .eq(RepoAccess::getType, RepoAccessType.CONTRIBUTOR)
                     .remove();
         log.info("Approval removed: id={}, user={}, repo={}, type={}", accessId, access.getUserId(), access.getRepoId(), access.getType());
     }
 
     @Override
-    public boolean authorize(Long userId, Long repoId, AccessType type) {
+    public boolean authorize(Long userId, Long repoId, RepoAccessType type) {
         if (userId == null) return false;
         return lambdaQuery()
                 .eq(RepoAccess::getRepoId, repoId)
@@ -191,7 +191,7 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
     }
 
     @Override
-    public PageVO<RepoAccessVO> sentPending(Long userId, AccessType type, int page, int size) {
+    public PageVO<RepoAccessVO> sentPending(Long userId, RepoAccessType type, int page, int size) {
         Page<RepoAccess> p = lambdaQuery().eq(RepoAccess::getUserId, userId)
                 .eq(RepoAccess::getApproval, Approval.PENDING)
                 .eq(type != null, RepoAccess::getType, type)
@@ -201,7 +201,7 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
     }
 
     @Override
-    public PageVO<RepoAccessVO> sentResolved(Long userId, AccessType type, int page, int size) {
+    public PageVO<RepoAccessVO> sentResolved(Long userId, RepoAccessType type, int page, int size) {
         Page<RepoAccess> p = lambdaQuery().eq(RepoAccess::getUserId, userId)
                 .ne(RepoAccess::getApproval, Approval.PENDING)
                 .eq(type != null, RepoAccess::getType, type)
@@ -211,7 +211,7 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
     }
 
     @Override
-    public PageVO<RepoAccessVO> receivedPending(Long userId, Long repoId, AccessType type, int page, int size) {
+    public PageVO<RepoAccessVO> receivedPending(Long userId, Long repoId, RepoAccessType type, int page, int size) {
         List<Long> ids = repoService.lambdaQuery()
                 .eq(repoId != null, Repo::getId, repoId)
                 .eq(Repo::getUserId, userId)
@@ -226,7 +226,7 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
     }
 
     @Override
-    public PageVO<RepoAccessVO> receivedResolved(Long userId, Long repoId, AccessType type, int page, int size) {
+    public PageVO<RepoAccessVO> receivedResolved(Long userId, Long repoId, RepoAccessType type, int page, int size) {
         List<Long> ids = repoService.lambdaQuery()
                 .eq(repoId != null, Repo::getId, repoId)
                 .eq(Repo::getUserId, userId)
@@ -244,7 +244,7 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
     public long countContributors(Long repoId) {
         return lambdaQuery()
                 .eq(RepoAccess::getRepoId, repoId)
-                .eq(RepoAccess::getType, AccessType.CONTRIBUTOR)
+                .eq(RepoAccess::getType, RepoAccessType.CONTRIBUTOR)
                 .eq(RepoAccess::getApproval, Approval.APPROVED)
                 .count();
     }
@@ -261,7 +261,7 @@ public class RepoAccessServiceImpl extends ServiceImpl<RepoAccessMapper, RepoAcc
             throw new BusinessException(Error.REPO_IS_PRIVATE);
         return lambdaQuery()
                 .eq(RepoAccess::getRepoId, repoId)
-                .eq(RepoAccess::getType, AccessType.CONTRIBUTOR)
+                .eq(RepoAccess::getType, RepoAccessType.CONTRIBUTOR)
                 .eq(RepoAccess::getApproval, Approval.APPROVED)
                 .orderByDesc(RepoAccess::getUpdatedAt)
                 .page(Page.of(1, limit))

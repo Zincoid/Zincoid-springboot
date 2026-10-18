@@ -318,11 +318,11 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         return repo.getVisibility() == Visibility.RESTRICTED
                 && !isAdmin
                 && (viewerId == null || !viewerId.equals(repo.getUserId()))
-                && !repoAccessService.authorize(viewerId, repo.getId(), AccessType.VIEWER);
+                && !repoAccessService.authorize(viewerId, repo.getId(), RepoAccessType.VIEWER);
     }
 
     private boolean isContributed(Repo repo, Long viewerId) {
-        return repoAccessService.authorize(viewerId, repo.getId(), AccessType.CONTRIBUTOR);
+        return repoAccessService.authorize(viewerId, repo.getId(), RepoAccessType.CONTRIBUTOR);
     }
 
     private RepoCardVO buildCardVO(Repo repo) {

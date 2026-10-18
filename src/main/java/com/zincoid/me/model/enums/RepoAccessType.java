@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
-public enum AccessType {
+public enum RepoAccessType {
 
     VIEWER(0),
     CONTRIBUTOR(1);
@@ -14,7 +14,7 @@ public enum AccessType {
     @EnumValue
     private final Integer value;
 
-    AccessType(Integer value) {
+    RepoAccessType(Integer value) {
         this.value = value;
     }
 
@@ -24,9 +24,9 @@ public enum AccessType {
     }
 
     @JsonCreator
-    public static AccessType fromValue(Integer value) {
+    public static RepoAccessType fromValue(Integer value) {
         if (value == null) return null;
-        for (AccessType r : values()) {
+        for (RepoAccessType r : values()) {
             if (r.value.equals(value)) return r;
         }
         return null;

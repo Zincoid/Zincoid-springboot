@@ -45,9 +45,9 @@ CREATE TABLE IF NOT EXISTS `moment` (
     `content`       TEXT            DEFAULT NULL             COMMENT 'Text content',
     `urls`          JSON            DEFAULT NULL             COMMENT 'Media URLs array',
     `is_pinned`     BOOLEAN         NOT NULL DEFAULT FALSE   COMMENT 'Pinned (admin only)',
-    `view_count`    BIGINT          NOT NULL DEFAULT 0       COMMENT 'View count',
     `status`        TINYINT         NOT NULL DEFAULT 1       COMMENT 'Status: 0=DISABLED, 1=ACTIVE',
     `visibility`    TINYINT         NOT NULL DEFAULT 0       COMMENT 'Visibility: 0=PUBLIC, 1=PRIVATE',
+    `view_count`    BIGINT          NOT NULL DEFAULT 0       COMMENT 'View count',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Post time',
     `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Last update time',
     PRIMARY KEY (`id`),
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS `moment` (
 -- =============================================
 CREATE TABLE IF NOT EXISTS `comment` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
-    `target_type`   TINYINT         NOT NULL                 COMMENT 'Target type: 0=MOMENT, 1=ARTICLE',
+    `target_type`   TINYINT         NOT NULL                 COMMENT 'Target type: 0=MOMENT, 1=ARTICLE, 4=REPO',
     `target_id`     BIGINT          NOT NULL                 COMMENT 'Target record ID',
     `user_id`       BIGINT          NOT NULL                 COMMENT 'Commenter user ID',
     `parent_id`     BIGINT          DEFAULT NULL             COMMENT 'Parent comment ID (NULL=top-level, non-null=reply)',
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS `comment` (
     KEY `idx_root_id` (`root_id`),
     KEY `idx_created_at` (`created_at`),
     CONSTRAINT `fk_comment_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Unified comment table for moments and articles';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Unified comment table for moments, articles and repos';
 
 -- =============================================
 -- 4. Article (Markdown Long-form) Table
@@ -141,7 +141,6 @@ CREATE TABLE IF NOT EXISTS `likes` (
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Like time',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_target_user` (`target_type`, `target_id`, `user_id`),
-    KEY `idx_target` (`target_type`, `target_id`),
     KEY `idx_user_id` (`user_id`),
     CONSTRAINT `fk_likes_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Unified likes table for moments, articles, repos and comments';
@@ -200,8 +199,8 @@ CREATE TABLE IF NOT EXISTS `notification` (
 -- =============================================
 CREATE TABLE IF NOT EXISTS `message` (
     `id`            BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
-    `reply_id`      BIGINT      DEFAULT NULL             COMMENT 'Replied message ID',
     `user_id`       BIGINT      NOT NULL                 COMMENT 'Sender user ID',
+    `reply_id`      BIGINT      DEFAULT NULL             COMMENT 'Replied message ID',
     `content`       TEXT        DEFAULT NULL             COMMENT 'Text content (nullable if file)',
     `file`          VARCHAR(500) DEFAULT NULL            COMMENT 'Attached file path',
     `created_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Send time',
@@ -267,7 +266,6 @@ CREATE TABLE IF NOT EXISTS `repo_access` (
     `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Update time',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_repo_user_type` (`repo_id`, `user_id`, `type`),
-    KEY `idx_repo_id` (`repo_id`),
     KEY `idx_user_id` (`user_id`),
     CONSTRAINT `fk_repo_access_repo` FOREIGN KEY (`repo_id`) REFERENCES `repo` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_repo_access_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
@@ -282,8 +280,7 @@ CREATE TABLE IF NOT EXISTS `stat` (
     `api`           VARCHAR(200)    NOT NULL                 COMMENT 'API endpoint (METHOD /api/path)',
     `count`         BIGINT          NOT NULL DEFAULT 0       COMMENT 'Access count',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_date_api` (`stat_date`, `api`),
-    KEY `idx_stat_date` (`stat_date`)
+    UNIQUE KEY `uk_date_api` (`stat_date`, `api`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Daily API usage statistics';
 
 -- =============================================
@@ -296,8 +293,8 @@ CREATE TABLE IF NOT EXISTS `request` (
     `type`          TINYINT     NOT NULL DEFAULT 0       COMMENT 'Request type: 0=STORAGE_EXTENSION, 1=REPORT, 2=MUSIC_REQUEST, 3=REPO_TRANSFER',
     `meta`          JSON        DEFAULT NULL             COMMENT 'Request meta content',
     `approval`      TINYINT     NOT NULL DEFAULT 0       COMMENT 'Approval: 0=PENDING, 1=APPROVED, 2=REJECTED',
-    `handled_at`    DATETIME    DEFAULT NULL             COMMENT 'Handle time',
     `created_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Request time',
+    `handled_at`    DATETIME    DEFAULT NULL             COMMENT 'Handle time',
     PRIMARY KEY (`id`),
     KEY `idx_sender_id` (`sender_id`),
     KEY `idx_receiver_id` (`receiver_id`),

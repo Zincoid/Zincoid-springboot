@@ -3,7 +3,7 @@ package com.zincoid.me.service.impl;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.Error;
 import com.zincoid.me.model.enums.RepoAccessType;
-import com.zincoid.me.model.enums.Captcha;
+import com.zincoid.me.model.Captcha;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.vo.UserConfigVO;

@@ -2,10 +2,19 @@
 -- Zincoid Personal Website Database Schema
 -- Version: 1.0
 -- Engine: InnoDB, Charset: utf8mb4
+--
+-- Tables grouped by domain (creation order respects FK dependencies):
+--   User:     1. user   2. user_config   3. user_permission 4. message 5. request 6. notification
+--   System:   7. file 8. config 9. stat
+--   Content: 10. moment 11. article 12. repo 13. repo_item 14. repo_access 15. comment 16. likes
 -- =============================================
 
 CREATE DATABASE IF NOT EXISTS zincoid DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE zincoid;
+
+-- =============================================
+-- User domain
+-- =============================================
 
 -- =============================================
 -- 1. User Account Table
@@ -25,8 +34,8 @@ CREATE TABLE IF NOT EXISTS `user` (
     `capacity`      BIGINT          NOT NULL DEFAULT 1073741824 COMMENT 'Max disk capacity in bytes, default 1GB',
     `role`          TINYINT         NOT NULL DEFAULT 0       COMMENT 'Role: 0=USER, 1=ADMIN',
     `status`        TINYINT         NOT NULL DEFAULT 1       COMMENT 'Status: 0=DISABLED, 1=ACTIVE',
-    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Registration time',
-    `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Last update time',
+    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
+    `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Update time',
     `active_at`     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Last active time',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_username` (`username`),
@@ -37,7 +46,145 @@ CREATE TABLE IF NOT EXISTS `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User account table';
 
 -- =============================================
--- 2. Moment (Feed / 朋友圈) Table
+-- 2. User Configuration Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `user_config` (
+    `id`                            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
+    `user_id`                       BIGINT          NOT NULL                 COMMENT 'User ID',
+    `receive_email`                 BOOLEAN         NOT NULL DEFAULT TRUE    COMMENT 'Email notification master switch',
+    `receive_email_sys`             BOOLEAN         NOT NULL DEFAULT FALSE   COMMENT 'Whether to receive system email notifications',
+    `receive_email_repo_access`     BOOLEAN         NOT NULL DEFAULT TRUE    COMMENT 'Whether to receive repo access email notifications',
+    `auto_play_music`               BOOLEAN         NOT NULL DEFAULT TRUE    COMMENT 'Whether the Walkman auto plays',
+    `created_at`                    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
+    `updated_at`                    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Update time',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_user_id` (`user_id`),
+    CONSTRAINT `fk_user_config_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User configuration table';
+
+-- =============================================
+-- 3. User Permission Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `user_permission` (
+    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
+    `user_id`       BIGINT          NOT NULL                 COMMENT 'User ID',
+    `type`          TINYINT         NOT NULL                 COMMENT 'Permission type: 0=ARTICLE_OP',
+    `granted_by`    BIGINT          DEFAULT NULL             COMMENT 'Granted by admin user ID',
+    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_user_type` (`user_id`, `type`),
+    KEY `idx_type` (`type`),
+    CONSTRAINT `fk_user_permission_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User permission grant table';
+
+-- =============================================
+-- 4. Message (Chat) Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `message` (
+    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
+    `user_id`       BIGINT          NOT NULL                 COMMENT 'Sender user ID',
+    `reply_id`      BIGINT          DEFAULT NULL             COMMENT 'Replied message ID',
+    `content`       TEXT            DEFAULT NULL             COMMENT 'Text content (nullable if file)',
+    `file`          VARCHAR(500)    DEFAULT NULL             COMMENT 'Attached file path',
+    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
+    PRIMARY KEY (`id`),
+    KEY `idx_created_at` (`created_at`),
+    CONSTRAINT `fk_message_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Chat message table';
+
+-- =============================================
+-- 5. Request (Generic Workflow) Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `request` (
+    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
+    `sender_id`     BIGINT          NOT NULL                 COMMENT 'Sender user ID',
+    `receiver_id`   BIGINT          NOT NULL                 COMMENT 'Receiver user ID; -1=unhandled for admin-handled requests, handler ID once processed',
+    `type`          TINYINT         NOT NULL DEFAULT 0       COMMENT 'Request type: 0=STORAGE_EXTENSION, 1=REPORT, 2=MUSIC_REQUEST, 3=REPO_TRANSFER',
+    `meta`          JSON            DEFAULT NULL             COMMENT 'Request meta content',
+    `approval`      TINYINT         NOT NULL DEFAULT 0       COMMENT 'Approval: 0=PENDING, 1=APPROVED, 2=REJECTED',
+    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
+    `handled_at`    DATETIME        DEFAULT NULL             COMMENT 'Handle time',
+    PRIMARY KEY (`id`),
+    KEY `idx_sender_id` (`sender_id`),
+    KEY `idx_receiver_id` (`receiver_id`),
+    KEY `idx_approval` (`approval`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Generic request table for user and admin-managed requests';
+
+-- =============================================
+-- 6. Notification Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `notification` (
+    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
+    `sender_id`     BIGINT          NOT NULL                 COMMENT 'User who triggered the notification',
+    `receiver_id`   BIGINT          NOT NULL                 COMMENT 'User who receives the notification',
+    `type`          TINYINT         NOT NULL                 COMMENT 'Notification type: 0=COMMENT, 1=REPLY, 2=MOMENT_MENTION, 3=COMMENT_MENTION, 4=CHAT_MENTION, 5=SYSTEM, 6=LIKE, 7=REGISTER, 8=REPO_VIEWER_ACCESS_PENDING, 9=REPO_VIEWER_ACCESS_APPROVED, 10=REPO_VIEWER_ACCESS_REJECTED, 11=REQUEST, 12=REPO_CONTRIBUTOR_ACCESS_PENDING, 13=REPO_CONTRIBUTOR_ACCESS_APPROVED, 14=REPO_CONTRIBUTOR_ACCESS_REJECTED',
+    `related_id`    BIGINT          NOT NULL                 COMMENT 'Related target ID, -1 for SYSTEM type',
+    `message`       TEXT            DEFAULT NULL             COMMENT 'Notification message (used by SYSTEM type)',
+    `is_read`       BOOLEAN         NOT NULL DEFAULT FALSE   COMMENT 'Whether the notification has been read',
+    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
+    PRIMARY KEY (`id`),
+    KEY `idx_receiver_read` (`receiver_id`, `is_read`),
+    KEY `idx_created_at` (`created_at`),
+    CONSTRAINT `fk_notification_sender` FOREIGN KEY (`sender_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_notification_receiver` FOREIGN KEY (`receiver_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Notification table';
+
+-- =============================================
+-- System domain
+-- =============================================
+
+-- =============================================
+-- 7. File Record Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `file` (
+    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
+    `user_id`       BIGINT          NOT NULL                 COMMENT 'Uploader user ID',
+    `file_name`     VARCHAR(255)    NOT NULL                 COMMENT 'Original file name',
+    `file_path`     VARCHAR(500)    NOT NULL                 COMMENT 'Server-side file path',
+    `file_type`     TINYINT         NOT NULL DEFAULT 0       COMMENT 'File type: 0=IMAGE, 1=VIDEO, 2=AUDIO, 3=OTHER',
+    `file_size`     BIGINT          NOT NULL DEFAULT 0       COMMENT 'File size in bytes',
+    `related_type`  TINYINT         DEFAULT NULL             COMMENT 'Related business type: 0=MOMENT, 1=ARTICLE, 2=AVATAR, 3=CHAT, 4=REPO, 5=MUSIC',
+    `related_id`    BIGINT          DEFAULT NULL             COMMENT 'Related business record ID; for MUSIC: 0=Private, 1=Public',
+    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
+    PRIMARY KEY (`id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_related` (`related_type`, `related_id`),
+    KEY `idx_file_type` (`file_type`),
+    KEY `idx_created_at` (`created_at`),
+    CONSTRAINT `fk_file_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='File record table';
+
+-- =============================================
+-- 8. Config (Site Settings) Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `config` (
+    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
+    `config_key`    VARCHAR(100)    NOT NULL                 COMMENT 'Configuration key',
+    `config_value`  TEXT            DEFAULT NULL             COMMENT 'Configuration value',
+    `description`   VARCHAR(255)    DEFAULT NULL             COMMENT 'Description of the config item',
+    `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Update time',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_config_key` (`config_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Site configuration table';
+
+-- =============================================
+-- 9. Stat (Daily API) Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `stat` (
+    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
+    `stat_date`     DATE            NOT NULL                 COMMENT 'Statistics date',
+    `api`           VARCHAR(200)    NOT NULL                 COMMENT 'API endpoint (METHOD /api/path)',
+    `count`         BIGINT          NOT NULL DEFAULT 0       COMMENT 'Access count',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_date_api` (`stat_date`, `api`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Daily API statistics table';
+
+-- =============================================
+-- Content domain
+-- =============================================
+
+-- =============================================
+-- 10. Moment (Feed / 朋友圈) Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `moment` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
@@ -48,8 +195,8 @@ CREATE TABLE IF NOT EXISTS `moment` (
     `status`        TINYINT         NOT NULL DEFAULT 1       COMMENT 'Status: 0=DISABLED, 1=ACTIVE',
     `visibility`    TINYINT         NOT NULL DEFAULT 0       COMMENT 'Visibility: 0=PUBLIC, 1=PRIVATE',
     `view_count`    BIGINT          NOT NULL DEFAULT 0       COMMENT 'View count',
-    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Post time',
-    `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Last update time',
+    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
+    `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Update time',
     PRIMARY KEY (`id`),
     KEY `idx_user_id` (`user_id`),
     KEY `idx_is_pinned` (`is_pinned`),
@@ -60,29 +207,7 @@ CREATE TABLE IF NOT EXISTS `moment` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Moment / Feed table';
 
 -- =============================================
--- 3. Unified Comment Table (for moments, articles and repos)
--- =============================================
-CREATE TABLE IF NOT EXISTS `comment` (
-    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
-    `target_type`   TINYINT         NOT NULL                 COMMENT 'Target type: 0=MOMENT, 1=ARTICLE, 4=REPO',
-    `target_id`     BIGINT          NOT NULL                 COMMENT 'Target record ID',
-    `user_id`       BIGINT          NOT NULL                 COMMENT 'Commenter user ID',
-    `parent_id`     BIGINT          DEFAULT NULL             COMMENT 'Parent comment ID (NULL=top-level, non-null=reply)',
-    `root_id`       BIGINT          NOT NULL                 COMMENT 'Top-level root comment ID (self for top-level)',
-    `content`       TEXT            NOT NULL                 COMMENT 'Comment content',
-    `is_pinned`     BOOLEAN         NOT NULL DEFAULT FALSE   COMMENT 'Pinned in comment section (single pin per target)',
-    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Comment time',
-    PRIMARY KEY (`id`),
-    KEY `idx_target` (`target_type`, `target_id`),
-    KEY `idx_user_id` (`user_id`),
-    KEY `idx_parent_id` (`parent_id`),
-    KEY `idx_root_id` (`root_id`),
-    KEY `idx_created_at` (`created_at`),
-    CONSTRAINT `fk_comment_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Unified comment table for moments, articles and repos';
-
--- =============================================
--- 4. Article (Markdown Long-form) Table
+-- 11. Article (Markdown Long-form) Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `article` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
@@ -96,8 +221,8 @@ CREATE TABLE IF NOT EXISTS `article` (
     `status`        TINYINT         NOT NULL DEFAULT 1       COMMENT 'Status: 0=DISABLED, 1=ACTIVE',
     `visibility`    TINYINT         NOT NULL DEFAULT 0       COMMENT 'Visibility: 0=PUBLIC, 1=PRIVATE',
     `view_count`    BIGINT          NOT NULL DEFAULT 0       COMMENT 'View count',
-    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Publish time',
-    `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Last update time',
+    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
+    `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Update time',
     PRIMARY KEY (`id`),
     KEY `idx_user_id` (`user_id`),
     KEY `idx_title` (`title`),
@@ -108,109 +233,8 @@ CREATE TABLE IF NOT EXISTS `article` (
     CONSTRAINT `fk_article_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Markdown article table';
 
-
 -- =============================================
--- 5. File Record Table
--- =============================================
-CREATE TABLE IF NOT EXISTS `file` (
-    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
-    `user_id`       BIGINT          NOT NULL                 COMMENT 'Uploader user ID',
-    `file_name`     VARCHAR(255)    NOT NULL                 COMMENT 'Original file name',
-    `file_path`     VARCHAR(500)    NOT NULL                 COMMENT 'Server-side file path',
-    `file_type`     TINYINT         NOT NULL DEFAULT 0       COMMENT 'File type: 0=IMAGE, 1=VIDEO, 2=AUDIO, 3=OTHER',
-    `file_size`     BIGINT          NOT NULL DEFAULT 0       COMMENT 'File size in bytes',
-    `related_type`  TINYINT         DEFAULT NULL             COMMENT 'Related business type: 0=MOMENT, 1=ARTICLE, 2=AVATAR, 3=CHAT, 4=REPO, 5=MUSIC',
-    `related_id`    BIGINT          DEFAULT NULL             COMMENT 'Related business record ID; for MUSIC: 0=Private, 1=Public',
-    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Upload time',
-    PRIMARY KEY (`id`),
-    KEY `idx_user_id` (`user_id`),
-    KEY `idx_related` (`related_type`, `related_id`),
-    KEY `idx_file_type` (`file_type`),
-    KEY `idx_created_at` (`created_at`),
-    CONSTRAINT `fk_file_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='File record table';
-
--- =============================================
--- 6. Like Table (for moments, articles, repos and comments)
--- =============================================
-CREATE TABLE IF NOT EXISTS `likes` (
-    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
-    `target_type`   TINYINT         NOT NULL                 COMMENT 'Target type: 0=MOMENT, 1=ARTICLE, 4=REPO, 6=COMMENT',
-    `target_id`     BIGINT          NOT NULL                 COMMENT 'Target record ID',
-    `user_id`       BIGINT          NOT NULL                 COMMENT 'User who liked',
-    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Like time',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_target_user` (`target_type`, `target_id`, `user_id`),
-    KEY `idx_user_id` (`user_id`),
-    CONSTRAINT `fk_likes_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Unified likes table for moments, articles, repos and comments';
-
--- =============================================
--- 7. Configuration Table
--- =============================================
-CREATE TABLE IF NOT EXISTS `config` (
-    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
-    `config_key`    VARCHAR(100)    NOT NULL                 COMMENT 'Configuration key',
-    `config_value`  TEXT            DEFAULT NULL             COMMENT 'Configuration value',
-    `description`   VARCHAR(255)    DEFAULT NULL             COMMENT 'Description of the config item',
-    `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Last update time',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_config_key` (`config_key`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Configuration table';
-
--- =============================================
--- 8. User Configuration Table
--- =============================================
-CREATE TABLE IF NOT EXISTS `user_config` (
-    `id`            BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
-    `user_id`       BIGINT      NOT NULL                 COMMENT 'User ID',
-    `receive_email`             BOOLEAN     NOT NULL DEFAULT TRUE    COMMENT 'Email notification master switch',
-    `receive_email_sys`         BOOLEAN     NOT NULL DEFAULT FALSE   COMMENT 'Whether to receive system email notifications',
-    `receive_email_repo_access` BOOLEAN     NOT NULL DEFAULT TRUE    COMMENT 'Whether to receive repo access email notifications',
-    `auto_play_music`           BOOLEAN     NOT NULL DEFAULT TRUE    COMMENT 'Whether the Walkman auto plays',
-    `created_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
-    `updated_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Update time',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_user_id` (`user_id`),
-    CONSTRAINT `fk_user_config_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User configuration table';
-
--- =============================================
--- 9. Notification Table
--- =============================================
-CREATE TABLE IF NOT EXISTS `notification` (
-    `id`            BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
-    `sender_id`     BIGINT      NOT NULL                 COMMENT 'User who triggered the notification',
-    `receiver_id`   BIGINT      NOT NULL                 COMMENT 'User who receives the notification',
-    `type`          TINYINT     NOT NULL                 COMMENT 'Notification type: 0=COMMENT, 1=REPLY, 2=MOMENT_MENTION, 3=COMMENT_MENTION, 4=CHAT_MENTION, 5=SYSTEM, 6=LIKE, 7=REGISTER, 8=REPO_VIEWER_ACCESS_PENDING, 9=REPO_VIEWER_ACCESS_APPROVED, 10=REPO_VIEWER_ACCESS_REJECTED, 11=REQUEST, 12=REPO_CONTRIBUTOR_ACCESS_PENDING, 13=REPO_CONTRIBUTOR_ACCESS_APPROVED, 14=REPO_CONTRIBUTOR_ACCESS_REJECTED',
-    `related_id`    BIGINT      NOT NULL                 COMMENT 'Related target ID, -1 for SYSTEM type',
-    `message`       TEXT        DEFAULT NULL             COMMENT 'Notification message (used by SYSTEM type)',
-    `is_read`       BOOLEAN     NOT NULL DEFAULT FALSE   COMMENT 'Whether the notification has been read',
-    `created_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Notification time',
-    PRIMARY KEY (`id`),
-    KEY `idx_receiver_read` (`receiver_id`, `is_read`),
-    KEY `idx_created_at` (`created_at`),
-    CONSTRAINT `fk_notification_sender` FOREIGN KEY (`sender_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_notification_receiver` FOREIGN KEY (`receiver_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Notification table';
-
--- =============================================
--- 10. Message Table
--- =============================================
-CREATE TABLE IF NOT EXISTS `message` (
-    `id`            BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
-    `user_id`       BIGINT      NOT NULL                 COMMENT 'Sender user ID',
-    `reply_id`      BIGINT      DEFAULT NULL             COMMENT 'Replied message ID',
-    `content`       TEXT        DEFAULT NULL             COMMENT 'Text content (nullable if file)',
-    `file`          VARCHAR(500) DEFAULT NULL            COMMENT 'Attached file path',
-    `created_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Send time',
-    PRIMARY KEY (`id`),
-    KEY `idx_created_at` (`created_at`),
-    CONSTRAINT `fk_message_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Message table';
-
--- =============================================
--- 11. Repo Table
+-- 12. Repo Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `repo` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
@@ -222,7 +246,7 @@ CREATE TABLE IF NOT EXISTS `repo` (
     `tags`          VARCHAR(500)    DEFAULT NULL             COMMENT 'Tags as JSON array',
     `cover_image`   VARCHAR(500)    DEFAULT NULL             COMMENT 'Cover image path',
     `is_pinned`     BOOLEAN         NOT NULL DEFAULT FALSE   COMMENT 'Pinned (admin only)',
-    `status`        TINYINT         NOT NULL DEFAULT 1        COMMENT 'Status: 0=DISABLED, 1=ACTIVE',
+    `status`        TINYINT         NOT NULL DEFAULT 1       COMMENT 'Status: 0=DISABLED, 1=ACTIVE',
     `visibility`    TINYINT         NOT NULL DEFAULT 0       COMMENT 'Visibility: 0=PUBLIC, 1=PRIVATE',
     `view_count`    BIGINT          NOT NULL DEFAULT 0       COMMENT 'View count',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
@@ -238,7 +262,7 @@ CREATE TABLE IF NOT EXISTS `repo` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Repo table';
 
 -- =============================================
--- 12. Repo Item Table
+-- 13. Repo Item Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `repo_item` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
@@ -254,7 +278,7 @@ CREATE TABLE IF NOT EXISTS `repo_item` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Repo item table';
 
 -- =============================================
--- 13. Repo Access Table
+-- 14. Repo Access Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `repo_access` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
@@ -262,7 +286,7 @@ CREATE TABLE IF NOT EXISTS `repo_access` (
     `user_id`       BIGINT          NOT NULL                 COMMENT 'User who requested access',
     `type`          TINYINT         NOT NULL DEFAULT 0       COMMENT 'Access type: 0=VIEWER, 1=CONTRIBUTOR',
     `approval`      TINYINT         NOT NULL DEFAULT 0       COMMENT 'Approval: 0=PENDING, 1=APPROVED, 2=REJECTED',
-    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Request time',
+    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
     `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Update time',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_repo_user_type` (`repo_id`, `user_id`, `type`),
@@ -272,54 +296,43 @@ CREATE TABLE IF NOT EXISTS `repo_access` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Repo access request table';
 
 -- =============================================
--- 14. Stat Table
+-- 15. Comment Table (moments, articles and repos)
 -- =============================================
-CREATE TABLE IF NOT EXISTS `stat` (
+CREATE TABLE IF NOT EXISTS `comment` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
-    `stat_date`     DATE            NOT NULL                 COMMENT 'Statistics date',
-    `api`           VARCHAR(200)    NOT NULL                 COMMENT 'API endpoint (METHOD /api/path)',
-    `count`         BIGINT          NOT NULL DEFAULT 0       COMMENT 'Access count',
+    `target_type`   TINYINT         NOT NULL                 COMMENT 'Target type: 0=MOMENT, 1=ARTICLE, 4=REPO',
+    `target_id`     BIGINT          NOT NULL                 COMMENT 'Target record ID',
+    `user_id`       BIGINT          NOT NULL                 COMMENT 'Commenter user ID',
+    `parent_id`     BIGINT          DEFAULT NULL             COMMENT 'Parent comment ID (NULL=top-level, non-null=reply)',
+    `root_id`       BIGINT          NOT NULL                 COMMENT 'Top-level root comment ID (self for top-level)',
+    `content`       TEXT            NOT NULL                 COMMENT 'Comment content',
+    `is_pinned`     BOOLEAN         NOT NULL DEFAULT FALSE   COMMENT 'Pinned in comment section (single pin per target)',
+    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_date_api` (`stat_date`, `api`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Daily API usage statistics';
+    KEY `idx_target` (`target_type`, `target_id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_parent_id` (`parent_id`),
+    KEY `idx_root_id` (`root_id`),
+    KEY `idx_created_at` (`created_at`),
+    CONSTRAINT `fk_comment_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Unified comment table for moments, articles and repos';
 
 -- =============================================
--- 15. Generic Request Table
+-- 16. Like Table (moments, articles, repos and comments)
 -- =============================================
-CREATE TABLE IF NOT EXISTS `request` (
-    `id`            BIGINT      NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
-    `sender_id`     BIGINT      NOT NULL                 COMMENT 'Sender user ID',
-    `receiver_id`   BIGINT      NOT NULL                 COMMENT 'Receiver user ID; -1=unhandled for admin-handled requests, handler ID once processed',
-    `type`          TINYINT     NOT NULL DEFAULT 0       COMMENT 'Request type: 0=STORAGE_EXTENSION, 1=REPORT, 2=MUSIC_REQUEST, 3=REPO_TRANSFER',
-    `meta`          JSON        DEFAULT NULL             COMMENT 'Request meta content',
-    `approval`      TINYINT     NOT NULL DEFAULT 0       COMMENT 'Approval: 0=PENDING, 1=APPROVED, 2=REJECTED',
-    `created_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Request time',
-    `handled_at`    DATETIME    DEFAULT NULL             COMMENT 'Handle time',
+CREATE TABLE IF NOT EXISTS `likes` (
+    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
+    `target_type`   TINYINT         NOT NULL                 COMMENT 'Target type: 0=MOMENT, 1=ARTICLE, 4=REPO, 6=COMMENT',
+    `target_id`     BIGINT          NOT NULL                 COMMENT 'Target record ID',
+    `user_id`       BIGINT          NOT NULL                 COMMENT 'User who liked',
+    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
     PRIMARY KEY (`id`),
-    KEY `idx_sender_id` (`sender_id`),
-    KEY `idx_receiver_id` (`receiver_id`),
-    KEY `idx_approval` (`approval`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Generic request table for user and admin-managed requests';
+    UNIQUE KEY `uk_target_user` (`target_type`, `target_id`, `user_id`),
+    KEY `idx_user_id` (`user_id`),
+    CONSTRAINT `fk_likes_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Unified likes table for moments, articles, repos and comments';
 
 -- =============================================
--- 16. User Permission Table
--- =============================================
-CREATE TABLE IF NOT EXISTS `user_permission` (
-    `id`         BIGINT   NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
-    `user_id`    BIGINT   NOT NULL COMMENT 'User ID',
-    `type`       TINYINT  NOT NULL COMMENT 'Permission type: 0=ARTICLE_OP',
-    `granted_by` BIGINT            COMMENT 'Granted by admin user ID',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Grant time',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_user_type` (`user_id`, `type`),
-    KEY `idx_type` (`type`),
-    CONSTRAINT `fk_user_permission_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User permission grant table';
-
--- =============================================
--- Default admin user is auto-created by DataInitializer on first startup
--- =============================================
-
--- =============================================
--- Default site configurations is auto-created by DataInitializer on first startup
+-- Default admin user and site configurations
+-- are auto-created by DataInitializer on first startup
 -- =============================================

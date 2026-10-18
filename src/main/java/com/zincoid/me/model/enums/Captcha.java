@@ -1,4 +1,4 @@
-package com.zincoid.me.model;
+package com.zincoid.me.model.enums;
 
 import lombok.Getter;
 

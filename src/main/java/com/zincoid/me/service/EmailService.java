@@ -1,7 +1,7 @@
 package com.zincoid.me.service;
 
 import com.zincoid.me.model.enums.RepoAccessType;
-import com.zincoid.me.model.Captcha;
+import com.zincoid.me.model.enums.Captcha;
 
 public interface EmailService {
 

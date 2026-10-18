@@ -2,7 +2,6 @@ package com.zincoid.me.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.zincoid.me.model.Captcha;
 import com.zincoid.me.model.enums.*;
 import com.zincoid.me.model.po.*;
 import com.zincoid.me.model.vo.PageVO;

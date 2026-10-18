@@ -1,7 +1,7 @@
 package com.zincoid.me.controller;
 
 import com.zincoid.me.model.ApiResponse;
-import com.zincoid.me.model.enums.Permission;
+import com.zincoid.me.model.enums.PermissionType;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.UserPermissionVO;
 import com.zincoid.me.service.UserPermissionService;
@@ -20,10 +20,10 @@ public class UserPermissionController {
 
     // ──── Private endpoints ───────────────
 
-    @PostMapping("/{userId}/{permission}")
-    public ApiResponse<Void> grantPermission(@PathVariable Long userId, @PathVariable Permission permission) {
+    @PostMapping("/{userId}/{type}")
+    public ApiResponse<Void> grantPermission(@PathVariable Long userId, @PathVariable PermissionType type) {
         AuthCtx.requireAdmin();
-        userPermissionService.grant(userId, permission, AuthCtx.getUserId());
+        userPermissionService.grant(userId, type, AuthCtx.getUserId());
         return ApiResponse.success();
     }
 
@@ -35,16 +35,16 @@ public class UserPermissionController {
     }
 
     @GetMapping("/my")
-    public ApiResponse<List<Permission>> myPermissions() {
+    public ApiResponse<List<PermissionType>> myPermissions() {
         return ApiResponse.success(userPermissionService.get(AuthCtx.getUserId()));
     }
 
     @GetMapping
     public ApiResponse<PageVO<UserPermissionVO>> listPermissions(@RequestParam(required = false) Long userId,
-                                                                @RequestParam(required = false) Permission permission,
+                                                                @RequestParam(required = false) PermissionType type,
                                                                 @RequestParam(defaultValue = "1") int page,
                                                                 @RequestParam(defaultValue = "10") int size) {
         AuthCtx.requireAdmin();
-        return ApiResponse.success(userPermissionService.list(userId, permission, page, size));
+        return ApiResponse.success(userPermissionService.list(userId, type, page, size));
     }
 }

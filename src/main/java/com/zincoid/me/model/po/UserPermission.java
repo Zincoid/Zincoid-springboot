@@ -3,7 +3,7 @@ package com.zincoid.me.model.po;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.zincoid.me.model.enums.Permission;
+import com.zincoid.me.model.enums.PermissionType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,7 +21,7 @@ public class UserPermission {
     @TableId(type = IdType.AUTO)
     private Long id;
     private Long userId;
-    private Permission permission;
+    private PermissionType type;
     private Long grantedBy;
     private LocalDateTime createdAt;
 }

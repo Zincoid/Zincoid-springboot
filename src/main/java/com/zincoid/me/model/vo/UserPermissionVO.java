@@ -1,6 +1,6 @@
 package com.zincoid.me.model.vo;
 
-import com.zincoid.me.model.enums.Permission;
+import com.zincoid.me.model.enums.PermissionType;
 import lombok.Builder;
 import lombok.Data;
 
@@ -14,7 +14,7 @@ public class UserPermissionVO {
     private Long userId;
     private String username;
     private String userAvatar;
-    private Permission permission;
+    private PermissionType type;
     private Long grantedBy;
     private String grantedByUsername;
     private LocalDateTime createdAt;

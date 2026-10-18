@@ -6,14 +6,14 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
-public enum Permission {
+public enum PermissionType {
 
     ARTICLE_OP(0);
 
     @EnumValue
     private final Integer value;
 
-    Permission(Integer value) {
+    PermissionType(Integer value) {
         this.value = value;
     }
 
@@ -23,9 +23,9 @@ public enum Permission {
     }
 
     @JsonCreator
-    public static Permission fromValue(Integer value) {
+    public static PermissionType fromValue(Integer value) {
         if (value == null) return null;
-        for (Permission r : values()) {
+        for (PermissionType r : values()) {
             if (r.value.equals(value)) return r;
         }
         return null;

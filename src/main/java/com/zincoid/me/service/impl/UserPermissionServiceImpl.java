@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.Error;
 import com.zincoid.me.mapper.UserPermissionMapper;
-import com.zincoid.me.model.enums.Permission;
+import com.zincoid.me.model.enums.PermissionType;
 import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.po.UserPermission;
@@ -31,37 +31,37 @@ public class UserPermissionServiceImpl extends ServiceImpl<UserPermissionMapper,
     private final UserService userService;
 
     @Override
-    public boolean has(Long userId, Permission permission) {
-        if (userId == null || permission == null) return false;
+    public boolean has(Long userId, PermissionType type) {
+        if (userId == null || type == null) return false;
         return lambdaQuery()
                 .eq(UserPermission::getUserId, userId)
-                .eq(UserPermission::getPermission, permission)
+                .eq(UserPermission::getType, type)
                 .exists();
     }
 
     @Override
-    public void require(Permission permission) {
+    public void require(PermissionType type) {
         if (AuthCtx.getRole() == Role.ADMIN) return;
-        if (!has(AuthCtx.getUserId(), permission)) {
-            log.warn("Permission required: {}", permission);
+        if (!has(AuthCtx.getUserId(), type)) {
+            log.warn("Permission required: {}", type);
             throw new BusinessException(Error.PERMISSION_REQUIRED);
         }
     }
 
     @Override
     @Transactional
-    public void grant(Long userId, Permission permission, Long operatorId) {
+    public void grant(Long userId, PermissionType type, Long operatorId) {
         User user = userService.getById(userId);
         if (user == null)
             throw new BusinessException(Error.USER_NOT_FOUND);
-        if (has(userId, permission))
+        if (has(userId, type))
             throw new BusinessException(Error.PERMISSION_ALREADY_GRANTED);
         save(UserPermission.builder()
                 .userId(userId)
-                .permission(permission)
+                .type(type)
                 .grantedBy(operatorId)
                 .build());
-        log.info("Permission granted: user={}, permission={}, by={}", userId, permission, operatorId);
+        log.info("Permission granted: user={}, type={}, by={}", userId, type, operatorId);
     }
 
     @Override
@@ -71,22 +71,22 @@ public class UserPermissionServiceImpl extends ServiceImpl<UserPermissionMapper,
         if (existing == null)
             throw new BusinessException(Error.PERMISSION_NOT_FOUND);
         removeById(id);
-        log.info("Permission revoked: id={}, user={}, permission={}, by={}", id, existing.getUserId(), existing.getPermission(), operatorId);
+        log.info("Permission revoked: id={}, user={}, type={}, by={}", id, existing.getUserId(), existing.getType(), operatorId);
     }
 
     @Override
-    public List<Permission> get(Long userId) {
+    public List<PermissionType> get(Long userId) {
         return lambdaQuery()
                 .eq(UserPermission::getUserId, userId)
                 .list()
-                .stream().map(UserPermission::getPermission).toList();
+                .stream().map(UserPermission::getType).toList();
     }
 
     @Override
-    public PageVO<UserPermissionVO> list(Long userId, Permission permission, int page, int size) {
+    public PageVO<UserPermissionVO> list(Long userId, PermissionType type, int page, int size) {
         Page<UserPermission> p = lambdaQuery()
                 .eq(userId != null, UserPermission::getUserId, userId)
-                .eq(permission != null, UserPermission::getPermission, permission)
+                .eq(type != null, UserPermission::getType, type)
                 .orderByDesc(UserPermission::getCreatedAt)
                 .page(Page.of(page, size));
         List<UserPermissionVO> vos = new ArrayList<>();
@@ -98,7 +98,7 @@ public class UserPermissionServiceImpl extends ServiceImpl<UserPermissionMapper,
                     .userId(up.getUserId())
                     .username(user != null ? user.getUsername() : null)
                     .userAvatar(user != null ? FileUtil.toThumbUrl(user.getAvatar()) : null)
-                    .permission(up.getPermission())
+                    .type(up.getType())
                     .grantedBy(up.getGrantedBy())
                     .grantedByUsername(granter != null ? granter.getUsername() : null)
                     .createdAt(up.getCreatedAt())

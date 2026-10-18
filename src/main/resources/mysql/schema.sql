@@ -300,7 +300,7 @@ CREATE TABLE IF NOT EXISTS `repo_access` (
 -- =============================================
 CREATE TABLE IF NOT EXISTS `comment` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
-    `target_type`   TINYINT         NOT NULL                 COMMENT 'Target type: 0=MOMENT, 1=ARTICLE, 4=REPO',
+    `target_type`   TINYINT         NOT NULL                 COMMENT 'Target business type: 0=MOMENT, 1=ARTICLE, 4=REPO',
     `target_id`     BIGINT          NOT NULL                 COMMENT 'Target record ID',
     `user_id`       BIGINT          NOT NULL                 COMMENT 'Commenter user ID',
     `parent_id`     BIGINT          DEFAULT NULL             COMMENT 'Parent comment ID (NULL=top-level, non-null=reply)',
@@ -322,7 +322,7 @@ CREATE TABLE IF NOT EXISTS `comment` (
 -- =============================================
 CREATE TABLE IF NOT EXISTS `likes` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
-    `target_type`   TINYINT         NOT NULL                 COMMENT 'Target type: 0=MOMENT, 1=ARTICLE, 4=REPO, 6=COMMENT',
+    `target_type`   TINYINT         NOT NULL                 COMMENT 'Target business type: 0=MOMENT, 1=ARTICLE, 4=REPO, 6=COMMENT',
     `target_id`     BIGINT          NOT NULL                 COMMENT 'Target record ID',
     `user_id`       BIGINT          NOT NULL                 COMMENT 'User who liked',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',

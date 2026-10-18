@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.module.core.DataInitializer;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.model.Conf;
 import com.zincoid.me.model.Error;
 import com.zincoid.me.mapper.MessageMapper;
 import com.zincoid.me.model.enums.NotificationType;
@@ -36,9 +37,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> implements MessageService {
-
-    private static final String MESSAGE_MAX_COUNT_CONF_KEY = "message_max_count";
-    private static final String MESSAGE_MAX_COUNT_CONF_FALLBACK = "200";
 
     private final ConfigService configService;
     private final FileService fileService;
@@ -132,11 +130,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     // ──────── Private tool ────────────────────────────────
 
     private List<Long> trim() {
-        String maxStr = configService.get(MESSAGE_MAX_COUNT_CONF_KEY, MESSAGE_MAX_COUNT_CONF_FALLBACK);
-        int max = 200;
+        int max;
         try {
-            if (maxStr != null) max = Integer.parseInt(maxStr);
-        } catch (NumberFormatException ignored) {}
+            max = Integer.parseInt(configService.get(Conf.MESSAGE_MAX_COUNT));
+        } catch (NumberFormatException e) {
+            max = Integer.parseInt(Conf.MESSAGE_MAX_COUNT.getDefaultValue());
+        }
         long total = count();
         if (total <= max) return List.of();
         int toDelete = (int) (total - max);

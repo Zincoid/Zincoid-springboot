@@ -1,5 +1,6 @@
 package com.zincoid.me.module.core;
 
+import com.zincoid.me.model.Conf;
 import com.zincoid.me.model.po.Config;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.po.UserConfig;
@@ -39,29 +40,17 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void initConfigs() {
-        initConfig("site_name", "Zincoid's", "Website name");
-        initConfig("site_desc_en", "Personal website and blogs", "Website description (English)");
-        initConfig("site_desc_zh", "个人网站与博客", "Website description (Chinese)");
-        initConfig("page_size", "10", "Default pagination page size");
-        initConfig("message_max_count", "100", "Maximum number of messages to keep");
-        initConfig("loading_spinner_hold", "250", "Loading spinner hold duration (ms) before fade");
-        initConfig("loading_spinner_fade", "125", "Loading spinner fade-out duration (ms)");
-        initConfig("hero_animation", "random", "Hero animation: squares, raindrop, raindrop_sin, or random");
-        initConfig("audio_spectrum_ratio", "0.2", "Audio spectrum ratio of digital flow for Walkman");
-        initConfig("maintenance_enabled", "true", "Enable daily maintenance (UTC+8 00:00-00:10, auto cleanup and block all requests)");
-        initConfig("ai_chat_prompt", "你是 Zincoid 网站聊天室里的 AI 助手。请自然地融入对话，回复简洁友好，不要长篇大论。", "AI chat system prompt");
-        initConfig("ai_comment_prompt", "你是 Zincoid 网站的 AI 助手。用户在评论区@了你，回答将回复到那条评论下，请结合上下文回复。了解资源内容可自行调用工具。", "AI comment system prompt");
+        for (Conf conf : Conf.values()) initConfig(conf);
     }
 
-    private void initConfig(String key, String value, String description) {
-        if (configService.get(key) == null) {
-            configService.save(Config.builder()
-                    .configKey(key)
-                    .configValue(value)
-                    .description(description)
-                    .build());
-            log.info("Config created: {} = {}", key, value);
-        }
+    private void initConfig(Conf conf) {
+        if (configService.lambdaQuery().eq(Config::getConfigKey, conf.getKey()).exists()) return;
+        configService.save(Config.builder()
+                .configKey(conf.getKey())
+                .configValue(conf.getDefaultValue())
+                .description(conf.getDescription())
+                .build());
+        log.info("Config created: {} = {}", conf.getKey(), conf.getDefaultValue());
     }
 
     private void initAdminUser() {

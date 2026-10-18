@@ -5,6 +5,7 @@ import com.zincoid.me.module.ai.client.AiClient;
 import com.zincoid.me.module.ai.message.AiMessage;
 import com.zincoid.me.module.core.DataInitializer;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.model.Conf;
 import com.zincoid.me.model.Error;
 import com.zincoid.me.module.ai.client.AiTask;
 import com.zincoid.me.model.po.Comment;
@@ -32,10 +33,6 @@ import java.util.stream.Collectors;
 @Service
 public class AiServiceImpl implements AiService {
 
-    private static final String AI_CHAT_PROMPT_CONF_KEY = "ai_chat_prompt";
-    private static final String AI_CHAT_PROMPT_CONF_FALLBACK = "There is something wrong with your configuration.";
-    private static final String AI_COMMENT_PROMPT_CONF_KEY = "ai_comment_prompt";
-    private static final String AI_COMMENT_PROMPT_CONF_FALLBACK = "There is something wrong with your configuration.";
     private static final boolean thinking = true;
 
     private final ConfigService configService;
@@ -74,7 +71,7 @@ public class AiServiceImpl implements AiService {
         User ai = getAiUser();
         if (ai.getId().equals(userId)) return;
         List<AiMessage> history = buildHistory(ai.getId());
-        String prompt = configService.get(AI_CHAT_PROMPT_CONF_KEY, AI_CHAT_PROMPT_CONF_FALLBACK);
+        String prompt = configService.get(Conf.AI_CHAT_PROMPT);
         String addition = """
                 The mention is in message id=%d.
                 And if it contains a reply message, you need to check it first."""
@@ -97,7 +94,7 @@ public class AiServiceImpl implements AiService {
         Comment trigger = commentService.getById(commentId);
         if (trigger == null) return;
         List<AiMessage> history = buildComments(trigger);
-        String prompt = configService.get(AI_COMMENT_PROMPT_CONF_KEY, AI_COMMENT_PROMPT_CONF_FALLBACK);
+        String prompt = configService.get(Conf.AI_COMMENT_PROMPT);
         String addition = """
                 You are mentioned in a comment on %s id=%d.
                 The mention is in comment id=%d."""

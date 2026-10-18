@@ -2,6 +2,7 @@ package com.zincoid.me.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.exception.BusinessException;
+import com.zincoid.me.model.Conf;
 import com.zincoid.me.model.Error;
 import com.zincoid.me.mapper.ConfigMapper;
 import com.zincoid.me.model.po.Config;
@@ -20,15 +21,10 @@ import java.util.Map;
 public class ConfigServiceImpl extends ServiceImpl<ConfigMapper, Config> implements ConfigService {
 
     @Override
-    public String get(String key) {
-        Config config = lambdaQuery().eq(Config::getConfigKey, key).one();
-        return config != null ? config.getConfigValue() : null;
-    }
-
-    @Override
-    public String get(String key, String fallback) {
-        String value = get(key);
-        return value == null ? fallback : value;
+    public String get(Conf conf) {
+        Config config = lambdaQuery().eq(Config::getConfigKey, conf.getKey()).one();
+        return config != null && config.getConfigValue() != null
+                ? config.getConfigValue() : conf.getDefaultValue();
     }
 
     @Override

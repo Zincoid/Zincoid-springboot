@@ -1,15 +1,14 @@
 package com.zincoid.me.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.zincoid.me.model.Conf;
 import com.zincoid.me.model.po.Config;
 
 import java.util.Map;
 
 public interface ConfigService extends IService<Config> {
 
-    String get(String key);
-
-    String get(String key, String fallback);
+    String get(Conf conf);
 
     Map<String, String> map();
 

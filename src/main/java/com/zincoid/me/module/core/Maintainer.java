@@ -1,5 +1,6 @@
 package com.zincoid.me.module.core;
 
+import com.zincoid.me.model.Conf;
 import com.zincoid.me.service.CleanupService;
 import com.zincoid.me.service.ConfigService;
 import lombok.Getter;
@@ -13,8 +14,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class Maintainer {
 
-    private static final String ENABLED_CONF_KEY = "maintenance_enabled";
-    private static final String ENABLED_CONF_FALLBACK = "false";
     private static final int AUTO_CLEANUP_REQUEST_RETENTION_DAYS = 7;
 
     private final ConfigService configService;
@@ -51,7 +50,7 @@ public class Maintainer {
     }
 
     private boolean isEnabled() {
-        String value = configService.get(ENABLED_CONF_KEY, ENABLED_CONF_FALLBACK);
+        String value = configService.get(Conf.MAINTENANCE_ENABLED);
         return "true".equalsIgnoreCase(value);
     }
 }

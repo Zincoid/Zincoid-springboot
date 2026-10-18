@@ -261,7 +261,7 @@ CREATE TABLE IF NOT EXISTS `repo_access` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
     `repo_id`       BIGINT          NOT NULL                 COMMENT 'Repo ID',
     `user_id`       BIGINT          NOT NULL                 COMMENT 'User who requested access',
-    `type`          TINYINT         NOT NULL DEFAULT 0       COMMENT 'Type: 0=VIEWER, 1=CONTRIBUTOR',
+    `type`          TINYINT         NOT NULL DEFAULT 0       COMMENT 'Access type: 0=VIEWER, 1=CONTRIBUTOR',
     `approval`      TINYINT         NOT NULL DEFAULT 0       COMMENT 'Approval: 0=PENDING, 1=APPROVED, 2=REJECTED',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Request time',
     `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Update time',
@@ -310,7 +310,7 @@ CREATE TABLE IF NOT EXISTS `request` (
 CREATE TABLE IF NOT EXISTS `user_permission` (
     `id`         BIGINT   NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
     `user_id`    BIGINT   NOT NULL COMMENT 'User ID',
-    `type`       TINYINT  NOT NULL COMMENT 'Type: 0=ARTICLE_OP',
+    `type`       TINYINT  NOT NULL COMMENT 'Permission type: 0=ARTICLE_OP',
     `granted_by` BIGINT            COMMENT 'Granted by admin user ID',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Grant time',
     PRIMARY KEY (`id`),

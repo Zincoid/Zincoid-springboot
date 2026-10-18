@@ -1,7 +1,7 @@
 package com.zincoid.me.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.zincoid.me.model.enums.Perm;
+import com.zincoid.me.model.enums.Permission;
 import com.zincoid.me.model.po.UserPermission;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.UserPermissionVO;
@@ -10,15 +10,15 @@ import java.util.List;
 
 public interface UserPermissionService extends IService<UserPermission> {
 
-    boolean has(Long userId, Perm perm);
+    boolean has(Long userId, Permission permission);
 
-    void require(Perm perm);
+    void require(Permission permission);
 
-    void grant(Long userId, Perm perm, Long operatorId);
+    void grant(Long userId, Permission permission, Long operatorId);
 
     void revoke(Long id, Long operatorId);
 
-    List<Perm> get(Long userId);
+    List<Permission> get(Long userId);
 
-    PageVO<UserPermissionVO> list(Long userId, Perm perm, int page, int size);
+    PageVO<UserPermissionVO> list(Long userId, Permission permission, int page, int size);
 }

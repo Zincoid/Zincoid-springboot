@@ -1,7 +1,7 @@
 package com.zincoid.me.controller;
 
 import com.zincoid.me.model.ApiResponse;
-import com.zincoid.me.model.enums.Perm;
+import com.zincoid.me.model.enums.Permission;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.UserPermissionVO;
 import com.zincoid.me.service.UserPermissionService;
@@ -20,10 +20,10 @@ public class UserPermissionController {
 
     // ──── Private endpoints ───────────────
 
-    @PostMapping("/{userId}/{perm}")
-    public ApiResponse<Void> grantPermission(@PathVariable Long userId, @PathVariable Perm perm) {
+    @PostMapping("/{userId}/{permission}")
+    public ApiResponse<Void> grantPermission(@PathVariable Long userId, @PathVariable Permission permission) {
         AuthCtx.requireAdmin();
-        userPermissionService.grant(userId, perm, AuthCtx.getUserId());
+        userPermissionService.grant(userId, permission, AuthCtx.getUserId());
         return ApiResponse.success();
     }
 
@@ -35,16 +35,16 @@ public class UserPermissionController {
     }
 
     @GetMapping("/my")
-    public ApiResponse<List<Perm>> myPermissions() {
+    public ApiResponse<List<Permission>> myPermissions() {
         return ApiResponse.success(userPermissionService.get(AuthCtx.getUserId()));
     }
 
     @GetMapping
     public ApiResponse<PageVO<UserPermissionVO>> listPermissions(@RequestParam(required = false) Long userId,
-                                                                @RequestParam(required = false) Perm perm,
+                                                                @RequestParam(required = false) Permission permission,
                                                                 @RequestParam(defaultValue = "1") int page,
                                                                 @RequestParam(defaultValue = "10") int size) {
         AuthCtx.requireAdmin();
-        return ApiResponse.success(userPermissionService.list(userId, perm, page, size));
+        return ApiResponse.success(userPermissionService.list(userId, permission, page, size));
     }
 }

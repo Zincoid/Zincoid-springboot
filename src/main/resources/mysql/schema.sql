@@ -310,12 +310,12 @@ CREATE TABLE IF NOT EXISTS `request` (
 CREATE TABLE IF NOT EXISTS `user_permission` (
     `id`         BIGINT   NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
     `user_id`    BIGINT   NOT NULL COMMENT 'User ID',
-    `perm`       TINYINT  NOT NULL COMMENT 'Permission: 0=ARTICLE_OP',
+    `permission` TINYINT  NOT NULL COMMENT 'Permission: 0=ARTICLE_OP',
     `granted_by` BIGINT            COMMENT 'Granted by admin user ID',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Grant time',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_user_perm` (`user_id`, `perm`),
-    KEY `idx_perm` (`perm`),
+    UNIQUE KEY `uk_user_permission` (`user_id`, `permission`),
+    KEY `idx_permission` (`permission`),
     CONSTRAINT `fk_user_permission_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User permission grant table';
 

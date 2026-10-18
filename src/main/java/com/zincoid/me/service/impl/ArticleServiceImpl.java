@@ -11,7 +11,7 @@ import com.zincoid.me.model.dto.ArticleCreateRequest;
 import com.zincoid.me.model.dto.ArticleUpdateRequest;
 import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.User;
-import com.zincoid.me.model.enums.Perm;
+import com.zincoid.me.model.enums.Permission;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.enums.Role;
@@ -57,7 +57,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Override
     @Transactional
     public ArticleDetailVO create(Long userId, ArticleCreateRequest request) {
-        userPermissionService.require(Perm.ARTICLE_OP);
+        userPermissionService.require(Permission.ARTICLE_OP);
         Article article = Article.builder()
                 .userId(userId)
                 .title(request.getTitle())
@@ -79,7 +79,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Override
     @Transactional
     public ArticleDetailVO update(Long userId, Long articleId, ArticleUpdateRequest request) {
-        userPermissionService.require(Perm.ARTICLE_OP);
+        userPermissionService.require(Permission.ARTICLE_OP);
         Article article = getById(articleId);
         if (article == null)
             throw new BusinessException(Error.ARTICLE_NOT_FOUND);
@@ -119,7 +119,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Override
     @Transactional
     public void delete(Long userId, Long articleId, boolean isAdmin) {
-        userPermissionService.require(Perm.ARTICLE_OP);
+        userPermissionService.require(Permission.ARTICLE_OP);
         Article article = getById(articleId);
         if (article == null)
             throw new BusinessException(Error.ARTICLE_NOT_FOUND);

@@ -137,22 +137,20 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     @Transactional
     public CommentVO add(Long userId, BizType targetType, Long targetId, String content, Long parentId) {
         validate(targetType, targetId);
+        Comment parent = parentId != null ? getById(parentId) : null;
         Comment comment = Comment.builder()
                 .targetType(targetType)
                 .targetId(targetId)
                 .userId(userId)
                 .content(content)
                 .parentId(parentId)
+                .rootId(parent != null ? parent.getRootId() : 0L)
                 .build();
         save(comment);
-        Comment parent = null;
-        if (parentId == null) {
+        if (parent == null) {
             comment.setRootId(comment.getId());
-        } else {
-            parent = getById(parentId);
-            comment.setRootId(parent != null ? parent.getRootId() : comment.getId());
+            updateById(comment);
         }
-        updateById(comment);
         if (parent != null && !parent.getUserId().equals(userId))
             notificationService.notify(userId, parent.getUserId(),
                     NotificationType.REPLY, comment.getId());

@@ -1,7 +1,7 @@
 package com.zincoid.me.service;
 
 import com.zincoid.me.model.enums.AccessType;
-import com.zincoid.me.model.enums.Captcha;
+import com.zincoid.me.model.enums.CaptchaType;
 
 public interface EmailService {
 
@@ -13,9 +13,9 @@ public interface EmailService {
 
     void sendChangeCode(Long userId);
 
-    boolean verifyCode(String email, String code, Captcha type, boolean remove);
+    boolean verifyCode(String email, String code, CaptchaType type, boolean remove);
 
-    void removeCode(String email, Captcha type);
+    void removeCode(String email, CaptchaType type);
 
     void sendEmail(String to, String subject, String text);
 

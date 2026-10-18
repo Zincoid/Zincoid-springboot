@@ -3,7 +3,7 @@ package com.zincoid.me.model.enums;
 import lombok.Getter;
 
 @Getter
-public enum Captcha {
+public enum CaptchaType {
 
     REGISTER,
     RESET_PASSWORD,

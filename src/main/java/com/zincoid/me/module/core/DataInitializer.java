@@ -1,11 +1,11 @@
 package com.zincoid.me.module.core;
 
-import com.zincoid.me.model.Conf;
+import com.zincoid.me.model.enums.dict.Conf;
 import com.zincoid.me.model.po.Config;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.po.UserConfig;
-import com.zincoid.me.model.enums.Role;
-import com.zincoid.me.model.enums.Status;
+import com.zincoid.me.model.enums.state.Role;
+import com.zincoid.me.model.enums.state.Status;
 import com.zincoid.me.service.ConfigService;
 import com.zincoid.me.service.UserConfigService;
 import com.zincoid.me.service.UserService;

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.zincoid.me.module.ai.model.ModelRes;
 import com.zincoid.me.module.ai.tool.ToolCall;
 import com.zincoid.me.exception.BusinessException;
-import com.zincoid.me.model.Error;
+import com.zincoid.me.model.enums.dict.Error;
 
 import java.util.List;
 import java.util.Optional;

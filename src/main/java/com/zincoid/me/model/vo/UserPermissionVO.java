@@ -1,6 +1,6 @@
 package com.zincoid.me.model.vo;
 
-import com.zincoid.me.model.enums.PermissionType;
+import com.zincoid.me.model.enums.type.PermissionType;
 import lombok.Builder;
 import lombok.Data;
 

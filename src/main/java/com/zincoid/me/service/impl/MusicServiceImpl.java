@@ -2,8 +2,8 @@ package com.zincoid.me.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zincoid.me.exception.BusinessException;
-import com.zincoid.me.model.Error;
-import com.zincoid.me.model.enums.BizType;
+import com.zincoid.me.model.enums.dict.Error;
+import com.zincoid.me.model.enums.type.BizType;
 import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.vo.FileVO;

@@ -1,4 +1,4 @@
-package com.zincoid.me.model.enums;
+package com.zincoid.me.model.enums.state;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -6,20 +6,15 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
-public enum BizType {
+public enum Status {
 
-    MOMENT(0),
-    ARTICLE(1),
-    AVATAR(2),
-    CHAT(3),
-    REPO(4),
-    MUSIC(5),
-    COMMENT(6);
+    DISABLED(0),
+    ACTIVE(1);
 
     @EnumValue
     private final Integer value;
 
-    BizType(Integer value) {
+    Status(Integer value) {
         this.value = value;
     }
 
@@ -29,10 +24,10 @@ public enum BizType {
     }
 
     @JsonCreator
-    public static BizType fromValue(Integer value) {
+    public static Status fromValue(Integer value) {
         if (value == null) return null;
-        for (BizType r : values()) {
-            if (r.value.equals(value)) return r;
+        for (Status s : values()) {
+            if (s.value.equals(value)) return s;
         }
         return null;
     }

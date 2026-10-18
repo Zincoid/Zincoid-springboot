@@ -2,8 +2,8 @@ package com.zincoid.me.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.exception.BusinessException;
-import com.zincoid.me.model.Conf;
-import com.zincoid.me.model.Error;
+import com.zincoid.me.model.enums.dict.Conf;
+import com.zincoid.me.model.enums.dict.Error;
 import com.zincoid.me.mapper.ConfigMapper;
 import com.zincoid.me.model.po.Config;
 import com.zincoid.me.service.ConfigService;

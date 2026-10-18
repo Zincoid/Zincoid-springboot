@@ -2,9 +2,9 @@ package com.zincoid.me.controller;
 
 import com.zincoid.me.model.dto.PasswordChangeRequest;
 import com.zincoid.me.model.dto.UserUpdateRequest;
-import com.zincoid.me.model.enums.Role;
+import com.zincoid.me.model.enums.state.Role;
 import com.zincoid.me.model.ApiResponse;
-import com.zincoid.me.model.enums.Status;
+import com.zincoid.me.model.enums.state.Status;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.UserCardVO;
 import com.zincoid.me.model.vo.UserDetailVO;

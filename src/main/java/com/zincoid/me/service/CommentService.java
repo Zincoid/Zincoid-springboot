@@ -1,7 +1,7 @@
 package com.zincoid.me.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.zincoid.me.model.enums.BizType;
+import com.zincoid.me.model.enums.type.BizType;
 import com.zincoid.me.model.po.Comment;
 import com.zincoid.me.model.vo.CommentVO;
 import com.zincoid.me.model.vo.CommentCardVO;

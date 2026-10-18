@@ -2,9 +2,14 @@ package com.zincoid.me.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.exception.BusinessException;
-import com.zincoid.me.model.Error;
+import com.zincoid.me.model.enums.dict.Error;
 import com.zincoid.me.mapper.FileMapper;
-import com.zincoid.me.model.enums.*;
+import com.zincoid.me.model.enums.state.Role;
+import com.zincoid.me.model.enums.state.Status;
+import com.zincoid.me.model.enums.state.Visibility;
+import com.zincoid.me.model.enums.type.AccessType;
+import com.zincoid.me.model.enums.type.BizType;
+import com.zincoid.me.model.enums.type.FileType;
 import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.Moment;

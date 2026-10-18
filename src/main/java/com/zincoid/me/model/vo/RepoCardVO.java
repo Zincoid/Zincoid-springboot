@@ -1,7 +1,7 @@
 package com.zincoid.me.model.vo;
 
-import com.zincoid.me.model.enums.RepoType;
-import com.zincoid.me.model.enums.Visibility;
+import com.zincoid.me.model.enums.type.RepoType;
+import com.zincoid.me.model.enums.state.Visibility;
 import lombok.Builder;
 import lombok.Data;
 

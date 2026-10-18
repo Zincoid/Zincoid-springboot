@@ -1,9 +1,9 @@
 package com.zincoid.me.interceptor;
 
 import com.zincoid.me.exception.BusinessException;
-import com.zincoid.me.model.Error;
-import com.zincoid.me.model.enums.FileType;
-import com.zincoid.me.model.enums.Role;
+import com.zincoid.me.model.enums.dict.Error;
+import com.zincoid.me.model.enums.type.FileType;
+import com.zincoid.me.model.enums.state.Role;
 import com.zincoid.me.model.po.File;
 import com.zincoid.me.service.FileService;
 import com.zincoid.me.utils.AuthCtx;

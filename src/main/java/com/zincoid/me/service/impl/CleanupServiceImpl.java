@@ -1,7 +1,7 @@
 package com.zincoid.me.service.impl;
 
-import com.zincoid.me.model.enums.BizType;
-import com.zincoid.me.model.enums.NotificationType;
+import com.zincoid.me.model.enums.type.BizType;
+import com.zincoid.me.model.enums.type.NotificationType;
 import com.zincoid.me.model.po.*;
 import com.zincoid.me.service.*;
 import lombok.RequiredArgsConstructor;

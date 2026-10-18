@@ -1,7 +1,7 @@
 package com.zincoid.me.model.vo;
 
-import com.zincoid.me.model.enums.Gender;
-import com.zincoid.me.model.enums.Role;
+import com.zincoid.me.model.enums.state.Gender;
+import com.zincoid.me.model.enums.state.Role;
 import lombok.Builder;
 import lombok.Data;
 

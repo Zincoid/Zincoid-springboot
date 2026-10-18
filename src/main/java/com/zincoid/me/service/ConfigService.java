@@ -1,7 +1,7 @@
 package com.zincoid.me.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.zincoid.me.model.Conf;
+import com.zincoid.me.model.enums.dict.Conf;
 import com.zincoid.me.model.po.Config;
 
 import java.util.Map;

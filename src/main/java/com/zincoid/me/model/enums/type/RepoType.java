@@ -1,4 +1,4 @@
-package com.zincoid.me.model.enums;
+package com.zincoid.me.model.enums.type;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -6,15 +6,16 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
-public enum Status {
+public enum RepoType {
 
-    DISABLED(0),
-    ACTIVE(1);
+    CODE(0),
+    MEDIA(1),
+    FILE(2);
 
     @EnumValue
     private final Integer value;
 
-    Status(Integer value) {
+    RepoType(Integer value) {
         this.value = value;
     }
 
@@ -24,10 +25,10 @@ public enum Status {
     }
 
     @JsonCreator
-    public static Status fromValue(Integer value) {
+    public static RepoType fromValue(Integer value) {
         if (value == null) return null;
-        for (Status s : values()) {
-            if (s.value.equals(value)) return s;
+        for (RepoType r : values()) {
+            if (r.value.equals(value)) return r;
         }
         return null;
     }

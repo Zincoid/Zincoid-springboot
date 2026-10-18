@@ -1,6 +1,6 @@
 package com.zincoid.me.exception;
 
-import com.zincoid.me.model.Error;
+import com.zincoid.me.model.enums.dict.Error;
 
 public class MaintenanceException extends ApplicationException {
 

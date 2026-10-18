@@ -1,6 +1,6 @@
 package com.zincoid.me.controller;
 
-import com.zincoid.me.model.enums.BizType;
+import com.zincoid.me.model.enums.type.BizType;
 import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.service.LikeService;
 import com.zincoid.me.utils.AuthCtx;

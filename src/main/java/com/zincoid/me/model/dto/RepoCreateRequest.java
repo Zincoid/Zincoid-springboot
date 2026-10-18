@@ -1,7 +1,7 @@
 package com.zincoid.me.model.dto;
 
-import com.zincoid.me.model.enums.RepoType;
-import com.zincoid.me.model.enums.Visibility;
+import com.zincoid.me.model.enums.type.RepoType;
+import com.zincoid.me.model.enums.state.Visibility;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

@@ -2,7 +2,7 @@ package com.zincoid.me.controller;
 
 import com.zincoid.me.model.dto.MomentCreateRequest;
 import com.zincoid.me.model.dto.MomentUpdateRequest;
-import com.zincoid.me.model.enums.Role;
+import com.zincoid.me.model.enums.state.Role;
 import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.model.vo.MomentDetailVO;
 import com.zincoid.me.model.vo.MomentCardVO;

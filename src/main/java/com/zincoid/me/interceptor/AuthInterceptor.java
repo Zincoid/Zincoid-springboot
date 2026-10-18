@@ -2,8 +2,8 @@ package com.zincoid.me.interceptor;
 
 import com.zincoid.me.controller.AuthController;
 import com.zincoid.me.exception.UnauthorizedException;
-import com.zincoid.me.model.Error;
-import com.zincoid.me.model.enums.Status;
+import com.zincoid.me.model.enums.dict.Error;
+import com.zincoid.me.model.enums.state.Status;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.service.UserService;
 import com.zincoid.me.module.core.JwtTool;

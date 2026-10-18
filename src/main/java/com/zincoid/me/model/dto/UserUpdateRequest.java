@@ -1,6 +1,6 @@
 package com.zincoid.me.model.dto;
 
-import com.zincoid.me.model.enums.Gender;
+import com.zincoid.me.model.enums.state.Gender;
 import com.zincoid.me.validation.ValidJsonObject;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

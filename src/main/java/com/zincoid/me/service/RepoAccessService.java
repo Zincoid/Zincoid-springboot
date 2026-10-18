@@ -1,7 +1,7 @@
 package com.zincoid.me.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.zincoid.me.model.enums.AccessType;
+import com.zincoid.me.model.enums.type.AccessType;
 import com.zincoid.me.model.po.RepoAccess;
 import com.zincoid.me.model.vo.ContributorVO;
 import com.zincoid.me.model.vo.PageVO;

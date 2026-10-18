@@ -1,4 +1,4 @@
-package com.zincoid.me.model.enums;
+package com.zincoid.me.model.enums.state;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -6,14 +6,15 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
-public enum PermissionType {
+public enum Role {
 
-    ARTICLE_OP(0);
+    USER(0),
+    ADMIN(1);
 
     @EnumValue
     private final Integer value;
 
-    PermissionType(Integer value) {
+    Role(Integer value) {
         this.value = value;
     }
 
@@ -23,9 +24,9 @@ public enum PermissionType {
     }
 
     @JsonCreator
-    public static PermissionType fromValue(Integer value) {
+    public static Role fromValue(Integer value) {
         if (value == null) return null;
-        for (PermissionType r : values()) {
+        for (Role r : values()) {
             if (r.value.equals(value)) return r;
         }
         return null;

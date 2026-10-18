@@ -1,4 +1,4 @@
-package com.zincoid.me.model.enums;
+package com.zincoid.me.model.enums.state;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -6,15 +6,16 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
-public enum AccessType {
+public enum Approval {
 
-    VIEWER(0),
-    CONTRIBUTOR(1);
+    PENDING(0),
+    APPROVED(1),
+    REJECTED(2);
 
     @EnumValue
     private final Integer value;
 
-    AccessType(Integer value) {
+    Approval(Integer value) {
         this.value = value;
     }
 
@@ -24,10 +25,10 @@ public enum AccessType {
     }
 
     @JsonCreator
-    public static AccessType fromValue(Integer value) {
+    public static Approval fromValue(Integer value) {
         if (value == null) return null;
-        for (AccessType r : values()) {
-            if (r.value.equals(value)) return r;
+        for (Approval s : values()) {
+            if (s.value.equals(value)) return s;
         }
         return null;
     }

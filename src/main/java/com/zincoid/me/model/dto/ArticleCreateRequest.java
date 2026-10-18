@@ -1,6 +1,6 @@
 package com.zincoid.me.model.dto;
 
-import com.zincoid.me.model.enums.Visibility;
+import com.zincoid.me.model.enums.state.Visibility;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 

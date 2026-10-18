@@ -1,7 +1,7 @@
 package com.zincoid.me.module.ai.model.openai;
 
 import com.zincoid.me.exception.BusinessException;
-import com.zincoid.me.model.Error;
+import com.zincoid.me.model.enums.dict.Error;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;

@@ -1,6 +1,6 @@
 package com.zincoid.me.converter;
 
-import com.zincoid.me.model.enums.FileType;
+import com.zincoid.me.model.enums.type.FileType;
 import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.po.Repo;
 import com.zincoid.me.model.po.RepoItem;

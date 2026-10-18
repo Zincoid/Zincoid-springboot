@@ -1,8 +1,8 @@
 package com.zincoid.me.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.zincoid.me.model.enums.Approval;
-import com.zincoid.me.model.enums.RequestType;
+import com.zincoid.me.model.enums.state.Approval;
+import com.zincoid.me.model.enums.type.RequestType;
 import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.po.Request;
 import com.zincoid.me.model.vo.PageVO;

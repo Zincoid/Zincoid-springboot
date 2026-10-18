@@ -1,7 +1,7 @@
 package com.zincoid.me.model.vo;
 
-import com.zincoid.me.model.enums.Approval;
-import com.zincoid.me.model.enums.AccessType;
+import com.zincoid.me.model.enums.state.Approval;
+import com.zincoid.me.model.enums.type.AccessType;
 import lombok.Builder;
 import lombok.Data;
 

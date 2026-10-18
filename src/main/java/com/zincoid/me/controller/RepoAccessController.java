@@ -1,7 +1,7 @@
 package com.zincoid.me.controller;
 
 import com.zincoid.me.model.ApiResponse;
-import com.zincoid.me.model.enums.AccessType;
+import com.zincoid.me.model.enums.type.AccessType;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.RepoAccessVO;
 import com.zincoid.me.service.RepoAccessService;

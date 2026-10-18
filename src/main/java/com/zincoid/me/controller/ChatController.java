@@ -1,7 +1,7 @@
 package com.zincoid.me.controller;
 
 import com.zincoid.me.model.ApiResponse;
-import com.zincoid.me.model.enums.Role;
+import com.zincoid.me.model.enums.state.Role;
 import com.zincoid.me.model.vo.MessageVO;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.service.MessageService;

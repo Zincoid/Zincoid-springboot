@@ -2,7 +2,7 @@ package com.zincoid.me.controller;
 
 import com.zincoid.me.model.dto.ArticleCreateRequest;
 import com.zincoid.me.model.dto.ArticleUpdateRequest;
-import com.zincoid.me.model.enums.Role;
+import com.zincoid.me.model.enums.state.Role;
 import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.model.vo.ArticleCardVO;
 import com.zincoid.me.model.vo.ArticleDetailVO;

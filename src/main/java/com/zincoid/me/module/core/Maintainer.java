@@ -1,6 +1,6 @@
 package com.zincoid.me.module.core;
 
-import com.zincoid.me.model.Conf;
+import com.zincoid.me.model.enums.dict.Conf;
 import com.zincoid.me.service.CleanupService;
 import com.zincoid.me.service.ConfigService;
 import lombok.Getter;

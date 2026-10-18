@@ -1,6 +1,6 @@
 package com.zincoid.me.converter;
 
-import com.zincoid.me.model.enums.BizType;
+import com.zincoid.me.model.enums.type.BizType;
 import com.zincoid.me.model.po.Notification;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.vo.NotificationVO;

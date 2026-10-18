@@ -1,6 +1,6 @@
 package com.zincoid.me.model.vo;
 
-import com.zincoid.me.model.enums.BizType;
+import com.zincoid.me.model.enums.type.BizType;
 import lombok.Builder;
 import lombok.Data;
 

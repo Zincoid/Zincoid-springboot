@@ -1,7 +1,7 @@
 package com.zincoid.me.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.zincoid.me.model.enums.PermissionType;
+import com.zincoid.me.model.enums.type.PermissionType;
 import com.zincoid.me.model.po.UserPermission;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.UserPermissionVO;

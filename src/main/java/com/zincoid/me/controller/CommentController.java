@@ -1,8 +1,8 @@
 package com.zincoid.me.controller;
 
 import com.zincoid.me.model.dto.CommentCreateRequest;
-import com.zincoid.me.model.enums.BizType;
-import com.zincoid.me.model.enums.Role;
+import com.zincoid.me.model.enums.type.BizType;
+import com.zincoid.me.model.enums.state.Role;
 import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.model.vo.CommentCardVO;
 import com.zincoid.me.model.vo.CommentVO;

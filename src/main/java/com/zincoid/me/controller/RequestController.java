@@ -1,9 +1,9 @@
 package com.zincoid.me.controller;
 
 import com.zincoid.me.model.ApiResponse;
-import com.zincoid.me.model.enums.Approval;
-import com.zincoid.me.model.enums.RequestType;
-import com.zincoid.me.model.enums.Role;
+import com.zincoid.me.model.enums.state.Approval;
+import com.zincoid.me.model.enums.type.RequestType;
+import com.zincoid.me.model.enums.state.Role;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.RequestVO;
 import com.zincoid.me.service.RequestService;

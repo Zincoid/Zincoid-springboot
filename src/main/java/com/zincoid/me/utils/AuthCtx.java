@@ -1,8 +1,8 @@
 package com.zincoid.me.utils;
 
 import com.zincoid.me.exception.BusinessException;
-import com.zincoid.me.model.Error;
-import com.zincoid.me.model.enums.Role;
+import com.zincoid.me.model.enums.dict.Error;
+import com.zincoid.me.model.enums.state.Role;
 import com.zincoid.me.model.po.User;
 import org.slf4j.MDC;
 

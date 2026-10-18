@@ -3,7 +3,7 @@ package com.zincoid.me.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zincoid.me.model.dto.RepoCreateRequest;
 import com.zincoid.me.model.dto.RepoUpdateRequest;
-import com.zincoid.me.model.enums.RepoType;
+import com.zincoid.me.model.enums.type.RepoType;
 import com.zincoid.me.model.po.Repo;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.RepoCardVO;

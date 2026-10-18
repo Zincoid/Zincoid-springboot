@@ -1,11 +1,11 @@
 package com.zincoid.me.service.impl;
 
 import com.zincoid.me.exception.BusinessException;
-import com.zincoid.me.model.Error;
-import com.zincoid.me.model.enums.AccessType;
-import com.zincoid.me.model.enums.CaptchaType;
+import com.zincoid.me.model.enums.dict.Error;
+import com.zincoid.me.model.enums.type.AccessType;
+import com.zincoid.me.model.enums.type.CaptchaType;
 import com.zincoid.me.model.po.User;
-import com.zincoid.me.model.enums.Status;
+import com.zincoid.me.model.enums.state.Status;
 import com.zincoid.me.model.vo.UserConfigVO;
 import com.zincoid.me.service.EmailService;
 import com.zincoid.me.service.UserConfigService;

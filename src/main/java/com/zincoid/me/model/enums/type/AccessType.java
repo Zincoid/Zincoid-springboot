@@ -1,4 +1,4 @@
-package com.zincoid.me.model.enums;
+package com.zincoid.me.model.enums.type;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -6,17 +6,15 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
-public enum RequestType {
+public enum AccessType {
 
-    STORAGE_EXTENSION(0),
-    REPORT(1),
-    MUSIC_REQUEST(2),
-    REPO_TRANSFER(3);
+    VIEWER(0),
+    CONTRIBUTOR(1);
 
     @EnumValue
     private final Integer value;
 
-    RequestType(Integer value) {
+    AccessType(Integer value) {
         this.value = value;
     }
 
@@ -26,9 +24,9 @@ public enum RequestType {
     }
 
     @JsonCreator
-    public static RequestType fromValue(Integer value) {
+    public static AccessType fromValue(Integer value) {
         if (value == null) return null;
-        for (RequestType r : values()) {
+        for (AccessType r : values()) {
             if (r.value.equals(value)) return r;
         }
         return null;

@@ -4,7 +4,7 @@ import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.exception.MaintenanceException;
 import com.zincoid.me.exception.UnauthorizedException;
 import com.zincoid.me.model.ApiResponse;
-import com.zincoid.me.model.Error;
+import com.zincoid.me.model.enums.dict.Error;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.ClientAbortException;
 import org.springframework.http.HttpStatus;

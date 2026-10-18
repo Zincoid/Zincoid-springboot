@@ -1,4 +1,4 @@
-package com.zincoid.me.model.enums;
+package com.zincoid.me.model.enums.type;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -6,15 +6,17 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
-public enum Gender {
+public enum FileType {
 
-    MALE(0),
-    FEMALE(1);
+    IMAGE(0),
+    VIDEO(1),
+    AUDIO(2),
+    OTHER(3);
 
     @EnumValue
     private final Integer value;
 
-    Gender(Integer value) {
+    FileType(Integer value) {
         this.value = value;
     }
 
@@ -24,10 +26,10 @@ public enum Gender {
     }
 
     @JsonCreator
-    public static Gender fromValue(Integer value) {
+    public static FileType fromValue(Integer value) {
         if (value == null) return null;
-        for (Gender g : values()) {
-            if (g.value.equals(value)) return g;
+        for (FileType f : values()) {
+            if (f.value.equals(value)) return f;
         }
         return null;
     }

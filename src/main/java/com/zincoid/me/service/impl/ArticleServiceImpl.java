@@ -2,11 +2,15 @@ package com.zincoid.me.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.zincoid.me.model.enums.*;
+import com.zincoid.me.model.enums.state.Role;
+import com.zincoid.me.model.enums.state.Status;
+import com.zincoid.me.model.enums.state.Visibility;
+import com.zincoid.me.model.enums.type.BizType;
+import com.zincoid.me.model.enums.type.PermissionType;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.converter.ArticleConverter;
 import com.zincoid.me.exception.BusinessException;
-import com.zincoid.me.model.Error;
+import com.zincoid.me.model.enums.dict.Error;
 import com.zincoid.me.mapper.ArticleMapper;
 import com.zincoid.me.model.dto.ArticleCreateRequest;
 import com.zincoid.me.model.dto.ArticleUpdateRequest;

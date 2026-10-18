@@ -74,7 +74,12 @@ public class AiServiceImpl implements AiService {
         String prompt = configService.get(Conf.AI_CHAT_PROMPT);
         String addition = """
                 The mention is in message id=%d.
-                And if it contains a reply message, you need to check it first."""
+                If it contains a reply, check that first.
+                
+                Format rule: tokens like `[id=123]` and `nickname@username:` are
+                system annotations for locating messages, not part of the message
+                content. Reply with plain text only and never reproduce these
+                prefixes."""
                 .formatted(messageId);
         prompt = prompt + "\n\n" + addition;
         try {
@@ -96,12 +101,16 @@ public class AiServiceImpl implements AiService {
         List<AiMessage> history = buildComments(trigger);
         String prompt = configService.get(Conf.AI_COMMENT_PROMPT);
         String addition = """
-                You are mentioned in a comment on %s id=%d.
-                The mention is in comment id=%d."""
+                The mention is in comment id=%d, on %s id=%d.
+                
+                Format rule: tokens like `[id=123]`, `reply_to_id=456` and
+                `nickname@username:` are system annotations for locating comments,
+                not part of the message content. Reply with plain text only and
+                never reproduce these prefixes."""
                 .formatted(
+                        trigger.getId(),
                         trigger.getTargetType().name().toLowerCase(),
-                        trigger.getTargetId(),
-                        trigger.getId()
+                        trigger.getTargetId()
                 );
         prompt = prompt + "\n\n" + addition;
         try {
@@ -165,8 +174,11 @@ public class AiServiceImpl implements AiService {
                     ? " (reply_to_id=%d)".formatted(m.getReplyId()) : "";
             if (aiId.equals(m.getUserId())) {
                 String content = m.getContent() != null ? m.getContent() : "";
-                messages.add(AiMessage.assistant("[id=%d] (AI)%s: %s".formatted(
-                        m.getId(), replyTag, content.isBlank() ? "(sent an image)" : content)));
+                // Omit id/AI prefix — the model copies it into its own replies !!!
+                // messages.add(AiMessage.assistant("[id=%d] (AI)%s: %s".formatted(
+                //         m.getId(), replyTag, content.isBlank() ? "(sent a file)" : content)));
+                messages.add(AiMessage.assistant(
+                        content.isBlank() ? "(sent a file)" : content));
                 continue;
             }
             List<String> images = url(m.getFile());

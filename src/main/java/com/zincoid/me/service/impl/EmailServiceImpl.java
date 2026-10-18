@@ -2,7 +2,7 @@ package com.zincoid.me.service.impl;
 
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.Error;
-import com.zincoid.me.model.enums.RepoAccessType;
+import com.zincoid.me.model.enums.AccessType;
 import com.zincoid.me.model.enums.CaptchaType;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.Status;
@@ -139,7 +139,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendAccessApproved(Long userId, String repoName, RepoAccessType type) {
+    public void sendAccessApproved(Long userId, String repoName, AccessType type) {
         User user = userService.getById(userId);
         if (user == null || user.getEmail() == null || user.getEmail().isBlank()) return;
         UserConfigVO config = userConfigService.get(userId);

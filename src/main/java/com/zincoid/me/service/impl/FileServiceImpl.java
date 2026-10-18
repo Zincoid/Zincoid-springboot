@@ -119,7 +119,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
                 boolean isOwner = userId != null && userId.equals(repo.getUserId());
                 if (repo.getVisibility() == Visibility.PUBLIC || isOwner || isAdmin) yield true;
                 if (repo.getVisibility() == Visibility.RESTRICTED)
-                    yield userId != null && repoAccessService.authorize(userId, repo.getId(), RepoAccessType.VIEWER);
+                    yield userId != null && repoAccessService.authorize(userId, repo.getId(), AccessType.VIEWER);
                 yield false;
             }
         };

@@ -310,12 +310,12 @@ CREATE TABLE IF NOT EXISTS `request` (
 CREATE TABLE IF NOT EXISTS `user_permission` (
     `id`         BIGINT   NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
     `user_id`    BIGINT   NOT NULL COMMENT 'User ID',
-    `permission` TINYINT  NOT NULL COMMENT 'Permission: 0=ARTICLE_OP',
+    `type`       TINYINT  NOT NULL COMMENT 'Type: 0=ARTICLE_OP',
     `granted_by` BIGINT            COMMENT 'Granted by admin user ID',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Grant time',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_user_permission` (`user_id`, `permission`),
-    KEY `idx_permission` (`permission`),
+    UNIQUE KEY `uk_user_type` (`user_id`, `type`),
+    KEY `idx_type` (`type`),
     CONSTRAINT `fk_user_permission_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User permission grant table';
 
@@ -324,19 +324,5 @@ CREATE TABLE IF NOT EXISTS `user_permission` (
 -- =============================================
 
 -- =============================================
--- Default site configurations can also be auto-created by DataInitializer on first startup
+-- Default site configurations is auto-created by DataInitializer on first startup
 -- =============================================
-INSERT INTO `config` (`config_key`, `config_value`, `description`) VALUES
-('site_name', 'Zincoid\'s', 'Website name'),
-('site_desc_en', 'Personal website and blogs', 'Website description (English)'),
-('site_desc_zh', '个人网站与博客', 'Website description (Chinese)'),
-('page_size', '12', 'Default pagination page size'),
-('message_max_count', '100', 'Maximum number of messages to keep'),
-('loading_spinner_hold', '150', 'Loading spinner hold duration (ms) before fade'),
-('loading_spinner_fade', '150', 'Loading spinner fade-out duration (ms)'),
-('hero_animation', 'random', 'Hero animation: squares, raindrop, raindrop_sin, or random'),
-('audio_spectrum_ratio', '0.2', 'Audio spectrum ratio of digital flow for Walkman'),
-('maintenance_enabled', 'true', 'Enable daily maintenance (UTC+8 00:00-00:10, auto cleanup and block all requests)'),
-('ai_chat_prompt', '你是 Zincoid 网站聊天室里的 AI 助手。请自然地融入对话，回复简洁友好，不要长篇大论。', 'AI chat system prompt'),
-('ai_comment_prompt', '你是 Zincoid 网站的 AI 助手。用户在评论区@了你，回答将回复到那条评论下，请结合上下文回复。了解资源内容可自行调用工具。', 'AI comment system prompt')
-ON DUPLICATE KEY UPDATE `config_key` = VALUES(`config_key`);

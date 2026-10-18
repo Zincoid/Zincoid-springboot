@@ -90,7 +90,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(Error.USERNAME_ALREADY_EXISTS);
         if (lambdaQuery().eq(User::getEmail, request.getEmail()).exists())
             throw new BusinessException(Error.EMAIL_ALREADY_REGISTERED);
-        if (!emailService.verifyCode(request.getEmail(), request.getCode(), CaptchaType.REGISTER, true))
+        if (!emailService.verifyCode(request.getEmail(), request.getCode(), Captcha.REGISTER, true))
             throw new BusinessException(Error.VERIFICATION_CODE_INVALID);
         User user = User.builder()
                 .username(request.getUsername())
@@ -272,16 +272,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(Error.EMAIL_NEW_CODE_REQUIRED);
         User user = getOrThrowExById(userId);
         if (user.getEmail() != null && !user.getEmail().isBlank())
-            if (!emailService.verifyCode(user.getEmail(), oldCode, CaptchaType.CHANGE_EMAIL_OLD, false))
+            if (!emailService.verifyCode(user.getEmail(), oldCode, Captcha.CHANGE_EMAIL_OLD, false))
                 throw new BusinessException(Error.OLD_EMAIL_CODE_INVALID);
         if (email.equals(user.getEmail()))
             throw new BusinessException(Error.NEW_EMAIL_SAME);
         if (lambdaQuery().eq(User::getEmail, email).exists())
             throw new BusinessException(Error.EMAIL_ALREADY_REGISTERED);
-        if (!emailService.verifyCode(email, newCode, CaptchaType.CHANGE_EMAIL_NEW, true))
+        if (!emailService.verifyCode(email, newCode, Captcha.CHANGE_EMAIL_NEW, true))
             throw new BusinessException(Error.NEW_EMAIL_CODE_INVALID);
         if (user.getEmail() != null && !user.getEmail().isBlank())
-            emailService.removeCode(user.getEmail(), CaptchaType.CHANGE_EMAIL_OLD);
+            emailService.removeCode(user.getEmail(), Captcha.CHANGE_EMAIL_OLD);
         user.setEmail(email);
         updateById(user);
         log.info("User email changed: id={}, username={}, newEmail={}", userId, user.getUsername(), email);
@@ -312,7 +312,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public void resetPassword(ForgotPasswordRequest request) {
-        if (!emailService.verifyCode(request.getEmail(), request.getCode(), CaptchaType.RESET_PASSWORD, true))
+        if (!emailService.verifyCode(request.getEmail(), request.getCode(), Captcha.RESET_PASSWORD, true))
             throw new BusinessException(Error.VERIFICATION_CODE_INVALID);
         User user = lambdaQuery().eq(User::getEmail, request.getEmail()).one();
         if (user == null)

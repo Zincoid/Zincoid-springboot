@@ -1,6 +1,6 @@
 package com.zincoid.me.service;
 
-import com.zincoid.me.model.enums.RepoAccessType;
+import com.zincoid.me.model.enums.AccessType;
 import com.zincoid.me.model.enums.CaptchaType;
 
 public interface EmailService {
@@ -21,5 +21,5 @@ public interface EmailService {
 
     void sendBroadcast(String subject, String content, boolean force);
 
-    void sendAccessApproved(Long userId, String repoName, RepoAccessType type);
+    void sendAccessApproved(Long userId, String repoName, AccessType type);
 }

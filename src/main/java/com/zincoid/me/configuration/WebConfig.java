@@ -44,8 +44,8 @@ public class WebConfig implements WebMvcConfigurer {
                 s -> RepoType.fromValue(Integer.parseInt(s)));
         registry.addConverter(String.class, Approval.class,
                 s -> Approval.fromValue(Integer.parseInt(s)));
-        registry.addConverter(String.class, RepoAccessType.class,
-                s -> RepoAccessType.fromValue(Integer.parseInt(s)));
+        registry.addConverter(String.class, AccessType.class,
+                s -> AccessType.fromValue(Integer.parseInt(s)));
         registry.addConverter(String.class, RequestType.class,
                 s -> RequestType.fromValue(Integer.parseInt(s)));
         registry.addConverter(String.class, PermissionType.class,

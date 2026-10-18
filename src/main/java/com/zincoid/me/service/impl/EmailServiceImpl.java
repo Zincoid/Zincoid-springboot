@@ -2,7 +2,7 @@ package com.zincoid.me.service.impl;
 
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.Error;
-import com.zincoid.me.model.enums.AccessRole;
+import com.zincoid.me.model.enums.RepoAccessType;
 import com.zincoid.me.model.enums.Captcha;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.Status;
@@ -139,7 +139,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendAccessApproved(Long userId, String repoName, AccessRole role) {
+    public void sendAccessApproved(Long userId, String repoName, RepoAccessType type) {
         User user = userService.getById(userId);
         if (user == null || user.getEmail() == null || user.getEmail().isBlank()) return;
         UserConfigVO config = userConfigService.get(userId);
@@ -149,7 +149,7 @@ public class EmailServiceImpl implements EmailService {
                 Your access to repo "%s" has been approved.
                 Your access type is %s.
 
-                ══════ %s (%s) ══════""".formatted(repoName, role, siteName, siteUrl);
+                ══════ %s (%s) ══════""".formatted(repoName, type, siteName, siteUrl);
         sendEmail(user.getEmail(), subject, text);
     }
 

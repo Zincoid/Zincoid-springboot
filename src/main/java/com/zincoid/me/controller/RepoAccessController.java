@@ -1,7 +1,7 @@
 package com.zincoid.me.controller;
 
 import com.zincoid.me.model.ApiResponse;
-import com.zincoid.me.model.enums.AccessRole;
+import com.zincoid.me.model.enums.RepoAccessType;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.model.vo.RepoAccessVO;
 import com.zincoid.me.service.RepoAccessService;
@@ -57,30 +57,30 @@ public class RepoAccessController {
     @GetMapping("/sent/pending")
     public ApiResponse<PageVO<RepoAccessVO>> sentPending(@RequestParam(defaultValue = "1") int page,
                                                          @RequestParam(defaultValue = "10") int size,
-                                                         @RequestParam(required = false) AccessRole role) {
-        return ApiResponse.success(repoAccessService.sentPending(AuthCtx.getUserId(), role, page, size));
+                                                         @RequestParam(required = false) RepoAccessType type) {
+        return ApiResponse.success(repoAccessService.sentPending(AuthCtx.getUserId(), type, page, size));
     }
 
     @GetMapping("/sent/resolved")
     public ApiResponse<PageVO<RepoAccessVO>> sentResolved(@RequestParam(defaultValue = "1") int page,
                                                           @RequestParam(defaultValue = "10") int size,
-                                                          @RequestParam(required = false) AccessRole role) {
-        return ApiResponse.success(repoAccessService.sentResolved(AuthCtx.getUserId(), role, page, size));
+                                                          @RequestParam(required = false) RepoAccessType type) {
+        return ApiResponse.success(repoAccessService.sentResolved(AuthCtx.getUserId(), type, page, size));
     }
 
     @GetMapping("/received/pending")
     public ApiResponse<PageVO<RepoAccessVO>> receivedPending(@RequestParam(defaultValue = "1") int page,
                                                              @RequestParam(defaultValue = "10") int size,
                                                              @RequestParam(required = false) Long repoId,
-                                                             @RequestParam(required = false) AccessRole role) {
-        return ApiResponse.success(repoAccessService.receivedPending(AuthCtx.getUserId(), repoId, role, page, size));
+                                                             @RequestParam(required = false) RepoAccessType type) {
+        return ApiResponse.success(repoAccessService.receivedPending(AuthCtx.getUserId(), repoId, type, page, size));
     }
 
     @GetMapping("/received/resolved")
     public ApiResponse<PageVO<RepoAccessVO>> receivedResolved(@RequestParam(defaultValue = "1") int page,
                                                               @RequestParam(defaultValue = "10") int size,
                                                               @RequestParam(required = false) Long repoId,
-                                                              @RequestParam(required = false) AccessRole role) {
-        return ApiResponse.success(repoAccessService.receivedResolved(AuthCtx.getUserId(), repoId, role, page, size));
+                                                              @RequestParam(required = false) RepoAccessType type) {
+        return ApiResponse.success(repoAccessService.receivedResolved(AuthCtx.getUserId(), repoId, type, page, size));
     }
 }

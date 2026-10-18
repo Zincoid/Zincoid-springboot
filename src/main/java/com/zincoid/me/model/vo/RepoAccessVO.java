@@ -1,7 +1,7 @@
 package com.zincoid.me.model.vo;
 
 import com.zincoid.me.model.enums.Access;
-import com.zincoid.me.model.enums.AccessRole;
+import com.zincoid.me.model.enums.RepoAccessType;
 import lombok.Builder;
 import lombok.Data;
 
@@ -17,7 +17,7 @@ public class RepoAccessVO {
     private Long userId;
     private String userNickname;
     private String userAvatar;
-    private AccessRole role;
+    private RepoAccessType type;
     private Access access;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

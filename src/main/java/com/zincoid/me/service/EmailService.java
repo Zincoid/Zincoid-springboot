@@ -1,6 +1,6 @@
 package com.zincoid.me.service;
 
-import com.zincoid.me.model.enums.AccessRole;
+import com.zincoid.me.model.enums.RepoAccessType;
 import com.zincoid.me.model.enums.Captcha;
 
 public interface EmailService {
@@ -21,5 +21,5 @@ public interface EmailService {
 
     void sendBroadcast(String subject, String content, boolean force);
 
-    void sendAccessApproved(Long userId, String repoName, AccessRole role);
+    void sendAccessApproved(Long userId, String repoName, RepoAccessType type);
 }

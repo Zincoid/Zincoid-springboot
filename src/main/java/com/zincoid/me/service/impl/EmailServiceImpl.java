@@ -3,7 +3,7 @@ package com.zincoid.me.service.impl;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.Error;
 import com.zincoid.me.model.enums.AccessRole;
-import com.zincoid.me.model.enums.CodeType;
+import com.zincoid.me.model.enums.Captcha;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.vo.UserConfigVO;
@@ -43,7 +43,7 @@ public class EmailServiceImpl implements EmailService {
     @Value("${site.url}")
     private String siteUrl;
 
-    private record CodeEntry(String code, long expiresAt, CodeType type) {}
+    private record CodeEntry(String code, long expiresAt, Captcha type) {}
 
     @Override
     public void sendRegisterCode(String email) {
@@ -51,14 +51,14 @@ public class EmailServiceImpl implements EmailService {
             throw new BusinessException(Error.EMAIL_REQUIRED);
         if (userService.lambdaQuery().eq(User::getEmail, email).exists())
             throw new BusinessException(Error.EMAIL_ALREADY_REGISTERED);
-        sendCode(email, CodeType.REGISTER);
+        sendCode(email, Captcha.REGISTER);
     }
 
     @Override
     public void sendResetCode(String email) {
         if (!userService.lambdaQuery().eq(User::getEmail, email).exists())
             throw new BusinessException(Error.EMAIL_NOT_REGISTERED);
-        sendCode(email, CodeType.RESET_PASSWORD);
+        sendCode(email, Captcha.RESET_PASSWORD);
     }
 
     @Override
@@ -67,7 +67,7 @@ public class EmailServiceImpl implements EmailService {
             throw new BusinessException(Error.EMAIL_REQUIRED);
         if (userService.lambdaQuery().eq(User::getEmail, email).exists())
             throw new BusinessException(Error.EMAIL_ALREADY_REGISTERED);
-        sendCode(email, CodeType.CHANGE_EMAIL_NEW);
+        sendCode(email, Captcha.CHANGE_EMAIL_NEW);
     }
 
     @Override
@@ -77,11 +77,11 @@ public class EmailServiceImpl implements EmailService {
             throw new BusinessException(Error.ACCOUNT_NOT_FOUND);
         if (user.getEmail() == null || user.getEmail().isBlank())
             throw new BusinessException(Error.NO_EMAIL_SET);
-        sendCode(user.getEmail(), CodeType.CHANGE_EMAIL_OLD);
+        sendCode(user.getEmail(), Captcha.CHANGE_EMAIL_OLD);
     }
 
     @Override
-    public boolean verifyCode(String email, String code, CodeType type, boolean remove) {
+    public boolean verifyCode(String email, String code, Captcha type, boolean remove) {
         if (email == null || code == null) return false;
         CodeEntry entry = codes.get(email);
         if (entry == null || System.currentTimeMillis() > entry.expiresAt) {
@@ -97,7 +97,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void removeCode(String email, CodeType type) {
+    public void removeCode(String email, Captcha type) {
         CodeEntry entry = codes.get(email);
         if (entry != null && entry.type == type)
             codes.remove(email);
@@ -155,7 +155,7 @@ public class EmailServiceImpl implements EmailService {
 
     // ──────── Private tool ────────────────────────────────
 
-    private void sendCode(String email, CodeType type) {
+    private void sendCode(String email, Captcha type) {
         CodeEntry existing = codes.get(email);
         if (existing != null && existing.type == type && existing.expiresAt > System.currentTimeMillis())
             throw new BusinessException(Error.VERIFICATION_CODE_RESEND_LIMIT);

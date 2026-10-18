@@ -2,13 +2,13 @@ package com.zincoid.me.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zincoid.me.model.enums.BizType;
 import com.zincoid.me.module.core.DataInitializer;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.Conf;
 import com.zincoid.me.model.Error;
 import com.zincoid.me.mapper.MessageMapper;
 import com.zincoid.me.model.enums.NotificationType;
-import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.po.Message;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.service.NotificationService;
@@ -65,7 +65,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
                 .build();
         save(msg);
         if (msg.getFile() != null && !aiService.isAi(userId))  // AI ignore link
-            fileService.link(List.of(msg.getFile()), RelatedType.CHAT, msg.getId(), userId);
+            fileService.link(List.of(msg.getFile()), BizType.CHAT, msg.getId(), userId);
         List<Long> trimmed = trim();
         boolean isAiMentioned = false;
         for (String name : StrUtil.extractAts(msg.getContent())) {
@@ -105,7 +105,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         if (!isAdmin && !msg.getUserId().equals(userId))
             throw new BusinessException(Error.ONLY_DELETE_OWN_MESSAGES);
         if (msg.getFile() != null)
-            fileService.delete(RelatedType.CHAT, msg.getId());
+            fileService.delete(BizType.CHAT, msg.getId());
         removeById(msg.getId());
         notificationService.deleteAll(NotificationType.CHAT_MENTION, msg.getId());
         log.info("Message deleted: user={}, id={}", msg.getUserId(), messageId);
@@ -146,7 +146,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         List<Long> deleted = new ArrayList<>();
         for (Message m : oldest) {
             if (m.getFile() != null)
-                fileService.delete(RelatedType.CHAT, m.getId());
+                fileService.delete(BizType.CHAT, m.getId());
             notificationService.deleteAll(NotificationType.CHAT_MENTION, m.getId());
             removeById(m.getId());
             deleted.add(m.getId());

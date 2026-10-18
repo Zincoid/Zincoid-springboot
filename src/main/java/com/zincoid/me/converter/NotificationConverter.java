@@ -1,6 +1,6 @@
 package com.zincoid.me.converter;
 
-import com.zincoid.me.model.enums.RelatedType;
+import com.zincoid.me.model.enums.BizType;
 import com.zincoid.me.model.po.Notification;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.vo.NotificationVO;
@@ -19,7 +19,7 @@ public interface NotificationConverter {
     @Mapping(target = "createdAt", source = "notification.createdAt")
     @Mapping(target = "senderNickname", source = "sender.nickname")
     @Mapping(target = "senderAvatar", source = "sender.avatar", qualifiedByName = "thumbUrl")
-    NotificationVO toVO(Notification notification, User sender, RelatedType targetType, Long targetId, String snippet);
+    NotificationVO toVO(Notification notification, User sender, BizType targetType, Long targetId, String snippet);
 
     @Named("thumbUrl")
     default String thumbUrl(String url) {

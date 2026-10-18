@@ -3,7 +3,7 @@ package com.zincoid.me.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.zincoid.me.model.enums.RelatedType;
+import com.zincoid.me.model.enums.BizType;
 import com.zincoid.me.model.po.Comment;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -19,7 +19,7 @@ public interface CommentMapper extends BaseMapper<Comment> {
             ORDER BY c.is_pinned DESC, (SELECT COUNT(*) FROM likes l WHERE l.target_type = #{likeTargetType} AND l.target_id = c.id) DESC, c.created_at DESC
             """)
     IPage<Comment> selectRootsByLikes(Page<Comment> page,
-                                      @Param("targetType") RelatedType targetType,
+                                      @Param("targetType") BizType targetType,
                                       @Param("targetId") Long targetId,
-                                      @Param("likeTargetType") RelatedType likeTargetType);
+                                      @Param("likeTargetType") BizType likeTargetType);
 }

@@ -6,7 +6,7 @@ import com.zincoid.me.converter.RepoConverter;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.Error;
 import com.zincoid.me.mapper.RepoItemMapper;
-import com.zincoid.me.model.enums.RelatedType;
+import com.zincoid.me.model.enums.BizType;
 import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.po.RepoItem;
 import com.zincoid.me.model.vo.PageVO;
@@ -60,7 +60,7 @@ public class RepoItemServiceImpl extends ServiceImpl<RepoItemMapper, RepoItem> i
                 .sortOrder(getMaxSortOrder(repoId) + 1)
                 .build();
         save(item);
-        fileService._link(List.of(fileId), RelatedType.REPO, repoId, userId);
+        fileService._link(List.of(fileId), BizType.REPO, repoId, userId);
         log.info("Repo item added: repo={}, item={}", repoId, item.getId());
         return buildItemVO(item);
     }
@@ -82,7 +82,7 @@ public class RepoItemServiceImpl extends ServiceImpl<RepoItemMapper, RepoItem> i
         List<RepoItem> items = lambdaQuery()
                 .eq(RepoItem::getRepoId, repoId)
                 .list();
-        fileService.delete(RelatedType.REPO, repoId);
+        fileService.delete(BizType.REPO, repoId);
         removeBatchByIds(items.stream().map(RepoItem::getId).toList());
         log.info("Repo items deleted: repo={}, count={}", repoId, items.size());
     }

@@ -8,10 +8,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.Error;
 import com.zincoid.me.mapper.RequestMapper;
-import com.zincoid.me.model.enums.Approval;
-import com.zincoid.me.model.enums.NotificationType;
-import com.zincoid.me.model.enums.RelatedType;
-import com.zincoid.me.model.enums.RequestType;
+import com.zincoid.me.model.enums.*;
 import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.po.Notification;
 import com.zincoid.me.model.po.Repo;
@@ -230,7 +227,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
             }
             case MUSIC_REQUEST -> {
                 List<File> musics = fileService.lambdaQuery()
-                        .eq(File::getRelatedType, RelatedType.MUSIC)
+                        .eq(File::getRelatedType, BizType.MUSIC)
                         .eq(File::getUserId, request.getReceiverId())
                         .eq(File::getRelatedId, 0L)
                         .list();
@@ -265,7 +262,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                 repo.setUserId(request.getReceiverId());
                 repoService.updateById(repo);
                 fileService.lambdaUpdate()
-                        .eq(File::getRelatedType, RelatedType.REPO)
+                        .eq(File::getRelatedType, BizType.REPO)
                         .eq(File::getRelatedId, repoId)
                         .set(File::getUserId, request.getReceiverId())
                         .update();

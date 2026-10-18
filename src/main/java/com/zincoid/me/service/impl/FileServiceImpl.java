@@ -181,7 +181,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     }
 
     @Override
-    public void _link(List<Long> fileIds, RelatedType relatedType, Long relatedId, Long userId) {
+    public void _link(List<Long> fileIds, BizType relatedType, Long relatedId, Long userId) {
         if (fileIds == null || fileIds.isEmpty()) return;
         List<File> unbound = lambdaQuery()
                 .in(File::getId, fileIds)
@@ -193,7 +193,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
 
     @Override
     @Transactional
-    public void link(List<String> filePathsOrUrls, RelatedType relatedType, Long relatedId, Long userId) {
+    public void link(List<String> filePathsOrUrls, BizType relatedType, Long relatedId, Long userId) {
         if (filePathsOrUrls == null || filePathsOrUrls.isEmpty()) return;
         List<String> paths = filePathsOrUrls.stream()
                 .map(p -> p.startsWith("/uploads/") ? p.substring("/uploads/".length()) : p)
@@ -229,7 +229,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
 
     @Override
     @Transactional
-    public void delete(RelatedType relatedType, Long relatedId) {
+    public void delete(BizType relatedType, Long relatedId) {
         List<File> files = lambdaQuery()
                 .eq(File::getRelatedType, relatedType)
                 .eq(File::getRelatedId, relatedId)
@@ -337,7 +337,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
 
     // ──────── Private tool ────────────────────────────────
 
-    private void claimUnbound(List<File> unbound, RelatedType relatedType, Long relatedId, Long userId) {
+    private void claimUnbound(List<File> unbound, BizType relatedType, Long relatedId, Long userId) {
         for (File file : unbound)
             if (userId == null || !userId.equals(file.getUserId()))
                 throw new BusinessException(Error.PERMISSION_DENIED);

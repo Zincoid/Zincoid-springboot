@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
-public enum RelatedType {
+public enum BizType {
 
     MOMENT(0),
     ARTICLE(1),
@@ -19,7 +19,7 @@ public enum RelatedType {
     @EnumValue
     private final Integer value;
 
-    RelatedType(Integer value) {
+    BizType(Integer value) {
         this.value = value;
     }
 
@@ -29,9 +29,9 @@ public enum RelatedType {
     }
 
     @JsonCreator
-    public static RelatedType fromValue(Integer value) {
+    public static BizType fromValue(Integer value) {
         if (value == null) return null;
-        for (RelatedType r : values()) {
+        for (BizType r : values()) {
             if (r.value.equals(value)) return r;
         }
         return null;

@@ -1,7 +1,7 @@
 package com.zincoid.me.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.zincoid.me.model.enums.RelatedType;
+import com.zincoid.me.model.enums.BizType;
 import com.zincoid.me.model.po.Comment;
 import com.zincoid.me.model.vo.CommentVO;
 import com.zincoid.me.model.vo.CommentCardVO;
@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface CommentService extends IService<Comment> {
 
-    PageVO<CommentVO> list(RelatedType targetType, Long targetId, boolean hot, int page, int size);
+    PageVO<CommentVO> list(BizType targetType, Long targetId, boolean hot, int page, int size);
 
     List<CommentCardVO> home(int size);
 
@@ -19,9 +19,9 @@ public interface CommentService extends IService<Comment> {
 
     CommentCardVO card(Long commentId);
 
-    long count(RelatedType targetType, Long targetId);
+    long count(BizType targetType, Long targetId);
 
-    CommentVO add(Long userId, RelatedType targetType, Long targetId, String content, Long parentId);
+    CommentVO add(Long userId, BizType targetType, Long targetId, String content, Long parentId);
 
     void pin(Long userId, Long commentId);
 
@@ -29,5 +29,5 @@ public interface CommentService extends IService<Comment> {
 
     void delete(Long userId, Long commentId, boolean isAdmin);
 
-    void delete(RelatedType targetType, Long targetId);
+    void delete(BizType targetType, Long targetId);
 }

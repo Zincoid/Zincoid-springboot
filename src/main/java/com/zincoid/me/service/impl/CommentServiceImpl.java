@@ -3,6 +3,7 @@ package com.zincoid.me.service.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zincoid.me.model.enums.BizType;
 import com.zincoid.me.module.core.DataInitializer;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.Error;
@@ -13,7 +14,6 @@ import com.zincoid.me.model.po.Moment;
 import com.zincoid.me.model.po.Repo;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.NotificationType;
-import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.converter.CommentConverter;
 import com.zincoid.me.model.vo.CommentCardVO;
@@ -68,10 +68,10 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     }
 
     @Override
-    public PageVO<CommentVO> list(RelatedType targetType, Long targetId, boolean hot, int page, int size) {
+    public PageVO<CommentVO> list(BizType targetType, Long targetId, boolean hot, int page, int size) {
         validate(targetType, targetId);
         IPage<Comment> rootPage = hot
-                ? baseMapper.selectRootsByLikes(Page.of(page, size), targetType, targetId, RelatedType.COMMENT)
+                ? baseMapper.selectRootsByLikes(Page.of(page, size), targetType, targetId, BizType.COMMENT)
                 : lambdaQuery()
                         .eq(Comment::getTargetType, targetType)
                         .eq(Comment::getTargetId, targetId)
@@ -126,7 +126,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     }
 
     @Override
-    public long count(RelatedType targetType, Long targetId) {
+    public long count(BizType targetType, Long targetId) {
         return lambdaQuery()
                 .eq(Comment::getTargetType, targetType)
                 .eq(Comment::getTargetId, targetId)
@@ -135,7 +135,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
 
     @Override
     @Transactional
-    public CommentVO add(Long userId, RelatedType targetType, Long targetId, String content, Long parentId) {
+    public CommentVO add(Long userId, BizType targetType, Long targetId, String content, Long parentId) {
         validate(targetType, targetId);
         Comment comment = Comment.builder()
                 .targetType(targetType)
@@ -249,7 +249,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         allIds.add(commentId);
         removeBatchByIds(allIds);
         for (Long cid : allIds) {
-            likeService.delete(RelatedType.COMMENT, cid);
+            likeService.delete(BizType.COMMENT, cid);
             notificationService.deleteAll(NotificationType.COMMENT, cid);
             notificationService.deleteAll(NotificationType.REPLY, cid);
             notificationService.deleteAll(NotificationType.COMMENT_MENTION, cid);
@@ -259,7 +259,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
 
     @Override
     @Transactional
-    public void delete(RelatedType targetType, Long targetId) {
+    public void delete(BizType targetType, Long targetId) {
         List<Long> commentIds = lambdaQuery()
                 .select(Comment::getId)
                 .eq(Comment::getTargetType, targetType)
@@ -269,7 +269,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         if (!commentIds.isEmpty()) {
             removeBatchByIds(commentIds);
             for (Long cid : commentIds) {
-                likeService.delete(RelatedType.COMMENT, cid);
+                likeService.delete(BizType.COMMENT, cid);
                 notificationService.deleteAll(NotificationType.COMMENT, cid);
                 notificationService.deleteAll(NotificationType.REPLY, cid);
                 notificationService.deleteAll(NotificationType.COMMENT_MENTION, cid);
@@ -280,44 +280,44 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
 
     // ──────── Target validation ───────────────────────────
 
-    private boolean isActive(RelatedType targetType, Long targetId) {
-        if (targetType == RelatedType.MOMENT) {
+    private boolean isActive(BizType targetType, Long targetId) {
+        if (targetType == BizType.MOMENT) {
             Moment m = momentService.lambdaQuery().select(Moment::getStatus).eq(Moment::getId, targetId).one();
             return m != null && m.getStatus() == Status.ACTIVE;
-        } else if (targetType == RelatedType.ARTICLE) {
+        } else if (targetType == BizType.ARTICLE) {
             Article a = articleService.lambdaQuery().select(Article::getStatus).eq(Article::getId, targetId).one();
             return a != null && a.getStatus() == Status.ACTIVE;
-        } else if (targetType == RelatedType.REPO) {
+        } else if (targetType == BizType.REPO) {
             Repo r = repoService.lambdaQuery().select(Repo::getStatus).eq(Repo::getId, targetId).one();
             return r != null && r.getStatus() == Status.ACTIVE;
         }
         return false;
     }
 
-    private void validate(RelatedType targetType, Long targetId) {
-        if (targetType == RelatedType.MOMENT) {
+    private void validate(BizType targetType, Long targetId) {
+        if (targetType == BizType.MOMENT) {
             Moment m = momentService.lambdaQuery().select(Moment::getStatus).eq(Moment::getId, targetId).one();
             if (m == null || m.getStatus() == Status.DISABLED)
                 throw new BusinessException(Error.MOMENT_NOT_FOUND);
-        } else if (targetType == RelatedType.ARTICLE) {
+        } else if (targetType == BizType.ARTICLE) {
             Article a = articleService.lambdaQuery().select(Article::getStatus).eq(Article::getId, targetId).one();
             if (a == null || a.getStatus() == Status.DISABLED)
                 throw new BusinessException(Error.ARTICLE_NOT_FOUND);
-        } else if (targetType == RelatedType.REPO) {
+        } else if (targetType == BizType.REPO) {
             Repo r = repoService.lambdaQuery().select(Repo::getStatus).eq(Repo::getId, targetId).one();
             if (r == null || r.getStatus() == Status.DISABLED)
                 throw new BusinessException(Error.REPO_NOT_FOUND);
         } else throw new IllegalArgumentException("Invalid target type");
     }
 
-    private Long getAuthor(RelatedType targetType, Long targetId) {
-        if (targetType == RelatedType.MOMENT) {
+    private Long getAuthor(BizType targetType, Long targetId) {
+        if (targetType == BizType.MOMENT) {
             Moment m = momentService.getById(targetId);
             return m == null ? null : m.getUserId();
-        } else if (targetType == RelatedType.ARTICLE) {
+        } else if (targetType == BizType.ARTICLE) {
             Article a = articleService.getById(targetId);
             return a == null ? null : a.getUserId();
-        } else if (targetType == RelatedType.REPO) {
+        } else if (targetType == BizType.REPO) {
             Repo r = repoService.getById(targetId);
             return r == null ? null : r.getUserId();
         }
@@ -326,7 +326,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
 
     // ──────── Tree builder ────────────────────────────────
 
-    private Map<Long, Long> getReplyCounts(RelatedType targetType, Long targetId, List<Comment> roots) {
+    private Map<Long, Long> getReplyCounts(BizType targetType, Long targetId, List<Comment> roots) {
         if (roots.isEmpty()) return Map.of();
         List<Long> rootIds = roots.stream().map(Comment::getId).toList();
         return lambdaQuery()
@@ -362,8 +362,8 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         User user = userService.getById(comment.getUserId());
         Long viewerId = AuthCtx.getUserId();
         return CommentConverter.INSTANCE.toVO(comment, user, replies, replyCount,
-                likeService.count(RelatedType.COMMENT, comment.getId()),
-                likeService.liked(viewerId, RelatedType.COMMENT, comment.getId()));
+                likeService.count(BizType.COMMENT, comment.getId()),
+                likeService.liked(viewerId, BizType.COMMENT, comment.getId()));
     }
 
     private CommentCardVO toCommentCardVO(Comment comment) {

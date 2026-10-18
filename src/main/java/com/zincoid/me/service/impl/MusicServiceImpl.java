@@ -3,7 +3,7 @@ package com.zincoid.me.service.impl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.Error;
-import com.zincoid.me.model.enums.RelatedType;
+import com.zincoid.me.model.enums.BizType;
 import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.vo.FileVO;
@@ -32,7 +32,7 @@ public class MusicServiceImpl implements MusicService {
         if (isPublic && !isAdmin)
             throw new BusinessException(Error.NO_PERMISSION_UPLOAD_MUSIC);
         FileVO vo = fileService.upload(userId, file);
-        fileService._link(List.of(vo.getId()), RelatedType.MUSIC, isPublic ? 1L : 0L, userId);
+        fileService._link(List.of(vo.getId()), BizType.MUSIC, isPublic ? 1L : 0L, userId);
         return vo;
     }
 
@@ -43,7 +43,7 @@ public class MusicServiceImpl implements MusicService {
         if (user == null) throw new BusinessException(Error.USER_NOT_FOUND);
         File file = fileService.getById(fileId);
         if (file == null) throw new BusinessException(Error.FILE_NOT_FOUND);
-        if (file.getRelatedType() != RelatedType.MUSIC)
+        if (file.getRelatedType() != BizType.MUSIC)
             throw new BusinessException(Error.NOT_A_MUSIC_FILE);
         if (!file.getUserId().equals(userId))
             throw new BusinessException(Error.NO_PERMISSION_DELETE_MUSIC);
@@ -54,7 +54,7 @@ public class MusicServiceImpl implements MusicService {
     @Override
     public PageVO<FileVO> list(int page, int size) {
         Page<File> result = fileService.lambdaQuery()
-                .eq(File::getRelatedType, RelatedType.MUSIC)
+                .eq(File::getRelatedType, BizType.MUSIC)
                 .eq(File::getRelatedId, 1L)  // Public
                 .orderByDesc(File::getCreatedAt)
                 .page(Page.of(page, size));
@@ -64,7 +64,7 @@ public class MusicServiceImpl implements MusicService {
     @Override
     public PageVO<FileVO> list(Long userId, int page, int size) {
         Page<File> result = fileService.lambdaQuery()
-                .eq(File::getRelatedType, RelatedType.MUSIC)
+                .eq(File::getRelatedType, BizType.MUSIC)
                 .eq(File::getUserId, userId)
                 .eq(File::getRelatedId, 0L)  // Private
                 .orderByDesc(File::getCreatedAt)

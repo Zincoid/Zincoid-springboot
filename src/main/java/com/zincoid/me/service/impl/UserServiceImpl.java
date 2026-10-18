@@ -238,7 +238,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             fileService.delete(user.getAvatar());
         user.setAvatar(avatar);
         updateById(user);
-        fileService.link(List.of(avatar), RelatedType.AVATAR, userId, userId);
+        fileService.link(List.of(avatar), BizType.AVATAR, userId, userId);
         log.info("User avatar updated: id={}, username={}, avatar={}", userId, user.getUsername(), avatar);
         return UserConverter.INSTANCE.toDetailVO(user);
     }
@@ -257,9 +257,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         for (Message m : messages) messageService.delete(null, m.getId(), true);
         List<Comment> comments = commentService.lambdaQuery().eq(Comment::getUserId, userId).list();
         for (Comment c : comments) commentService.delete(null, c.getId(), true);
-        List<File> tracks = fileService.lambdaQuery().eq(File::getUserId, userId).eq(File::getRelatedType, RelatedType.MUSIC).list();
+        List<File> tracks = fileService.lambdaQuery().eq(File::getUserId, userId).eq(File::getRelatedType, BizType.MUSIC).list();
         for (File f : tracks) fileService.delete(f.getId());
-        List<File> avatars = fileService.lambdaQuery().eq(File::getUserId, userId).eq(File::getRelatedType, RelatedType.AVATAR).list();
+        List<File> avatars = fileService.lambdaQuery().eq(File::getUserId, userId).eq(File::getRelatedType, BizType.AVATAR).list();
         for (File f : avatars) fileService.delete(f.getId());
         // Notifications, likes and user config are deleted through cascade
         removeById(userId);

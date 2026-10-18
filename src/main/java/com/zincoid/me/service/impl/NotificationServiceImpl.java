@@ -5,10 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.Error;
 import com.zincoid.me.mapper.NotificationMapper;
-import com.zincoid.me.model.enums.NotificationType;
-import com.zincoid.me.model.enums.RelatedType;
-import com.zincoid.me.model.enums.Role;
-import com.zincoid.me.model.enums.Status;
+import com.zincoid.me.model.enums.*;
 import com.zincoid.me.model.po.*;
 import com.zincoid.me.model.vo.NotificationVO;
 import com.zincoid.me.model.vo.PageVO;
@@ -65,7 +62,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
         for (Notification n : notificationPage.getRecords()) {
             User sender = userService.getById(n.getSenderId());
             if (sender == null) continue;
-            RelatedType targetType = null;
+            BizType targetType = null;
             Long targetId = null;
             String snippet = null;
             if (n.getType() == NotificationType.COMMENT || n.getType() == NotificationType.REPLY) {
@@ -84,7 +81,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                 if (content != null && content.length() > 80)
                     content = content.substring(0, 80) + "...";
                 snippet = content;
-                targetType = RelatedType.MOMENT;
+                targetType = BizType.MOMENT;
                 targetId = moment.getId();
             } else if (n.getType() == NotificationType.COMMENT_MENTION) {
                 Comment comment = commentService.getById(n.getRelatedId());
@@ -102,22 +99,22 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                 if (content != null && content.length() > 80)
                     content = content.substring(0, 80) + "...";
                 snippet = content;
-                targetType = RelatedType.CHAT;
+                targetType = BizType.CHAT;
             } else if (n.getType() == NotificationType.LIKE) {
                 Like like = likeService.getById(n.getRelatedId());
                 if (like == null) continue;
                 targetType = like.getTargetType();
                 targetId = like.getTargetId();
-                if (targetType == RelatedType.MOMENT) {
+                if (targetType == BizType.MOMENT) {
                     Moment moment = momentService.lambdaQuery().select(Moment::getContent).eq(Moment::getId, targetId).one();
                     if (moment != null) snippet = moment.getContent();
-                } else if (targetType == RelatedType.ARTICLE) {
+                } else if (targetType == BizType.ARTICLE) {
                     Article article = articleService.lambdaQuery().select(Article::getTitle).eq(Article::getId, targetId).one();
                     if (article != null) snippet = article.getTitle();
-                } else if (targetType == RelatedType.REPO) {
+                } else if (targetType == BizType.REPO) {
                     Repo repo = repoService.lambdaQuery().select(Repo::getName).eq(Repo::getId, targetId).one();
                     if (repo != null) snippet = repo.getName();
-                } else if (targetType == RelatedType.COMMENT) {
+                } else if (targetType == BizType.COMMENT) {
                     Comment comment = commentService.getById(targetId);
                     if (comment != null) snippet = comment.getContent();
                 }

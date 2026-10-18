@@ -4,15 +4,7 @@ import com.zincoid.me.interceptor.FileAccessInterceptor;
 import com.zincoid.me.interceptor.AuthInterceptor;
 import com.zincoid.me.interceptor.MaintenanceInterceptor;
 import com.zincoid.me.interceptor.StatInterceptor;
-import com.zincoid.me.model.enums.Approval;
-import com.zincoid.me.model.enums.AccessType;
-import com.zincoid.me.model.enums.PermissionType;
-import com.zincoid.me.model.enums.RelatedType;
-import com.zincoid.me.model.enums.RepoType;
-import com.zincoid.me.model.enums.RequestType;
-import com.zincoid.me.model.enums.Role;
-import com.zincoid.me.model.enums.Status;
-import com.zincoid.me.model.enums.Visibility;
+import com.zincoid.me.model.enums.*;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,8 +32,8 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addFormatters(FormatterRegistry registry) {
-        registry.addConverter(String.class, RelatedType.class,
-                s -> RelatedType.fromValue(Integer.parseInt(s)));
+        registry.addConverter(String.class, BizType.class,
+                s -> BizType.fromValue(Integer.parseInt(s)));
         registry.addConverter(String.class, Role.class,
                 s -> Role.fromValue(Integer.parseInt(s)));
         registry.addConverter(String.class, Status.class,

@@ -12,7 +12,7 @@ import com.zincoid.me.model.dto.MomentUpdateRequest;
 import com.zincoid.me.model.po.Moment;
 import com.zincoid.me.model.po.User;
 import com.zincoid.me.model.enums.NotificationType;
-import com.zincoid.me.model.enums.RelatedType;
+import com.zincoid.me.model.enums.BizType;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.enums.Visibility;
@@ -64,7 +64,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
             notificationService.notifyAt(userId, name, NotificationType.MOMENT_MENTION, moment.getId());
         log.info("Moment created: user={}, id={}", userId, moment.getId());
         if (request.getUrls() != null && !request.getUrls().isEmpty())
-            fileService.link(request.getUrls(), RelatedType.MOMENT, moment.getId(), userId);
+            fileService.link(request.getUrls(), BizType.MOMENT, moment.getId(), userId);
         return buildCardVO(moment);
     }
 
@@ -93,7 +93,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
             moment.setUrls(JsonUtil.toString(request.getUrls()));
             List<String> newPaths = new ArrayList<>(newSet);
             if (!newPaths.isEmpty())
-                fileService.link(newPaths, RelatedType.MOMENT, moment.getId(), userId);
+                fileService.link(newPaths, BizType.MOMENT, moment.getId(), userId);
         }
         if (request.getVisibility() != null)
             moment.setVisibility(request.getVisibility());
@@ -111,9 +111,9 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
             throw new BusinessException(Error.MOMENT_NOT_FOUND);
         if (!isAdmin && !moment.getUserId().equals(userId))
             throw new BusinessException(Error.NO_PERMISSION_DELETE_MOMENT);
-        likeService.delete(RelatedType.MOMENT, momentId);
-        commentService.delete(RelatedType.MOMENT, momentId);
-        fileService.delete(RelatedType.MOMENT, momentId);
+        likeService.delete(BizType.MOMENT, momentId);
+        commentService.delete(BizType.MOMENT, momentId);
+        fileService.delete(BizType.MOMENT, momentId);
         notificationService.deleteAll(NotificationType.MOMENT_MENTION, momentId);
         removeById(momentId);
         log.info("Moment deleted: user={}, admin={}, id={}", userId, isAdmin, momentId);
@@ -208,9 +208,9 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
                 && (viewerId == null || !viewerId.equals(moment.getUserId())))
             throw new BusinessException(Error.MOMENT_IS_PRIVATE);
         User user = userService.getById(moment.getUserId());
-        long likeCount = likeService.count(RelatedType.MOMENT, momentId);
-        boolean isLiked = likeService.liked(AuthCtx.getUserId(), RelatedType.MOMENT, momentId);
-        List<LikerVO> recentLikers = likeService.getLikers(RelatedType.MOMENT, momentId, 5);
+        long likeCount = likeService.count(BizType.MOMENT, momentId);
+        boolean isLiked = likeService.liked(AuthCtx.getUserId(), BizType.MOMENT, momentId);
+        List<LikerVO> recentLikers = likeService.getLikers(BizType.MOMENT, momentId, 5);
         baseMapper.addViewCount(momentId);
         moment.setViewCount(moment.getViewCount() + 1);
         return MomentConverter.INSTANCE.toDetailVO(moment, user, isLiked, likeCount, recentLikers);
@@ -225,9 +225,9 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
 
     private MomentCardVO buildCardVO(Moment moment) {
         User user = userService.getById(moment.getUserId());
-        int commentCount = (int) commentService.count(RelatedType.MOMENT, moment.getId());
-        long likeCount = likeService.count(RelatedType.MOMENT, moment.getId());
-        boolean isLiked = likeService.liked(AuthCtx.getUserId(), RelatedType.MOMENT, moment.getId());
+        int commentCount = (int) commentService.count(BizType.MOMENT, moment.getId());
+        long likeCount = likeService.count(BizType.MOMENT, moment.getId());
+        boolean isLiked = likeService.liked(AuthCtx.getUserId(), BizType.MOMENT, moment.getId());
         return MomentConverter.INSTANCE.toCardVO(moment, user, isLiked, likeCount, commentCount);
     }
 }

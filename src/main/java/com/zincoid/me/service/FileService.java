@@ -3,7 +3,7 @@ package com.zincoid.me.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.po.File;
-import com.zincoid.me.model.enums.RelatedType;
+import com.zincoid.me.model.enums.BizType;
 import com.zincoid.me.model.vo.FileVO;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,15 +23,15 @@ public interface FileService extends IService<File> {
 
     FileVO upload(Long userId, MultipartFile file);
 
-    void _link(List<Long> fileIds, RelatedType relatedType, Long relatedId, Long userId);
+    void _link(List<Long> fileIds, BizType relatedType, Long relatedId, Long userId);
 
-    void link(List<String> filePathsOrUrls, RelatedType relatedType, Long relatedId, Long userId);
+    void link(List<String> filePathsOrUrls, BizType relatedType, Long relatedId, Long userId);
 
     void delete(Long fileId);
 
     void delete(String filePathOrUrl);
 
-    void delete(RelatedType relatedType, Long relatedId);
+    void delete(BizType relatedType, Long relatedId);
 
     Map<String, Integer> cleanup(boolean isLogic);
 

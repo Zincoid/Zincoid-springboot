@@ -3,9 +3,9 @@ package com.zincoid.me.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zincoid.me.mapper.LikeMapper;
+import com.zincoid.me.model.enums.BizType;
 import com.zincoid.me.model.po.Like;
 import com.zincoid.me.model.po.User;
-import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.Status;
 import com.zincoid.me.exception.BusinessException;
@@ -57,7 +57,7 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
     }
 
     @Override
-    public boolean liked(Long userId, RelatedType targetType, Long targetId) {
+    public boolean liked(Long userId, BizType targetType, Long targetId) {
         if (userId == null || targetType == null || targetId == null) return false;
         return lambdaQuery()
                 .eq(Like::getUserId, userId)
@@ -68,7 +68,7 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
 
     @Override
     @Transactional
-    public boolean toggle(Long userId, RelatedType targetType, Long targetId) {
+    public boolean toggle(Long userId, BizType targetType, Long targetId) {
         Like existing = lambdaQuery()
                 .eq(Like::getUserId, userId)
                 .eq(Like::getTargetType, targetType)
@@ -81,22 +81,22 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
             return false;
         }
         Long authorId;
-        if (targetType == RelatedType.MOMENT) {
+        if (targetType == BizType.MOMENT) {
             Moment m = momentService.lambdaQuery().select(Moment::getUserId, Moment::getStatus).eq(Moment::getId, targetId).one();
             if (m == null || m.getStatus() == Status.DISABLED)
                 throw new BusinessException(Error.MOMENT_NOT_FOUND);
             authorId = m.getUserId();
-        } else if (targetType == RelatedType.ARTICLE) {
+        } else if (targetType == BizType.ARTICLE) {
             Article a = articleService.lambdaQuery().select(Article::getUserId, Article::getStatus).eq(Article::getId, targetId).one();
             if (a == null || a.getStatus() == Status.DISABLED)
                 throw new BusinessException(Error.ARTICLE_NOT_FOUND);
             authorId = a.getUserId();
-        } else if (targetType == RelatedType.REPO) {
+        } else if (targetType == BizType.REPO) {
             Repo r = repoService.lambdaQuery().select(Repo::getUserId, Repo::getStatus).eq(Repo::getId, targetId).one();
             if (r == null || r.getStatus() == Status.DISABLED)
                 throw new BusinessException(Error.REPO_NOT_FOUND);
             authorId = r.getUserId();
-        } else if (targetType == RelatedType.COMMENT) {
+        } else if (targetType == BizType.COMMENT) {
             Comment c = commentService.lambdaQuery().select(Comment::getUserId).eq(Comment::getId, targetId).one();
             if (c == null)
                 throw new BusinessException(Error.COMMENT_NOT_FOUND);
@@ -115,7 +115,7 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
     }
 
     @Override
-    public long count(RelatedType targetType, Long targetId) {
+    public long count(BizType targetType, Long targetId) {
         return lambdaQuery()
                 .eq(Like::getTargetType, targetType)
                 .eq(Like::getTargetId, targetId)
@@ -124,7 +124,7 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
 
     @Override
     @Transactional
-    public void delete(RelatedType targetType, Long targetId) {
+    public void delete(BizType targetType, Long targetId) {
         List<Long> likeIds = lambdaQuery()
                 .select(Like::getId)
                 .eq(Like::getTargetType, targetType)
@@ -140,7 +140,7 @@ public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements Li
     }
 
     @Override
-    public List<LikerVO> getLikers(RelatedType targetType, Long targetId, int limit) {
+    public List<LikerVO> getLikers(BizType targetType, Long targetId, int limit) {
         List<Like> likes = lambdaQuery()
                 .eq(Like::getTargetType, targetType)
                 .eq(Like::getTargetId, targetId)

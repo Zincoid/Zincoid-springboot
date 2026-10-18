@@ -1,7 +1,7 @@
 package com.zincoid.me.controller;
 
 import com.zincoid.me.model.dto.CommentCreateRequest;
-import com.zincoid.me.model.enums.RelatedType;
+import com.zincoid.me.model.enums.BizType;
 import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.model.vo.CommentCardVO;
@@ -29,21 +29,21 @@ public class CommentController {
     public ApiResponse<CommentVO> addMomentComment(@PathVariable Long momentId,
                                                    @Valid @RequestBody CommentCreateRequest request) {
         return ApiResponse.success(commentService.add(AuthCtx.getUserId(),
-                RelatedType.MOMENT, momentId, request.getContent(), request.getParentId()));
+                BizType.MOMENT, momentId, request.getContent(), request.getParentId()));
     }
 
     @PostMapping("/article/{articleId}")
     public ApiResponse<CommentVO> addArticleComment(@PathVariable Long articleId,
                                                     @Valid @RequestBody CommentCreateRequest request) {
         return ApiResponse.success(commentService.add(AuthCtx.getUserId(),
-                RelatedType.ARTICLE, articleId, request.getContent(), request.getParentId()));
+                BizType.ARTICLE, articleId, request.getContent(), request.getParentId()));
     }
 
     @PostMapping("/repo/{repoId}")
     public ApiResponse<CommentVO> addRepoComment(@PathVariable Long repoId,
                                                  @Valid @RequestBody CommentCreateRequest request) {
         return ApiResponse.success(commentService.add(AuthCtx.getUserId(),
-                RelatedType.REPO, repoId, request.getContent(), request.getParentId()));
+                BizType.REPO, repoId, request.getContent(), request.getParentId()));
     }
 
     @PutMapping("/{commentId}/pin")
@@ -72,7 +72,7 @@ public class CommentController {
     }
 
     @GetMapping("/public/count/{targetType}/{targetId}")
-    public ApiResponse<Long> countComments(@PathVariable RelatedType targetType, @PathVariable Long targetId) {
+    public ApiResponse<Long> countComments(@PathVariable BizType targetType, @PathVariable Long targetId) {
         return ApiResponse.success(commentService.count(targetType, targetId));
     }
 
@@ -81,7 +81,7 @@ public class CommentController {
                                                          @RequestParam(defaultValue = "1") int page,
                                                          @RequestParam(defaultValue = "10") int size,
                                                          @RequestParam(defaultValue = "false") boolean hot) {
-        return ApiResponse.success(commentService.list(RelatedType.MOMENT, momentId, hot, page, size));
+        return ApiResponse.success(commentService.list(BizType.MOMENT, momentId, hot, page, size));
     }
 
     @GetMapping("/public/article/{articleId}")
@@ -89,7 +89,7 @@ public class CommentController {
                                                           @RequestParam(defaultValue = "1") int page,
                                                           @RequestParam(defaultValue = "10") int size,
                                                           @RequestParam(defaultValue = "false") boolean hot) {
-        return ApiResponse.success(commentService.list(RelatedType.ARTICLE, articleId, hot, page, size));
+        return ApiResponse.success(commentService.list(BizType.ARTICLE, articleId, hot, page, size));
     }
 
     @GetMapping("/public/repo/{repoId}")
@@ -97,7 +97,7 @@ public class CommentController {
                                                        @RequestParam(defaultValue = "1") int page,
                                                        @RequestParam(defaultValue = "10") int size,
                                                        @RequestParam(defaultValue = "false") boolean hot) {
-        return ApiResponse.success(commentService.list(RelatedType.REPO, repoId, hot, page, size));
+        return ApiResponse.success(commentService.list(BizType.REPO, repoId, hot, page, size));
     }
 
     @GetMapping("/public/replies/{parentId}")

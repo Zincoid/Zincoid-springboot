@@ -1,6 +1,6 @@
 package com.zincoid.me.controller;
 
-import com.zincoid.me.model.enums.RelatedType;
+import com.zincoid.me.model.enums.BizType;
 import com.zincoid.me.model.ApiResponse;
 import com.zincoid.me.service.LikeService;
 import com.zincoid.me.utils.AuthCtx;
@@ -19,7 +19,7 @@ public class LikeController {
     // ──── Private endpoints ───────────────
 
     @PostMapping("/{targetType}/{targetId}")
-    public ApiResponse<Map<String, Object>> toggle(@PathVariable RelatedType targetType,
+    public ApiResponse<Map<String, Object>> toggle(@PathVariable BizType targetType,
                                                    @PathVariable Long targetId) {
         return ApiResponse.success(Map.of(
                 "liked", likeService.toggle(AuthCtx.getUserId(), targetType, targetId),
@@ -30,7 +30,7 @@ public class LikeController {
     // ──── Public endpoints ────────────────
 
     @GetMapping("/public/{targetType}/{targetId}/status")
-    public ApiResponse<Map<String, Object>> status(@PathVariable RelatedType targetType,
+    public ApiResponse<Map<String, Object>> status(@PathVariable BizType targetType,
                                                    @PathVariable Long targetId) {
         return ApiResponse.success(Map.of(
                 "liked", likeService.liked(AuthCtx.getUserId(), targetType, targetId),

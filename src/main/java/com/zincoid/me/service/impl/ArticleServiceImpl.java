@@ -2,6 +2,7 @@ package com.zincoid.me.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zincoid.me.model.enums.*;
 import com.zincoid.me.model.vo.PageVO;
 import com.zincoid.me.converter.ArticleConverter;
 import com.zincoid.me.exception.BusinessException;
@@ -11,11 +12,6 @@ import com.zincoid.me.model.dto.ArticleCreateRequest;
 import com.zincoid.me.model.dto.ArticleUpdateRequest;
 import com.zincoid.me.model.po.Article;
 import com.zincoid.me.model.po.User;
-import com.zincoid.me.model.enums.PermissionType;
-import com.zincoid.me.model.enums.RelatedType;
-import com.zincoid.me.model.enums.Status;
-import com.zincoid.me.model.enums.Role;
-import com.zincoid.me.model.enums.Visibility;
 import com.zincoid.me.model.vo.ArticleCardVO;
 import com.zincoid.me.model.vo.ArticleDetailVO;
 import com.zincoid.me.model.vo.LikerVO;
@@ -71,7 +67,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         List<String> urls = new ArrayList<>();
         if (article.getCoverImage() != null) urls.add(article.getCoverImage());
         urls.addAll(extractUploadUrls(article.getContentMd()));
-        if (!urls.isEmpty()) fileService.link(urls, RelatedType.ARTICLE, article.getId(), userId);
+        if (!urls.isEmpty()) fileService.link(urls, BizType.ARTICLE, article.getId(), userId);
         log.info("Article created: user={}, id={}", userId, article.getId());
         return buildDetailVO(article);
     }
@@ -111,7 +107,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         if (article.getCoverImage() != null && !article.getCoverImage().isBlank())
             urls.add(article.getCoverImage());
         urls.addAll(extractUploadUrls(article.getContentMd()));
-        if (!urls.isEmpty()) fileService.link(urls, RelatedType.ARTICLE, article.getId(), userId);
+        if (!urls.isEmpty()) fileService.link(urls, BizType.ARTICLE, article.getId(), userId);
         log.info("Article updated: user={}, id={}", userId, articleId);
         return buildDetailVO(article);
     }
@@ -125,9 +121,9 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             throw new BusinessException(Error.ARTICLE_NOT_FOUND);
         if (!isAdmin && !article.getUserId().equals(userId))
             throw new BusinessException(Error.NO_PERMISSION_DELETE_ARTICLE);
-        likeService.delete(RelatedType.ARTICLE, articleId);
-        commentService.delete(RelatedType.ARTICLE, articleId);
-        fileService.delete(RelatedType.ARTICLE, articleId);
+        likeService.delete(BizType.ARTICLE, articleId);
+        commentService.delete(BizType.ARTICLE, articleId);
+        fileService.delete(BizType.ARTICLE, articleId);
         removeById(articleId);
         log.info("Article deleted: user={}, admin={}, id={}", userId, isAdmin, articleId);
     }
@@ -237,17 +233,17 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     private ArticleCardVO buildCardVO(Article article) {
         User user = userService.getById(article.getUserId());
-        int commentCount = (int) commentService.count(RelatedType.ARTICLE, article.getId());
-        long likeCount = likeService.count(RelatedType.ARTICLE, article.getId());
-        boolean isLiked = likeService.liked(AuthCtx.getUserId(), RelatedType.ARTICLE, article.getId());
+        int commentCount = (int) commentService.count(BizType.ARTICLE, article.getId());
+        long likeCount = likeService.count(BizType.ARTICLE, article.getId());
+        boolean isLiked = likeService.liked(AuthCtx.getUserId(), BizType.ARTICLE, article.getId());
         return ArticleConverter.INSTANCE.toCardVO(article, user, isLiked, likeCount, commentCount);
     }
 
     private ArticleDetailVO buildDetailVO(Article article) {
         User user = userService.getById(article.getUserId());
-        long likeCount = likeService.count(RelatedType.ARTICLE, article.getId());
-        boolean isLiked = likeService.liked(AuthCtx.getUserId(), RelatedType.ARTICLE, article.getId());
-        List<LikerVO> recentLikers = likeService.getLikers(RelatedType.ARTICLE, article.getId(), 5);
+        long likeCount = likeService.count(BizType.ARTICLE, article.getId());
+        boolean isLiked = likeService.liked(AuthCtx.getUserId(), BizType.ARTICLE, article.getId());
+        List<LikerVO> recentLikers = likeService.getLikers(BizType.ARTICLE, article.getId(), 5);
         return ArticleConverter.INSTANCE.toDetailVO(article, user, isLiked, likeCount, recentLikers);
     }
 }

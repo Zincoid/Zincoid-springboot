@@ -65,7 +65,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
                 .build();
         save(repo);
         if (repo.getCoverImage() != null)
-            fileService.link(List.of(repo.getCoverImage()), RelatedType.REPO, repo.getId(), userId);
+            fileService.link(List.of(repo.getCoverImage()), BizType.REPO, repo.getId(), userId);
         log.info("Repo created: user={}, id={}, type={}", userId, repo.getId(), repo.getType());
         return buildDetailVO(repo);
     }
@@ -104,7 +104,7 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         repo.setUpdatedAt(LocalDateTime.now());
         updateById(repo);
         if (repo.getCoverImage() != null && !repo.getCoverImage().isBlank())
-            fileService.link(List.of(repo.getCoverImage()), RelatedType.REPO, repo.getId(), userId);
+            fileService.link(List.of(repo.getCoverImage()), BizType.REPO, repo.getId(), userId);
         log.info("Repo updated: user={}, id={}", userId, repoId);
         return buildDetailVO(repo);
     }
@@ -118,8 +118,8 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         if (!isAdmin && !repo.getUserId().equals(userId))
             throw new BusinessException(Error.NO_PERMISSION_DELETE_REPO);
         repoItemService.deleteByRepoId(repoId);
-        likeService.delete(RelatedType.REPO, repoId);
-        commentService.delete(RelatedType.REPO, repoId);
+        likeService.delete(BizType.REPO, repoId);
+        commentService.delete(BizType.REPO, repoId);
         notificationService.deleteAll(NotificationType.REPO_VIEWER_ACCESS_PENDING, repoId);
         notificationService.deleteAll(NotificationType.REPO_VIEWER_ACCESS_APPROVED, repoId);
         notificationService.deleteAll(NotificationType.REPO_VIEWER_ACCESS_REJECTED, repoId);
@@ -328,9 +328,9 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
     private RepoCardVO buildCardVO(Repo repo) {
         Long viewerId = AuthCtx.getUserId();
         User user = userService.getById(repo.getUserId());
-        long likeCount = likeService.count(RelatedType.REPO, repo.getId());
-        long commentCount = commentService.count(RelatedType.REPO, repo.getId());
-        boolean isLiked = likeService.liked(viewerId, RelatedType.REPO, repo.getId());
+        long likeCount = likeService.count(BizType.REPO, repo.getId());
+        long commentCount = commentService.count(BizType.REPO, repo.getId());
+        boolean isLiked = likeService.liked(viewerId, BizType.REPO, repo.getId());
         boolean restricted = isRestricted(repo, viewerId);
         boolean contributed = isContributed(repo, viewerId);
         long itemCount = repo.getType() == RepoType.CODE ? 0L
@@ -345,9 +345,9 @@ public class RepoServiceImpl extends ServiceImpl<RepoMapper, Repo> implements Re
         Long viewerId = AuthCtx.getUserId();
         User user = userService.getById(repo.getUserId());
         GitHubRepoVO github = repo.getType() == RepoType.CODE ? gitHubService.fetch(repo.getUrl()) : null;
-        boolean isLiked = likeService.liked(viewerId, RelatedType.REPO, repo.getId());
-        long likeCount = likeService.count(RelatedType.REPO, repo.getId());
-        List<LikerVO> recentLikers = likeService.getLikers(RelatedType.REPO, repo.getId(), 5);
+        boolean isLiked = likeService.liked(viewerId, BizType.REPO, repo.getId());
+        long likeCount = likeService.count(BizType.REPO, repo.getId());
+        List<LikerVO> recentLikers = likeService.getLikers(BizType.REPO, repo.getId(), 5);
         long contributorCount = repoAccessService.countContributors(repo.getId());
         List<ContributorVO> recentContributors = repoAccessService.recentContributors(repo.getId(), 5);
         boolean restricted = isRestricted(repo, viewerId);

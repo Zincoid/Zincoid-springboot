@@ -1,7 +1,7 @@
 package com.zincoid.me.service.impl;
 
+import com.zincoid.me.model.enums.BizType;
 import com.zincoid.me.model.enums.NotificationType;
-import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.po.*;
 import com.zincoid.me.service.*;
 import lombok.RequiredArgsConstructor;
@@ -127,10 +127,10 @@ public class CleanupServiceImpl implements CleanupService {
         List<Long> ids = likeService.lambdaQuery()
                 .select(Like::getId, Like::getTargetType, Like::getTargetId, Like::getUserId).list().stream()
                 .filter(l -> !users.contains(l.getUserId())
-                        || l.getTargetType() == RelatedType.MOMENT && !moments.contains(l.getTargetId())
-                        || l.getTargetType() == RelatedType.ARTICLE && !articles.contains(l.getTargetId())
-                        || l.getTargetType() == RelatedType.REPO && !repos.contains(l.getTargetId())
-                        || l.getTargetType() == RelatedType.COMMENT && !comments.contains(l.getTargetId()))
+                        || l.getTargetType() == BizType.MOMENT && !moments.contains(l.getTargetId())
+                        || l.getTargetType() == BizType.ARTICLE && !articles.contains(l.getTargetId())
+                        || l.getTargetType() == BizType.REPO && !repos.contains(l.getTargetId())
+                        || l.getTargetType() == BizType.COMMENT && !comments.contains(l.getTargetId()))
                 .map(Like::getId).toList();
         if (!ids.isEmpty()) likeService.removeBatchByIds(ids);
         return ids.size();
@@ -146,9 +146,9 @@ public class CleanupServiceImpl implements CleanupService {
                 .select(Comment::getId, Comment::getTargetType, Comment::getTargetId,
                         Comment::getUserId, Comment::getRootId).list().stream()
                 .filter(c -> !users.contains(c.getUserId())
-                        || c.getTargetType() == RelatedType.MOMENT && !moments.contains(c.getTargetId())
-                        || c.getTargetType() == RelatedType.ARTICLE && !articles.contains(c.getTargetId())
-                        || c.getTargetType() == RelatedType.REPO && !repos.contains(c.getTargetId())
+                        || c.getTargetType() == BizType.MOMENT && !moments.contains(c.getTargetId())
+                        || c.getTargetType() == BizType.ARTICLE && !articles.contains(c.getTargetId())
+                        || c.getTargetType() == BizType.REPO && !repos.contains(c.getTargetId())
                         || !roots.contains(c.getRootId()))
                 .map(Comment::getId).toList();
         if (!ids.isEmpty()) commentService.removeBatchByIds(ids);

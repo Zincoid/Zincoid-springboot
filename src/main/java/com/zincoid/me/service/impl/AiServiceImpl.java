@@ -75,13 +75,11 @@ public class AiServiceImpl implements AiService {
         if (ai.getId().equals(userId)) return;
         List<AiMessage> history = buildHistory(ai.getId());
         String prompt = configService.get(AI_CHAT_PROMPT_CONF_KEY, AI_CHAT_PROMPT_CONF_FALLBACK);
-        if (messageId != null) {
-            String note = """
-                    The mention is in message id=%d.
-                    And if it contains a reply message, you need to check it first."""
-                    .formatted(messageId);
-            prompt = prompt + "\n\n" + note;
-        }
+        String addition = """
+                The mention is in message id=%d.
+                And if it contains a reply message, you need to check it first."""
+                .formatted(messageId);
+        prompt = prompt + "\n\n" + addition;
         try {
             String reply = aiClient.invoke(history, prompt, thinking, AiTask.CHAT);
             messageService.send(ai.getId(), reply, null);
@@ -100,6 +98,15 @@ public class AiServiceImpl implements AiService {
         if (trigger == null) return;
         List<AiMessage> history = buildComments(trigger);
         String prompt = configService.get(AI_COMMENT_PROMPT_CONF_KEY, AI_COMMENT_PROMPT_CONF_FALLBACK);
+        String addition = """
+                You are mentioned in a comment on %s id=%d.
+                The mention is in comment id=%d."""
+                .formatted(
+                        trigger.getTargetType().name().toLowerCase(),
+                        trigger.getTargetId(),
+                        trigger.getId()
+                );
+        prompt = prompt + "\n\n" + addition;
         try {
             String reply = aiClient.invoke(history, prompt, thinking, AiTask.COMMENT);
             commentService.add(ai.getId(), trigger.getTargetType(),
@@ -135,8 +142,6 @@ public class AiServiceImpl implements AiService {
                         thread.stream().map(Comment::getUserId).distinct().toList())
                 .stream().collect(Collectors.toMap(User::getId, u -> u));
         StringBuilder sb = new StringBuilder();
-        sb.append("You are mentioned in a comment on %s id=%d.\n".formatted(
-                trigger.getTargetType().name().toLowerCase(), trigger.getTargetId()));
         sb.append("Comment thread:\n");
         for (Comment c : thread) {
             sb.repeat("  ", depth(byId, c));
@@ -145,7 +150,6 @@ public class AiServiceImpl implements AiService {
                 sb.append(" (reply_to_id=%d)".formatted(c.getParentId()));
             sb.append(" %s: %s\n".formatted(author(users.get(c.getUserId())), text(c.getContent())));
         }
-        sb.append("The mention is in comment id=%d.".formatted(trigger.getId()));
         return List.of(AiMessage.user(sb.toString()));
     }
 

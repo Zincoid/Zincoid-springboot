@@ -1,7 +1,7 @@
 package com.zincoid.me.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.zincoid.me.model.enums.Access;
+import com.zincoid.me.model.enums.Approval;
 import com.zincoid.me.model.enums.RequestType;
 import com.zincoid.me.model.po.File;
 import com.zincoid.me.model.po.Request;
@@ -16,7 +16,7 @@ public interface RequestService extends IService<Request> {
 
     PageVO<RequestVO> received(Long userId, int page, int size, boolean isAdmin);
 
-    RequestVO handle(Long userId, Long requestId, Access access, boolean isAdmin);
+    RequestVO handle(Long userId, Long requestId, Approval approval, boolean isAdmin);
 
     void delete(Long userId, Long requestId, boolean isAdmin);
 

@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
-public enum Access {
+public enum Approval {
 
     PENDING(0),
     APPROVED(1),
@@ -15,7 +15,7 @@ public enum Access {
     @EnumValue
     private final Integer value;
 
-    Access(Integer value) {
+    Approval(Integer value) {
         this.value = value;
     }
 
@@ -25,9 +25,9 @@ public enum Access {
     }
 
     @JsonCreator
-    public static Access fromValue(Integer value) {
+    public static Approval fromValue(Integer value) {
         if (value == null) return null;
-        for (Access s : values()) {
+        for (Approval s : values()) {
             if (s.value.equals(value)) return s;
         }
         return null;

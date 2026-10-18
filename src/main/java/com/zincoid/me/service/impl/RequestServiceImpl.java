@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.zincoid.me.exception.BusinessException;
 import com.zincoid.me.model.Error;
 import com.zincoid.me.mapper.RequestMapper;
-import com.zincoid.me.model.enums.Access;
+import com.zincoid.me.model.enums.Approval;
 import com.zincoid.me.model.enums.NotificationType;
 import com.zincoid.me.model.enums.RelatedType;
 import com.zincoid.me.model.enums.RequestType;
@@ -91,7 +91,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                 .receiverId(receiverId)
                 .type(type)
                 .meta(meta)
-                .access(Access.PENDING)
+                .approval(Approval.PENDING)
                 .createdAt(LocalDateTime.now())
                 .build();
         save(request);
@@ -134,8 +134,8 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
 
     @Override
     @Transactional
-    public RequestVO handle(Long userId, Long requestId, Access access, boolean isAdmin) {
-        if (access == null || access == Access.PENDING)
+    public RequestVO handle(Long userId, Long requestId, Approval approval, boolean isAdmin) {
+        if (approval == null || approval == Approval.PENDING)
             throw new BusinessException(Error.INVALID_HANDLE_STATUS);
         Request request = getById(requestId);
         if (request == null)
@@ -145,23 +145,23 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
             throw new BusinessException(Error.NO_PERMISSION_HANDLE_REQUEST);
         boolean updated = lambdaUpdate()
                 .eq(Request::getId, requestId)
-                .eq(Request::getAccess, Access.PENDING)
-                .set(Request::getAccess, access)
+                .eq(Request::getApproval, Approval.PENDING)
+                .set(Request::getApproval, approval)
                 .set(Request::getHandledAt, LocalDateTime.now())
                 .set(ADMIN_ONLY.contains(request.getType()), Request::getReceiverId, userId)
                 .update();
         if (!updated)
             throw new BusinessException(Error.REQUEST_ALREADY_HANDLED);
-        if (access == Access.APPROVED) apply(request);
+        if (approval == Approval.APPROVED) apply(request);
         if (!request.getSenderId().equals(userId))
             notificationService.notifyReq(
                     userId, request.getSenderId(),
-                    access == Access.APPROVED ? "Approved" : "Rejected",
+                    approval == Approval.APPROVED ? "Approved" : "Rejected",
                     requestId,
                     false
             );
-        log.info("Request handled: id={}, by={}, access={}", requestId, userId, access);
-        request.setAccess(access);
+        log.info("Request handled: id={}, by={}, approval={}", requestId, userId, approval);
+        request.setApproval(approval);
         request.setHandledAt(LocalDateTime.now());
         return toVO(request, userService.getById(request.getSenderId()), userService.getById(request.getReceiverId()));
     }
@@ -209,7 +209,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
         return lambdaQuery()
                 .eq(Request::getSenderId, userId)
                 .eq(Request::getType, RequestType.MUSIC_REQUEST)
-                .eq(Request::getAccess, Access.APPROVED)
+                .eq(Request::getApproval, Approval.APPROVED)
                 .list().stream()
                 .anyMatch(r -> {
                     JsonNode node = parseMeta(r.getMeta());
@@ -305,7 +305,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                 .receiverAvatar(receiver != null ? FileUtil.toThumbUrl(receiver.getAvatar()) : null)
                 .type(request.getType())
                 .meta(request.getMeta())
-                .access(request.getAccess())
+                .approval(request.getApproval())
                 .handledAt(request.getHandledAt())
                 .createdAt(request.getCreatedAt())
                 .build();

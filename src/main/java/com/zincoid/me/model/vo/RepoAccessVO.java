@@ -1,6 +1,6 @@
 package com.zincoid.me.model.vo;
 
-import com.zincoid.me.model.enums.Access;
+import com.zincoid.me.model.enums.Approval;
 import com.zincoid.me.model.enums.AccessType;
 import lombok.Builder;
 import lombok.Data;
@@ -18,7 +18,7 @@ public class RepoAccessVO {
     private String userNickname;
     private String userAvatar;
     private AccessType type;
-    private Access access;
+    private Approval approval;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

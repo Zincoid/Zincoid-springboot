@@ -1,6 +1,6 @@
 package com.zincoid.me.model.vo;
 
-import com.zincoid.me.model.enums.Access;
+import com.zincoid.me.model.enums.Approval;
 import com.zincoid.me.model.enums.RequestType;
 import lombok.Builder;
 import lombok.Data;
@@ -20,7 +20,7 @@ public class RequestVO {
     private String receiverAvatar;
     private RequestType type;
     private String meta;
-    private Access access;
+    private Approval approval;
     private LocalDateTime handledAt;
     private LocalDateTime createdAt;
 }

@@ -3,7 +3,7 @@ package com.zincoid.me.model.po;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.zincoid.me.model.enums.Access;
+import com.zincoid.me.model.enums.Approval;
 import com.zincoid.me.model.enums.RequestType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,7 +25,7 @@ public class Request {
     private Long receiverId;
     private RequestType type;
     private String meta;
-    private Access access;
+    private Approval approval;
     private LocalDateTime handledAt;
     private LocalDateTime createdAt;
 }

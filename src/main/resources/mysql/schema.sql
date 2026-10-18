@@ -262,7 +262,7 @@ CREATE TABLE IF NOT EXISTS `repo_access` (
     `repo_id`       BIGINT          NOT NULL                 COMMENT 'Repo ID',
     `user_id`       BIGINT          NOT NULL                 COMMENT 'User who requested access',
     `type`          TINYINT         NOT NULL DEFAULT 0       COMMENT 'Type: 0=VIEWER, 1=CONTRIBUTOR',
-    `access`        TINYINT         NOT NULL DEFAULT 0       COMMENT 'Access: 0=PENDING, 1=APPROVED, 2=REJECTED',
+    `approval`      TINYINT         NOT NULL DEFAULT 0       COMMENT 'Approval: 0=PENDING, 1=APPROVED, 2=REJECTED',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Request time',
     `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Update time',
     PRIMARY KEY (`id`),
@@ -295,13 +295,13 @@ CREATE TABLE IF NOT EXISTS `request` (
     `receiver_id`   BIGINT      NOT NULL                 COMMENT 'Receiver user ID; -1=unhandled for admin-handled requests, handler ID once processed',
     `type`          TINYINT     NOT NULL DEFAULT 0       COMMENT 'Request type: 0=STORAGE_EXTENSION, 1=REPORT, 2=MUSIC_REQUEST, 3=REPO_TRANSFER',
     `meta`          JSON        DEFAULT NULL             COMMENT 'Request meta content',
-    `access`        TINYINT     NOT NULL DEFAULT 0       COMMENT 'Access: 0=PENDING, 1=APPROVED, 2=REJECTED',
+    `approval`      TINYINT     NOT NULL DEFAULT 0       COMMENT 'Approval: 0=PENDING, 1=APPROVED, 2=REJECTED',
     `handled_at`    DATETIME    DEFAULT NULL             COMMENT 'Handle time',
     `created_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Request time',
     PRIMARY KEY (`id`),
     KEY `idx_sender_id` (`sender_id`),
     KEY `idx_receiver_id` (`receiver_id`),
-    KEY `idx_access` (`access`)
+    KEY `idx_approval` (`approval`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Generic request table for user and admin-managed requests';
 
 -- =============================================

@@ -1,7 +1,7 @@
 package com.zincoid.me.controller;
 
 import com.zincoid.me.model.ApiResponse;
-import com.zincoid.me.model.enums.Access;
+import com.zincoid.me.model.enums.Approval;
 import com.zincoid.me.model.enums.RequestType;
 import com.zincoid.me.model.enums.Role;
 import com.zincoid.me.model.vo.PageVO;
@@ -41,8 +41,8 @@ public class RequestController {
 
     @PutMapping("/{requestId}")
     public ApiResponse<RequestVO> handle(@PathVariable Long requestId,
-                                         @RequestParam Access access) {
-        return ApiResponse.success(requestService.handle(AuthCtx.getUserId(), requestId, access, AuthCtx.getRole() == Role.ADMIN));
+                                         @RequestParam Approval approval) {
+        return ApiResponse.success(requestService.handle(AuthCtx.getUserId(), requestId, approval, AuthCtx.getRole() == Role.ADMIN));
     }
 
     @DeleteMapping("/{requestId}")

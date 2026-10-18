@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.zincoid.me.model.enums.Access;
+import com.zincoid.me.model.enums.Approval;
 import com.zincoid.me.model.enums.AccessType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,7 +25,7 @@ public class RepoAccess {
     private Long repoId;
     private Long userId;
     private AccessType type;
-    private Access access;
+    private Approval approval;
     private LocalDateTime createdAt;
     @TableField(update = "NOW()")
     private LocalDateTime updatedAt;

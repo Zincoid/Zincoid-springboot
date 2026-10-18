@@ -15,7 +15,7 @@ public class NotificationVO {
     private Long senderId;
     private String senderNickname;
     private String senderAvatar;
-    private NotificationType relatedType;
+    private NotificationType type;
     private Long relatedId;
     private RelatedType targetType;
     private Long targetId;

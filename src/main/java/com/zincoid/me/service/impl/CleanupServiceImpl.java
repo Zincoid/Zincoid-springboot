@@ -159,15 +159,15 @@ public class CleanupServiceImpl implements CleanupService {
         Set<Long> users = userIds();
         Set<Long> moments = momentIds();
         List<Long> ids = notificationService.lambdaQuery()
-                .select(Notification::getId, Notification::getRelatedType, Notification::getRelatedId,
+                .select(Notification::getId, Notification::getType, Notification::getRelatedId,
                         Notification::getSenderId, Notification::getReceiverId).list().stream()
                 .filter(n -> {
                     if (!users.contains(n.getSenderId()) || !users.contains(n.getReceiverId()))
                         return true;
-                    if (n.getRelatedType() == null) return true;
-                    if (n.getRelatedType() == NotificationType.SYSTEM)
+                    if (n.getType() == null) return true;
+                    if (n.getType() == NotificationType.SYSTEM)
                         return n.getRelatedId() == null || n.getRelatedId() != -1;
-                    return switch (n.getRelatedType()) {
+                    return switch (n.getType()) {
                         case COMMENT, REPLY, COMMENT_MENTION ->
                                 commentService.getById(n.getRelatedId()) == null;
                         case MOMENT_MENTION -> !moments.contains(n.getRelatedId());

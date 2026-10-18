@@ -22,7 +22,7 @@ public class Notification {
     private Long id;
     private Long senderId;
     private Long receiverId;
-    private NotificationType relatedType;
+    private NotificationType type;
     private Long relatedId;
     private String message;
     private Boolean isRead;

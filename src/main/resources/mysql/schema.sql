@@ -183,7 +183,7 @@ CREATE TABLE IF NOT EXISTS `notification` (
     `id`            BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary Key',
     `sender_id`     BIGINT      NOT NULL                 COMMENT 'User who triggered the notification',
     `receiver_id`   BIGINT      NOT NULL                 COMMENT 'User who receives the notification',
-    `related_type`  TINYINT     NOT NULL                 COMMENT 'Notification type: 0=COMMENT, 1=REPLY, 2=MOMENT_MENTION, 3=COMMENT_MENTION, 4=CHAT_MENTION, 5=SYSTEM, 6=LIKE, 7=REGISTER, 8=ACCESS_REQUEST, 9=ACCESS_APPROVED, 10=ACCESS_REJECTED, 11=REQUEST',
+    `type`          TINYINT     NOT NULL                 COMMENT 'Notification type: 0=COMMENT, 1=REPLY, 2=MOMENT_MENTION, 3=COMMENT_MENTION, 4=CHAT_MENTION, 5=SYSTEM, 6=LIKE, 7=REGISTER, 8=REPO_VIEWER_ACCESS_PENDING, 9=REPO_VIEWER_ACCESS_APPROVED, 10=REPO_VIEWER_ACCESS_REJECTED, 11=REQUEST, 12=REPO_CONTRIBUTOR_ACCESS_PENDING, 13=REPO_CONTRIBUTOR_ACCESS_APPROVED, 14=REPO_CONTRIBUTOR_ACCESS_REJECTED',
     `related_id`    BIGINT      NOT NULL                 COMMENT 'Related target ID, -1 for SYSTEM type',
     `message`       TEXT        DEFAULT NULL             COMMENT 'Notification message (used by SYSTEM type)',
     `is_read`       BOOLEAN     NOT NULL DEFAULT FALSE   COMMENT 'Whether the notification has been read',

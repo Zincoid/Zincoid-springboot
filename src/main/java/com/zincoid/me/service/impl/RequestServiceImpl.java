@@ -193,7 +193,7 @@ public class RequestServiceImpl extends ServiceImpl<RequestMapper, Request> impl
                 .list().stream().map(Request::getId).toList();
         if (!ids.isEmpty()) {
             notificationService.lambdaUpdate()
-                    .eq(Notification::getRelatedType, NotificationType.REQUEST)
+                    .eq(Notification::getType, NotificationType.REQUEST)
                     .in(Notification::getRelatedId, ids)
                     .remove();
             removeBatchByIds(ids);

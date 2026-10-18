@@ -68,7 +68,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
             RelatedType targetType = null;
             Long targetId = null;
             String snippet = null;
-            if (n.getRelatedType() == NotificationType.COMMENT || n.getRelatedType() == NotificationType.REPLY) {
+            if (n.getType() == NotificationType.COMMENT || n.getType() == NotificationType.REPLY) {
                 Comment comment = commentService.getById(n.getRelatedId());
                 if (comment == null) continue;
                 String content = comment.getContent();
@@ -77,7 +77,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                 snippet = content;
                 targetType = comment.getTargetType();
                 targetId = comment.getTargetId();
-            } else if (n.getRelatedType() == NotificationType.MOMENT_MENTION) {
+            } else if (n.getType() == NotificationType.MOMENT_MENTION) {
                 Moment moment = momentService.getById(n.getRelatedId());
                 if (moment == null) continue;
                 String content = moment.getContent();
@@ -86,7 +86,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                 snippet = content;
                 targetType = RelatedType.MOMENT;
                 targetId = moment.getId();
-            } else if (n.getRelatedType() == NotificationType.COMMENT_MENTION) {
+            } else if (n.getType() == NotificationType.COMMENT_MENTION) {
                 Comment comment = commentService.getById(n.getRelatedId());
                 if (comment == null) continue;
                 String content = comment.getContent();
@@ -95,7 +95,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                 snippet = content;
                 targetType = comment.getTargetType();
                 targetId = comment.getTargetId();
-            } else if (n.getRelatedType() == NotificationType.CHAT_MENTION) {
+            } else if (n.getType() == NotificationType.CHAT_MENTION) {
                 Message msg = messageService.getById(n.getRelatedId());
                 if (msg == null) continue;
                 String content = msg.getContent();
@@ -103,7 +103,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                     content = content.substring(0, 80) + "...";
                 snippet = content;
                 targetType = RelatedType.CHAT;
-            } else if (n.getRelatedType() == NotificationType.LIKE) {
+            } else if (n.getType() == NotificationType.LIKE) {
                 Like like = likeService.getById(n.getRelatedId());
                 if (like == null) continue;
                 targetType = like.getTargetType();
@@ -123,22 +123,22 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
                 }
                 if (snippet != null && snippet.length() > 80)
                     snippet = snippet.substring(0, 80) + "...";
-            } else if (n.getRelatedType() == NotificationType.SYSTEM) {
+            } else if (n.getType() == NotificationType.SYSTEM) {
                 snippet = n.getMessage();
-            } else if (n.getRelatedType() == NotificationType.REQUEST) {
+            } else if (n.getType() == NotificationType.REQUEST) {
                 Request request = requestService.getById(n.getRelatedId());
                 snippet = """
                         Detail: type=%s, meta=%s
                         Status: %s""".formatted(request.getType(),
                         request.getMeta(), n.getMessage());
-            } else if (n.getRelatedType() == NotificationType.REGISTER) {
+            } else if (n.getType() == NotificationType.REGISTER) {
                 snippet = sender.getEmail();
-            } else if (n.getRelatedType() == NotificationType.REPO_VIEWER_ACCESS_PENDING
-                    || n.getRelatedType() == NotificationType.REPO_VIEWER_ACCESS_REJECTED
-                    || n.getRelatedType() == NotificationType.REPO_VIEWER_ACCESS_APPROVED
-                    || n.getRelatedType() == NotificationType.REPO_CONTRIBUTOR_ACCESS_PENDING
-                    || n.getRelatedType() == NotificationType.REPO_CONTRIBUTOR_ACCESS_REJECTED
-                    || n.getRelatedType() == NotificationType.REPO_CONTRIBUTOR_ACCESS_APPROVED) {
+            } else if (n.getType() == NotificationType.REPO_VIEWER_ACCESS_PENDING
+                    || n.getType() == NotificationType.REPO_VIEWER_ACCESS_REJECTED
+                    || n.getType() == NotificationType.REPO_VIEWER_ACCESS_APPROVED
+                    || n.getType() == NotificationType.REPO_CONTRIBUTOR_ACCESS_PENDING
+                    || n.getType() == NotificationType.REPO_CONTRIBUTOR_ACCESS_REJECTED
+                    || n.getType() == NotificationType.REPO_CONTRIBUTOR_ACCESS_APPROVED) {
                 Repo repo = repoService.getById(n.getRelatedId());
                 snippet = repo.getName();
             }
@@ -157,7 +157,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
         Notification notification = Notification.builder()
                 .senderId(senderId)
                 .receiverId(receiverId)
-                .relatedType(type)
+                .type(type)
                 .relatedId(relatedId)
                 .isRead(false)
                 .build();
@@ -187,7 +187,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
             Notification notification = Notification.builder()
                     .senderId(senderId)
                     .receiverId(receiverId)
-                    .relatedType(NotificationType.REQUEST)
+                    .type(NotificationType.REQUEST)
                     .relatedId(requestId)
                     .message(message)
                     .isRead(false)
@@ -207,7 +207,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
             batch.add(Notification.builder()
                     .senderId(senderId)
                     .receiverId(admin.getId())
-                    .relatedType(NotificationType.REQUEST)
+                    .type(NotificationType.REQUEST)
                     .relatedId(requestId)
                     .message(message)
                     .isRead(false)
@@ -231,7 +231,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
             Notification notification = Notification.builder()
                     .senderId(senderId)
                     .receiverId(user.getId())
-                    .relatedType(NotificationType.SYSTEM)
+                    .type(NotificationType.SYSTEM)
                     .relatedId(-1L)
                     .message(message.trim())
                     .isRead(false)
@@ -258,7 +258,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
     @Override
     public void deleteAll(NotificationType type, Long relatedId) {
         lambdaUpdate()
-                .eq(Notification::getRelatedType, type)
+                .eq(Notification::getType, type)
                 .eq(Notification::getRelatedId, relatedId)
                 .remove();
         log.info("Notifications deleted: relation={}:{}", type, relatedId);

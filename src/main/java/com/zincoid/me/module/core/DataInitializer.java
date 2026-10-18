@@ -78,9 +78,10 @@ public class DataInitializer implements CommandLineRunner {
             log.info("AI already exists, skipping init.");
             return;
         }
+        String password = UUID.randomUUID().toString();
         User ai = User.builder()
                 .username(AI_USERNAME)
-                .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                .password(passwordEncoder.encode(password))
                 .nickname("AI")
                 .role(Role.ADMIN)
                 .title("AI Assistant")
@@ -93,7 +94,7 @@ public class DataInitializer implements CommandLineRunner {
                 .updatedAt(LocalDateTime.now())
                 .build();
         userService.save(ai);
-        log.info("Default AI created (username: {}, id: {})", AI_USERNAME, ai.getId());
+        log.info("Default AI created (username: {}, password: {})", AI_USERNAME, password);
     }
 
     private void initUserConfigs() {

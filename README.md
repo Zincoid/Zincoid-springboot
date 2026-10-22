@@ -4,7 +4,7 @@ Personal website backend, built with Spring Boot 4.1 + MyBatis-Plus.
 
 ## Tech Stack
 
-- **Java 21** / Spring Boot 4.1
+- **Java 27** / Spring Boot 4.1
 - **MyBatis-Plus** + MySQL
 - **JWT** authentication
 - **Flexmark** Markdown rendering
